@@ -1,0 +1,78 @@
+<div class="sh-11">
+    <a href="index-2.html">
+        <div class="logo-default"></div>
+    </a>
+</div>
+<div class="mb-5">
+    <h2 class="cta-1 mb-0 text-primary">Bienvanido/a,</h2>
+    <h2 class="cta-1 text-primary">¡Empecemos!</h2>
+</div>
+<div class="mb-5">
+    <p class="h6">Utilice sus credenciales para iniciar sesión.</p>
+    <p class="h6">
+        Si no tienes acceso, por favor
+        <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal-contact">contactanos</a>
+        .
+    </p>
+</div>
+<div class="mb-5">
+    <form id="auth-sign-in-form" class="tooltip-end-bottom" autocomplete="off" novalidate>
+        <div class="mb-3 filled form-group tooltip-end-top">
+            <i data-acorn-icon="email"></i>
+            <input class="form-control" placeholder="Correo electrónico o número de identificación" name="email">
+        </div>
+        <div class="mb-3 filled form-group tooltip-end-top">
+            <i data-acorn-icon="lock-off"></i>
+            <input class="form-control pe-7" name="password" type="password"
+                placeholder="Contraseña">
+            <a class="text-small position-absolute t-3 e-3" href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal-contact">¿Olvidó?
+            </a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-icon btn-icon-end">
+            Iniciar sesión
+            <i data-acorn-icon="chevron-right"></i>
+        </button>
+    </form>
+</div>
+<div class="d-flex align-content-center align-items-center justify-content-center w-100">
+    <a href="javascript:;" data-bs-toggle="modal"
+    data-bs-target="#modal-contact"><i class="fa-solid fa-link me-1"></i> Contacto</a>
+</div>
+<script>
+    $('#auth-sign-in-form').submit(function(e) {
+        e.preventDefault();
+
+        $("#auth-sign-in-form button").prop("disabled", true);
+        var response = sendDataPost("auth/sign-in", "data", new FormData(this));
+        response.then(function (response) {            
+            if(response.success){
+                loadNoti({
+                    icon: "cs-info-hexagon",
+                    title: 'Success!',
+                    msg: response.msg,
+                    color: 'primary',
+                    time: 1000,
+                    showProgressbar: true
+                });  
+                setTimeout(function(){
+                    window.location = "/"
+                }, 2000);
+                return;
+            } else {
+                $("#auth-sign-in-form button").prop("disabled", false);  
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });   
+            }
+        }).catch(function (response) {
+            $("#auth-sign-in-form button").prop("disabled", false);
+            loadNoti({
+                title: 'Error!',
+                msg: response.msg,
+                color: 'danger'
+            });   
+        });
+    });
+</script>

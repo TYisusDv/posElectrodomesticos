@@ -1,0 +1,436 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Usuarios</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/users">Usuarios</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle mb-1" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="true">
+                    <i data-acorn-icon="menu" class="icon" data-acorn-size="16"></i>
+                </button>
+                <div class="dropdown-menu"
+                    style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate(0px, 38px);"
+                    data-popper-placement="bottom-start">
+                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal"
+                        data-bs-target="#admin-users-modal-add">Agregar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="user" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="activity" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">En línea</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_online_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="admin-users-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre completo</th>
+                            <th scope="col">Correo electrónico</th>
+                            <th scope="col">Tipo de usuario</th>
+                            <th scope="col">Teléfono</th>
+                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-users-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="admin-users-modal-add" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="admin-users-modal-addLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="admin-users-modal-addLabel">Agregar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="admin-users-form-add" autocomplete="off">
+                <div class="modal-body">  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="lock-on"></i>
+                        <input type="password"  class="form-control" placeholder="Contraseña" name="us_password">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="phone"></i>
+                        <input class="form-control" placeholder="Número telefónico" name="pe_phone">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="category"></i>
+                        <select class="form-control" name="mem_id">
+                            <option value="0" class="bg-dark">Selecciona alguno...</option>
+                            {% for membership in memberships%}
+                            <option value="{{membership.mem_id}}" class="bg-dark">{{membership.mem_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="admin-users-modal-edit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="admin-users-modal-editLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="admin-users-modal-editLabel">Editar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="admin-users-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="us_id" readonly>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="lock-on"></i>
+                        <input type="password" class="form-control" placeholder="Contraseña" name="us_password">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="phone"></i>
+                        <input class="form-control" placeholder="Número telefónico" name="pe_phone">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="category"></i>
+                        <select class="form-control" name="mem_id">
+                            {% for membership in memberships%}
+                            <option value="{{membership.mem_id}}" class="bg-dark">{{membership.mem_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2">
+                        <label for="">Permisos</label>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-1" value="/pos/manage/users">
+                                    <label class="form-check-label" for="manage-users-permissions-1">Administrar usuarios</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-2" value="/pos/manage/customers">
+                                    <label class="form-check-label" for="manage-users-permissions-2">Administrar clientes</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-3" value="/pos/manage/paymentmethods">
+                                    <label class="form-check-label" for="manage-users-permissions-3">Administrar métodos de pago</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-4" value="/pos/manage/locations">
+                                    <label class="form-check-label" for="manage-users-permissions-4">Administrar ubicaciones</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-5" value="/pos/manage/products">
+                                    <label class="form-check-label" for="manage-users-permissions-5">Administrar productos</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-6" value="/pos/manage/providers">
+                                    <label class="form-check-label" for="manage-users-permissions-6">Administrar proveedores</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-7" value="/pos/manage/categories">
+                                    <label class="form-check-label" for="manage-users-permissions-7">Administrar categorías</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-8" value="/pos/manage/brands">
+                                    <label class="form-check-label" for="manage-users-permissions-8">Administrar marcas</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-9" value="/pos/manage/sales">
+                                    <label class="form-check-label" for="manage-users-permissions-9">Administrar ventas</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-10" value="/pos/manage/dbbackup">
+                                    <label class="form-check-label" for="manage-users-permissions-10">Administrar copias de seguridad</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $(document).ready(function () {
+            table_setdata('#admin-users-table', 'pos/manage/users/table');
+        });
+
+        function edit_user(e){
+            var user_permissions = $(e).attr('user_permissions');
+
+            if (user_permissions !== 'None') {
+                var list = eval(user_permissions);
+
+                $.each(list, function(index, element) {
+                    $('input[name="manage-users-permissions"][value="' + element + '"]').prop('checked', true);
+                });
+
+                $('input[name="manage-users-permissions"]').each(function() {
+                    var value = $(this).val();
+                    if ($.inArray(value, list) === -1) {
+                    $(this).prop('checked', false);
+                    }
+                });
+            } else {
+                $('input[name="manage-users-permissions"]').prop('checked', false);
+            }
+
+            var user_json = JSON.parse($(e).attr('user'));
+            var id = table_tempelement(user_json.id).find('span').text();
+            var fullname = table_tempelement(user_json.fullname).text();
+            var email = table_tempelement(user_json.email).text();
+            var phone = table_tempelement(user_json.phone).text();
+            var membership = table_tempelement(user_json.membership).find('span').text();
+
+            $('#admin-users-form-edit input[name=us_id]').val(id);
+            $('#admin-users-form-edit input[name=pe_fullname]').val(fullname);
+            $('#admin-users-form-edit input[name=pe_email]').val(email);
+            $('#admin-users-form-edit input[name=pe_phone]').val(phone);
+            $('#admin-users-form-edit input[name=us_password]').val('');
+            $('#admin-users-form-edit select[name="mem_id"] option').filter(function () {
+                return $(this).text() === membership;
+            }).prop('selected', true);
+
+            $('#admin-users-modal-edit').modal('show');
+        }
+        window.edit_user = edit_user;
+
+        $('#admin-users-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#admin-users-table', 'pos/manage/users/table', $('#admin-users-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/users'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#admin-users-table', 'pos/manage/users/table', $('#admin-users-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        $('#admin-users-form-add').submit(function (e) {
+            e.preventDefault();
+
+            $('#admin-users-form-add button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/users/add', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#admin-users-modal-add').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#admin-users-form-add button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#admin-users-modal-add').modal('hide');
+                $('#admin-users-form-add button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#admin-users-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#admin-users-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/users/edit', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#admin-users-modal-edit').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#admin-users-form-edit button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#admin-users-modal-edit').modal('hide');
+                $('#admin-users-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+    })();
+</script>

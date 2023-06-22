@@ -1,0 +1,7 @@
+{% for data in table %}
+<tr>
+    {% for key, value in data.items() %}
+      <td>{{ value|safe }}</td>
+    {% endfor %}
+</tr>
+{% endfor %}
