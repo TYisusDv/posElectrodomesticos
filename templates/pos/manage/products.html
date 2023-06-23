@@ -1,0 +1,546 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Productos</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/products">Productos</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle mb-1" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="true">
+                    <i data-acorn-icon="menu" class="icon" data-acorn-size="16"></i>
+                </button>
+                <div class="dropdown-menu"
+                    style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate(0px, 38px);"
+                    data-popper-placement="bottom-start">
+                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal"
+                        data-bs-target="#manage-products-modal-add">Agregar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="user" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Visible</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{visible_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye-off" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Oculto</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{hidden_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="manage-products-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Imagen</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Código de barras</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Modelo</th>
+                            <th scope="col">Marca</th>
+                            <th scope="col">Descripción</th>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Costo</th>
+                            <th scope="col">Proveedor</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Estatus</th>
+                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-products-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="manage-products-modal-add" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-products-modal-addLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-products-modal-addLabel">Agregar producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-products-form-add" autocomplete="off">
+                <div class="modal-body">  
+                    <div class="mb-4 filled form-group tooltip-end-top d-flex justify-content-center">
+                        <div class="position-relative d-inline-block" id="manage-products-pr_img-add-div">
+                            <img src="/static/img/icon.jpg" id="manage-products-pr_img-add" alt="alternate text"
+                                class="rounded-xl border border-separator-light border-4 sw-11 sh-11">
+                            <button
+                                class="btn btn-sm btn-icon btn-icon-only btn-separator-light rounded-xl position-absolute e-0 b-0"
+                                type="button">
+                                <i data-acorn-icon="upload"></i>
+                            </button>
+                            <input class="file-upload d-none" type="file" accept="image/*">
+                        </div>
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="Código de barras" name="pr_barcode">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nombre" name="pr_name">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="form"></i>
+                        <input class="form-control" placeholder="Modelo" name="pr_model">
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
+                        <i data-acorn-icon="bootstrap"></i>
+                        <input type="text" id="manage-products-br_name-add" name="br_name" placeholder="Marca" class="form-control" autocomplete="off">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="align-justify"></i>
+                        <input class="form-control" placeholder="Descripción" name="pr_description">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
+                        <i data-acorn-icon="category"></i>
+                        <input type="text" id="manage-products-ca_name-add" name="ca_name" placeholder="Categoría" class="form-control" autocomplete="off">
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="money-bag"></i>
+                        <input class="form-control" placeholder="Costo" name="pr_cost">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="factory"></i>
+                        <select class="form-control" name="pv_id">
+                            <option value="0" class="bg-dark">Selecciona el proveedor...</option>
+                            {% for provider in providers %}
+                            <option value="{{provider.pv_id}}" class="bg-dark">{{provider.pe_fullname}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Precio" name="pr_price">
+                    </div>                   
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="manage-products-modal-edit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-products-modal-editLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-products-modal-editLabel">Editar producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-products-form-edit" autocomplete="off">
+                <div class="modal-body">                                       
+                    <div class="mb-4 filled form-group tooltip-end-top d-flex justify-content-center">
+                        <div class="position-relative d-inline-block" id="manage-products-pr_img-edit-div">
+                            <img src="/static/img/icon.jpg" id="manage-products-pr_img-edit" alt="alternate text"
+                                class="rounded-xl border border-separator-light border-4 sw-11 sh-11">
+                            <button
+                                class="btn btn-sm btn-icon btn-icon-only btn-separator-light rounded-xl position-absolute e-0 b-0"
+                                type="button">
+                                <i data-acorn-icon="upload"></i>
+                            </button>
+                            <input class="file-upload d-none" type="file" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="pr_id" readonly>
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="Código de barras" name="pr_barcode">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nombre" name="pr_name">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="form"></i>
+                        <input class="form-control" placeholder="Modelo" name="pr_model">
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
+                        <i data-acorn-icon="bootstrap"></i>
+                        <input type="text" id="manage-products-br_name-edit" name="br_name" placeholder="Marca" class="form-control" autocomplete="off">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="align-justify"></i>
+                        <input class="form-control" placeholder="Descripción" name="pr_description">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
+                        <i data-acorn-icon="category"></i>
+                        <input type="text" id="manage-products-ca_name-edit" name="ca_name" placeholder="Categoría" class="form-control" autocomplete="off">
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="money-bag"></i>
+                        <input class="form-control" placeholder="Costo" name="pr_cost">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="factory"></i>
+                        <select class="form-control" name="pv_id">                            
+                            {% for provider in providers %}
+                            <option value="{{provider.pv_id}}" class="bg-dark">{{provider.pe_fullname}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Precio" name="pr_price">
+                    </div>           
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $(document).ready(function () {
+            table_setdata('#manage-products-table', 'pos/manage/products/table');
+
+            new SingleImageUpload(document.getElementById("manage-products-pr_img-add-div"), {
+                fileSelectCallback: (e) => {},
+            });
+
+            new AutocompleteCustom("manage-products-br_name-add", "manage-products-br_name-add-results", {
+                data: {
+                    src: [
+                        {% for brand in brands %}
+                        "{{brand.br_name}}",
+                        {% endfor %}
+                    ],
+                },
+                placeHolder: "Marca",
+                searchEngine: "strict",
+                highlight: !0,
+            });
+            
+            new AutocompleteCustom("manage-products-ca_name-add", "manage-products-ca_name-add-results", {
+                data: {
+                    src: [
+                        {% for category in categories %}
+                        "{{category.ca_name}}",
+                        {% endfor %}
+                    ],
+                },
+                placeHolder: "Categoría",
+                searchEngine: "strict",
+                highlight: !0,
+            });
+
+            new SingleImageUpload(document.getElementById("manage-products-pr_img-edit-div"), {
+                fileSelectCallback: (e) => {},
+            });
+
+            new AutocompleteCustom("manage-products-br_name-edit", "manage-products-br_name-edit-results", {
+                data: {
+                    src: [
+                        {% for brand in brands %}
+                        "{{brand.br_name}}",
+                        {% endfor %}
+                    ],
+                },
+                placeHolder: "Marca",
+                searchEngine: "strict",
+                highlight: !0,
+            });
+            
+            new AutocompleteCustom("manage-products-ca_name-edit", "manage-products-ca_name-edit-results", {
+                data: {
+                    src: [
+                        {% for category in categories %}
+                        "{{category.ca_name}}",
+                        {% endfor %}
+                    ],
+                },
+                placeHolder: "Categoría",
+                searchEngine: "strict",
+                highlight: !0,
+            });
+        });
+
+        function edit_product(e){
+            var product_json = JSON.parse($(e).attr('product'));
+            var img = table_tempelement(product_json.image).find('img').attr('src');
+            var id = table_tempelement(product_json.id).find('span').text();
+            var barcode = table_tempelement(product_json.barcode).text();
+            var name = table_tempelement(product_json.name).text();
+            var model = table_tempelement(product_json.model).text();
+            var brand = table_tempelement(product_json.brand).find('span').text();
+            var description = table_tempelement(product_json.description).text();
+            var category = table_tempelement(product_json.category).find('span').text();
+            var cost = table_tempelement(product_json.cost).text();
+            var provider = table_tempelement(product_json.provider).find('span').text();
+            var price = table_tempelement(product_json.price).text();
+
+            $('#manage-products-pr_img-edit').attr('src', img);
+            $('#manage-products-form-edit input[name=pr_id]').val(id);
+            $('#manage-products-form-edit input[name=pr_barcode]').val(barcode);
+            $('#manage-products-form-edit input[name=pr_name]').val(name);
+            $('#manage-products-form-edit input[name=pr_model]').val(model);
+            $('#manage-products-form-edit input[name=br_name]').val(brand);
+            $('#manage-products-form-edit input[name=pr_description]').val(description);
+            $('#manage-products-form-edit input[name=ca_name]').val(category);
+            $('#manage-products-form-edit input[name=pr_cost]').val(cost);
+            $('#manage-products-form-edit select[name="pv_id"] option').filter(function () {
+                return $(this).text() === provider;
+            }).prop('selected', true);
+            $('#manage-products-form-edit input[name=pr_price]').val(price);
+
+            $('#manage-products-modal-edit').modal('show');
+        }
+        window.edit_product = edit_product;
+
+        $('#manage-products-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#manage-products-table', 'pos/manage/products/table', $('#manage-products-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/products'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#manage-products-table', 'pos/manage/products/table', $('#manage-products-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        function check_status_product(e) {
+            var switchElement = $(e);
+            var pr_id = $(e).attr('pr_id');
+            var pr_status = 0;
+
+            if ($(e).is(':checked')) {
+                pr_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (pr_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('pr_id', pr_id);
+            formData.append('pr_status', pr_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/products/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_product = check_status_product;
+
+        $('#manage-products-form-add').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-products-form-add button[type="submit"]').prop('disabled', true);
+            var formData = new FormData(this);
+            formData.append('pr_img', $('#manage-products-pr_img-add').attr('src'));
+            var response = sendDataPost('pos/manage/products/add', 'data', formData);
+            response.then(function (response) {
+                $('#manage-products-modal-add').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-products-form-add button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-products-modal-add').modal('hide');
+                $('#manage-products-form-add button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#manage-products-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-products-form-edit button[type="submit"]').prop('disabled', true);
+            var formData = new FormData(this);
+            formData.append('pr_img', $('#manage-products-pr_img-edit').attr('src'));
+            var response = sendDataPost('pos/manage/products/edit', 'data', formData);
+            response.then(function (response) {
+                $('#manage-products-modal-edit').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-products-form-edit button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-products-modal-edit').modal('hide');
+                $('#manage-products-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+    })();
+</script>

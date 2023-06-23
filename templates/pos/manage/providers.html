@@ -1,0 +1,378 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Proveedores</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/providers">Proveedores</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle mb-1" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="true">
+                    <i data-acorn-icon="menu" class="icon" data-acorn-size="16"></i>
+                </button>
+                <div class="dropdown-menu"
+                    style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate(0px, 38px);"
+                    data-popper-placement="bottom-start">
+                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal"
+                        data-bs-target="#manage-providers-modal-add">Agregar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="user" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Visible</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{visible_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye-off" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Oculto</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{hidden_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="manage-providers-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Correo electrónico</th>
+                            <th scope="col">Teléfono</th>
+                            <th scope="col">Estatus</th>
+                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-providers-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="manage-providers-modal-add" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-providers-modal-addLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-providers-modal-addLabel">Agregar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-providers-form-add" autocomplete="off">
+                <div class="modal-body">  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="phone"></i>
+                        <input class="form-control" placeholder="Número telefónico" name="pe_phone">
+                    </div>              
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="manage-providers-modal-edit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-providers-modal-editLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-providers-modal-editLabel">Editar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-providers-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="pv_id" readonly>
+                    </div>                    
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="phone"></i>
+                        <input class="form-control" placeholder="Número telefónico" name="pe_phone">
+                    </div>    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $(document).ready(function () {
+            table_setdata('#manage-providers-table', 'pos/manage/providers/table');
+        });
+
+        function edit_provider(e){
+            var provider_json = JSON.parse($(e).attr('provider'));
+            var id = table_tempelement(provider_json.id).find('span').text();
+            var fullname = table_tempelement(provider_json.fullname).text();
+            var email = table_tempelement(provider_json.email).text();
+            var phone = table_tempelement(provider_json.phone).text();
+
+            $('#manage-providers-form-edit input[name=pv_id]').val(id);
+            $('#manage-providers-form-edit input[name=pe_fullname]').val(fullname);
+            $('#manage-providers-form-edit input[name=pe_email]').val(email);
+            $('#manage-providers-form-edit input[name=pe_phone]').val(phone);
+
+            $('#manage-providers-modal-edit').modal('show');
+        }
+        window.edit_provider = edit_provider;
+
+        $('#manage-providers-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#manage-providers-table', 'pos/manage/providers/table', $('#manage-providers-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/providers'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#manage-providers-table', 'pos/manage/providers/table', $('#manage-providers-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        function check_status_provider(e) {
+            var switchElement = $(e);
+            var pv_id = $(e).attr('pv_id');
+            var pv_status = 0;
+
+            if ($(e).is(':checked')) {
+                pv_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (pv_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('pv_id', pv_id);
+            formData.append('pv_status', pv_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/providers/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_provider = check_status_provider;
+
+        $('#manage-providers-form-add').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-providers-form-add button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/providers/add', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-providers-modal-add').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-providers-form-add button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-providers-modal-add').modal('hide');
+                $('#manage-providers-form-add button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#manage-providers-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-providers-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/providers/edit', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-providers-modal-edit').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-providers-form-edit button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-providers-modal-edit').modal('hide');
+                $('#manage-providers-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+    })();
+</script>

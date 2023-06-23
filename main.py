@@ -13,8 +13,8 @@ def web_main(path):
             return render_template("/auth/index.html", web_settings = web_settings)
        
         if v_apiurlsplit[0] == 'pos':
-            v_userinfo = us_users_model().get_user(id=session['us_id'])
-            v_usersession = sess_usersessions_model().get_session(id=session['sess_id'])
+            v_userinfo = us_users_model().get_user(us_id=session['us_id'])
+            v_usersession = sess_usersessions_model().get_session(sess_id=session['sess_id'])
             v_apipermissions = api_permissions(v_userinfo['mem_id'])
 
             return render_template("/pos/index.html", web_settings = web_settings, userinfo = v_userinfo, apipermissions = v_apipermissions) 

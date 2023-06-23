@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, escape, make_response, send_file
 from flask_mysqldb import MySQL
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from passlib.hash import bcrypt
 from itsdangerous import URLSafeSerializer
@@ -75,7 +76,7 @@ def api_verify_session():
     
     from models import sess_usersessions_model
     
-    v_sess = sess_usersessions_model().get_session(id=session["sess_id"])
+    v_sess = sess_usersessions_model().get_session(sess_id=session["sess_id"])
     if v_sess is None or v_sess["us_id"] != session["us_id"]:
         session.clear()
         return 0
@@ -164,3 +165,10 @@ def api_getdevice(user_agent):
         device_name = 'Other'
 
     return device_name
+
+def api_getimagedata(path_file):
+    with open(path_file, 'rb') as archivo:
+        datas = archivo.read()
+        data_decode = base64.b64encode(datas).decode('utf-8')
+        data = f"data:image/jpg;base64,{data_decode}"
+    return data
