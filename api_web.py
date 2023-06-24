@@ -40,7 +40,10 @@ def api_web(path):
                 if 111529 in v_apipermissions and v_userinfo['us_status'] == 1:
                     #POS
                     if v_apiurlsplit[2] is None:
-                        return json.dumps({'success': True, 'html': render_template('/pos/pos.html')})
+                        locations = lo_locations_model().get_locations(get='status', lo_status=1)
+                        typessales = ts_typessales_model().get_typessales()
+                        paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
+                        return json.dumps({'success': True, 'html': render_template('/pos/pos.html', locations = locations, typessales = typessales, paymentmethods = paymentmethods)})
                     
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
@@ -337,6 +340,18 @@ def api_web(path):
                                     info = serializer.loads(token)
                                 except:
                                     info = {
+                                        'location': {
+                                            'lo_id': 0,
+                                            'lo_name': '',
+                                        },
+                                        'typesale': {
+                                            'ts_id': 0,
+                                            'ts_name': '',
+                                        },
+                                        'paymentmethod': {
+                                            'pm_id': 0,
+                                            'pm_name': '',
+                                        },                                        
                                         'customer': {
                                             'cu_id': 'N/A',
                                             'pe_id': '',
@@ -344,11 +359,26 @@ def api_web(path):
                                             'pe_email': '',
                                             'pe_phone': '',
                                         },
-                                        'products': []
+                                        'products': [],
+                                        'subtotal': 0,
+                                        'commission': 0,
+                                        'commission_per': 0,
+                                        'discount_per': 0,
+                                        'discount': 0,
                                     }
 
-                                    token = serializer.dumps(info)                                   
+                                subtotal = sum(product['total'] for product in info['products'])
+                                commission = subtotal * (info['commission_per'] / 100)
+                                total_full = (subtotal + commission)
+                                descuento = total_full * (info['discount_per'] / 100)
+                                total = total_full - descuento
 
+                                info['subtotal'] = '{:.2f}'.format(subtotal).rstrip('0').rstrip('.')
+                                info['commission'] = '{:.2f}'.format(commission).rstrip('0').rstrip('.')
+                                info['discount'] = '{:.2f}'.format(descuento).rstrip('0').rstrip('.')
+                                info['total'] = '{:.2f}'.format(total).rstrip('0').rstrip('.')
+
+                                token = serializer.dumps(info) 
                                 response = make_response(json.dumps({'success': True, 'info': info}))                         
                                 response.set_cookie('posinfo', token) 
                                 
@@ -384,6 +414,110 @@ def api_web(path):
                                 response.set_cookie('posinfo', token) 
 
                                 return response
+                            elif v_apiurlsplit[4] == 'product' and v_apiurlsplit[5] is None:
+                                pr_id = v_requestform.get('pr_id')
+                                if not pr_id:
+                                    return json.dumps({'success': False, 'msg': '¡El producto está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                pr_product = pr_products_model().get_product(pr_id)
+                                if pr_product is None:
+                                    return json.dumps({'success': False, 'msg': '¡El producto no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif pr_product['pr_status'] == 0:
+                                    return json.dumps({'success': False, 'msg': '¡El producto está desactivado! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                quantity = v_requestform.get('quantity')
+                                if not quantity:
+                                    return json.dumps({'success': False, 'msg': '¡La cantidad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif not api_isFloat(quantity):
+                                    return json.dumps({'success': False, 'msg': '¡La cantidad no es válida!  Por favor, corríjala y vuelva a intentarlo.'})
+
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creó la venta! Póngase en contacto con un soporte técnico.'})
+
+                                existing_product = None
+                                for product in info['products']:
+                                    if product['pr_id'] == pr_id:
+                                        existing_product = product
+                                        break
+
+                                if existing_product is not None:
+                                    existing_product['quantity'] = float(quantity)
+                                    if existing_product['quantity'] <= 0:
+                                        info['products'].remove(existing_product)
+                                    else:
+                                        existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
+                                        existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img=f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
+                                
+                                token = serializer.dumps(info)
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))
+                                response.set_cookie('posinfo', token)
+
+                                return response
+                            elif v_apiurlsplit[4] == 'sale' and v_apiurlsplit[5] is None:
+                                lo_id = v_requestform.get('lo_id')
+                                if not lo_id:
+                                    return json.dumps({'success': False, 'msg': '¡La sucursal está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                lo_location = lo_locations_model().get_location(lo_id)
+                                if lo_location is None:
+                                    return json.dumps({'success': False, 'msg': '¡La sucursal no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif lo_location['lo_status'] == 0:
+                                    return json.dumps({'success': False, 'msg': '¡La sucursal esta prohibida! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                ts_id = v_requestform.get('ts_id')
+                                if not ts_id:
+                                    return json.dumps({'success': False, 'msg': '¡El tipo de venta está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                ts_typesale = ts_typessales_model().get_typesale(ts_id)
+                                if ts_typesale is None:
+                                    return json.dumps({'success': False, 'msg': '¡El tipo de venta no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                                                
+                                pm_id = v_requestform.get('pm_id')
+                                if not pm_id:
+                                    return json.dumps({'success': False, 'msg': '¡El método de pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                pm_paymentmethod = pm_paymentmethods_model().get_paymentmethod(pm_id)
+                                if pm_paymentmethod is None:
+                                    return json.dumps({'success': False, 'msg': '¡El método de pago no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif pm_paymentmethod['pm_status'] == 0:
+                                    return json.dumps({'success': False, 'msg': '¡El método de pago esta prohibido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                discount_per = v_requestform.get('discount_per')
+                                if not discount_per:
+                                    return json.dumps({'success': False, 'msg': '¡El descuento está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(discount_per):
+                                    return json.dumps({'success': False, 'msg': '¡El descuento no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif float(discount_per) > 100 or float(discount_per) < 0:
+                                    return json.dumps({'success': False, 'msg': '¡El descuento no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})                                 
+
+                                info['location']['lo_id'] = lo_id
+                                info['location']['lo_name'] = lo_location['lo_name']
+                                info['typesale']['ts_id'] = ts_id
+                                info['typesale']['ts_name'] = ts_typesale['ts_name']
+                                info['paymentmethod']['pm_id'] = pm_id
+                                info['paymentmethod']['pm_name'] = pm_paymentmethod['pm_name']
+                                info['discount_per'] = float(discount_per)
+                                info['commission_per'] = float(pm_paymentmethod['pm_per'])
+
+                                token = serializer.dumps(info) 
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))                         
+                                response.set_cookie('posinfo', token) 
+
+                                return response
+                            
                         elif v_apiurlsplit[3] == 'add':
                             if v_apiurlsplit[4] == 'product' and v_apiurlsplit[5] is None:
                                 pr_id = v_requestform.get('pr_id')
@@ -413,7 +547,7 @@ def api_web(path):
                                 if existing_product is not None:
                                     existing_product['quantity'] += 1
                                     existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
-                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity=existing_product['quantity'], total=existing_product['total'])
+                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
                                 else:
                                     new_product = {
                                         'pr_id': pr_product['pr_id'],
@@ -425,7 +559,7 @@ def api_web(path):
                                         'br_name': pr_product['br_name'],
                                         'quantity': 1,
                                         'total': pr_product['pr_price'],
-                                        'html': render_template('/widget/card-products-cart.html', pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], quantity=1, total=pr_product['pr_price'])
+                                        'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], quantity='{:.2f}'.format(1).rstrip('0').rstrip('.'), total='{:.2f}'.format(pr_product['pr_price']).rstrip('0').rstrip('.'))
                                     }
                                     info['products'].append(new_product)
 

@@ -38,8 +38,7 @@
                                 <input class="form-control" placeholder="Número telefónico" name="pe_phone" disabled>
                             </div>
                             <div class="filled form-group tooltip-end-top">
-                                <button class="btn btn-primary w-100 fs-6" data-bs-toggle="modal"
-                                    data-bs-target="#pos-customers-modal"><i data-acorn-icon="search"
+                                <button class="btn btn-primary w-100 fs-6" data-bs-toggle="modal" data-bs-target="#pos-customers-modal"><i data-acorn-icon="search"
                                         data-acorn-size="18"></i></button>
                             </div>
                         </div>
@@ -62,22 +61,22 @@
                                 
                             </div>
                             <hr />
-                            <div class="row g-2">
+                            <div class="row g-2" id="pos-info-div">
                                 <div class="col-6">
                                     <h1 class="text-primary font-heading display-7 d-flex"
                                         style="justify-content: space-between;">Subtotal: <span
-                                            class="text-body font-standard">$0</span></h1>
+                                            class="text-body font-standard" name="subtotal">$0</span></h1>
                                     <h1 class="text-primary font-heading display-7 d-flex"
                                         style="justify-content: space-between;">Comisión: <span
-                                            class="text-body font-standard">$0</span></h1>
+                                            class="text-body font-standard" name="commission">$0</span></h1>
                                     <h1 class="text-primary font-heading display-7 d-flex"
                                         style="justify-content: space-between;">Descuento: <span
-                                            class="text-body font-standard">$0</span></h1>
+                                            class="text-body font-standard" name="discount">$0</span></h1>
                                 </div>
                                 <div class="col-6">
                                     <h1 class="text-primary font-heading display-6 d-flex justify-content-end">Total
                                     </h1>
-                                    <span class="text-body font-standard display-7 d-flex justify-content-end">$0</span>
+                                    <span class="text-body font-standard display-7 d-flex justify-content-end" name="total">$0</span>
                                 </div>
                             </div>
                         </div>
@@ -89,22 +88,30 @@
             <div class="row g-2">
                 <div class="col-12">
                     <div class="card mb-3">
-                        <div class="card-body">
+                        <div class="card-body" id="pos-sale-info">
                             <h1 class="text-primary font-heading display-7 mb-3">Venta</h1>
                             <div class="mb-3 filled form-group tooltip-end-top">
                                 <i data-acorn-icon="shop"></i>
-                                <input class="form-control" placeholder="Sucursal" name="pe_fullname" disabled>
+                                <input class="form-control" placeholder="Sucursal" name="lo_name" disabled>
                             </div>
                             <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="credit-card"></i>
-                                <input class="form-control" placeholder="Tipo de pago" name="pe_email" disabled>
+                                <i data-acorn-icon="diagram-2"></i>
+                                <input class="form-control" placeholder="Tipo de venta" name="ts_name" disabled>
                             </div>
                             <div class="mb-3 filled form-group tooltip-end-top">
                                 <i data-acorn-icon="grid-1"></i>
                                 <input class="form-control" placeholder="Cantidad de pagos" name="pe_phone" disabled>
                             </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="credit-card"></i>
+                                <input class="form-control" placeholder="Método de pago" name="pm_name" disabled>
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="sale-tag"></i>
+                                <input class="form-control" placeholder="Descuento" name="discount_per" disabled>
+                            </div>
                             <div class="filled form-group tooltip-end-top">
-                                <button class="btn btn-primary w-100"><i data-acorn-icon="edit-square"
+                                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#pos-sale-edit-modal"><i data-acorn-icon="edit-square"
                                         data-acorn-size="18"></i></button>
                             </div>
                         </div>
@@ -112,7 +119,7 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="filled form-group tooltip-end-top">
-                                <button class="btn btn-primary w-100 fs-6"><i data-acorn-icon="basket"
+                                <button class="btn btn-primary w-100 fs-6" disabled><i data-acorn-icon="basket"
                                         data-acorn-size="18"></i> Finalizar</button>
                             </div>
                         </div>
@@ -130,19 +137,17 @@
                 <h5 class="modal-title" id="pos-customers-modalLabel">Clientes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="manage-paymentmethods-form-edit" autocomplete="off">
-                <div class="modal-body">
-                    <div class="ps-2 col-4">
-                        <div class="mb-2 filled form-group tooltip-end-top">
-                            <i data-acorn-icon="search"></i>
-                            <input class="form-control" placeholder="Búsqueda" id="pos-customers-search">
-                        </div>
-                    </div>
-                    <div class="p-3" style="height: 350px; overflow: auto;" id="pos-customers-table">
-
+            <div class="modal-body">
+                <div class="ps-2 col-4">
+                    <div class="mb-2 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="search"></i>
+                        <input class="form-control" placeholder="Búsqueda" id="pos-customers-search">
                     </div>
                 </div>
-            </form>
+                <div class="p-3" style="height: 350px; overflow: auto;" id="pos-customers-table">
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -154,17 +159,92 @@
                 <h5 class="modal-title" id="pos-products-modalLabel">Productos</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="manage-paymentmethods-form-edit" autocomplete="off">
-                <div class="modal-body">
-                    <div class="ps-2 col-4">
-                        <div class="mb-2 filled form-group tooltip-end-top">
-                            <i data-acorn-icon="search"></i>
-                            <input class="form-control" placeholder="Búsqueda" id="pos-products-search">
-                        </div>
+            <div class="modal-body">
+                <div class="ps-2 col-4">
+                    <div class="mb-2 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="search"></i>
+                        <input class="form-control" placeholder="Búsqueda" id="pos-products-search">
                     </div>
-                    <div class="p-3" style="height: 350px; overflow: auto;" id="pos-products-table">
+                </div>
+                <div class="p-3" style="height: 350px; overflow: auto;" id="pos-products-table">
 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pos-products-edit-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-products-edit-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-products-edit-modalLabel">Editar cantidad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pos-products-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="pr_id" readonly>
+                    </div>      
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="grid-1"></i>
+                        <input class="form-control" placeholder="Cantidad" name="quantity">
+                    </div>  
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pos-sale-edit-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-sale-edit-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-sale-edit-modalLabel">Editar venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pos-sale-form-edit" autocomplete="off">
+                <div class="modal-body">     
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="shop"></i>
+                        <select class="form-control" name="lo_id">
+                            <option value="0" class="bg-dark">Selecciona la sucursal...</option>
+                            {% for location in locations %}
+                            <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>                    
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="diagram-2"></i>
+                        <select class="form-control" name="ts_id">
+                            <option value="0" class="bg-dark">Selecciona el tipo de venta...</option>
+                            {% for typesale in typessales %}
+                            <option value="{{typesale.ts_id}}" class="bg-dark">{{typesale.ts_name}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="credit-card"></i>
+                        <select class="form-control" name="pm_id">
+                            <option value="0" class="bg-dark">Selecciona el método de pago...</option>
+                            {% for paymentmethod in paymentmethods %}
+                            <option value="{{paymentmethod.pm_id}}" class="bg-dark">{{paymentmethod.pm_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="sale-tag"></i>
+                        <input class="form-control" placeholder="Porcentaje de descuento" name="discount_per" value="0">
+                    </div>  
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Guardar</button>
                 </div>
             </form>
         </div>
@@ -172,10 +252,48 @@
 </div>
 <script>
     (function () {
+        var pos_page_customers = 1;
+        var pos_total_page_customers = 1;
+        var pos_isLoading_customers = false;
+
+        var pos_page_products = 1;
+        var pos_total_page_products = 1;
+        var pos_isLoading_products = false;
+
         $(document).ready(function () {
             pos_customers_table(1);
             pos_products_table(1);
             pos_get_info();
+        });
+
+        $('#pos-customers-table').scroll(function() {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(this).prop("scrollHeight");
+            var clientHeight = $(this).prop("clientHeight");
+
+            if (scrollTop + clientHeight >= scrollHeight && !pos_isLoading_customers) {
+                if(pos_page_customers < pos_total_page_customers){
+                    pos_isLoading_customers = true;
+                    pos_page_customers++; 
+
+                    pos_customers_table(pos_page_customers);
+                }                
+            }
+        });
+
+        $('#pos-products-table').scroll(function() {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(this).prop("scrollHeight");
+            var clientHeight = $(this).prop("clientHeight");
+
+            if (scrollTop + clientHeight >= scrollHeight && !pos_isLoading_products) {
+                if(pos_page_products < pos_total_page_products){
+                    pos_isLoading_products = true;
+                    pos_page_products++; 
+
+                    pos_products_table(pos_page_products);
+                }                
+            }
         });
 
         $('#pos-customers-search').on('input', function () {
@@ -195,18 +313,26 @@
         });
 
         function pos_customers_table(page) {
+            var htmlold = $('#pos-customers-table').html();
+            pos_page_customers = page;
             $('#pos-customers-table').fadeOut(400, function () {
                 $(this).html(loaderHTML).fadeIn(400);
             });
 
             var formData = new FormData();
-            formData.append('page', 1);
+            formData.append('page', page);
             formData.append('search', $('#pos-customers-search').val());
             var response = sendDataPost('pos/app/get/customers', 'data', formData);
             response.then(function (response) {
-                if (response.success) {
+                if (response.success) {    
+                    pos_total_page_customers = response.total_pages;          
                     $('#pos-customers-table').fadeOut(400, function () {
-                        $(this).html(response.html).fadeIn(400);
+                        $(this).html(htmlold).fadeIn(400);
+                        if(page == 1){
+                            $(this).html(response.html).fadeIn(400);
+                        } else {
+                            $(this).append(response.html).fadeIn(400);
+                        }                        
                     });
                 } else {
                     loadNoti({
@@ -215,28 +341,38 @@
                         color: 'danger'
                     });
                 }
+                pos_isLoading_customers = false;
             }).catch(function (response) {
                 loadNoti({
                     title: 'Error!',
                     msg: response.msg,
                     color: 'danger'
                 });
+                pos_isLoading_customers = false;
             });
         }
 
         function pos_products_table(page) {
+            var htmlold = $('#pos-products-table').html();
+            pos_page_products = page;
             $('#pos-products-table').fadeOut(400, function () {
                 $(this).html(loaderHTML).fadeIn(400);
             });
 
             var formData = new FormData();
-            formData.append('page', 1);
+            formData.append('page', page);
             formData.append('search', $('#pos-products-search').val());
             var response = sendDataPost('pos/app/get/products', 'data', formData);
             response.then(function (response) {
                 if (response.success) {
+                    pos_total_page_products = response.total_pages;          
                     $('#pos-products-table').fadeOut(400, function () {
-                        $(this).html(response.html).fadeIn(400);
+                        $(this).html(htmlold).fadeIn(400);
+                        if(page == 1){
+                            $(this).html(response.html).fadeIn(400);
+                        } else {
+                            $(this).append(response.html).fadeIn(400);
+                        }                        
                     });
                 } else {
                     loadNoti({
@@ -259,12 +395,23 @@
             var response = sendDataPost('pos/app/get/info', 'data', formData);
             response.then(function (response) {
                 if (response.success) {
-                    $('#pos-products-cart').html('');
+                    $('#pos-products-cart').html('');   
+                    var lo_id = response.info.location.lo_id;
+                    var lo_name = response.info.location.lo_name;
+                    var ts_id = response.info.typesale.ts_id;
+                    var ts_name = response.info.typesale.ts_name;
+                    var pm_id = response.info.paymentmethod.pm_id;
+                    var pm_name = response.info.paymentmethod.pm_name;
                     var cu_id = response.info.customer.cu_id;
                     var pe_id = response.info.customer.pe_id;
                     var pe_email = response.info.customer.pe_email;
                     var pe_fullname = response.info.customer.pe_fullname;
                     var pe_phone = response.info.customer.pe_phone;
+                    var subtotal = response.info.subtotal;
+                    var total = response.info.total;
+                    var discount_per = response.info.discount_per;
+                    var discount = response.info.discount;
+                    var commission = response.info.commission;
 
                     $('#pos-customers-div span[name=cu_id]').html(cu_id);
                     $('#pos-customers-div input[name=pe_fullname]').val(pe_fullname);
@@ -275,6 +422,21 @@
                         var productHTML = product.html;
                         $('#pos-products-cart').append(productHTML);
                     });
+
+                    $('#pos-info-div span[name=subtotal]').html(`$${subtotal}`);                   
+                    $('#pos-info-div span[name=commission]').html(`$${commission}`);
+                    $('#pos-info-div span[name=discount]').html(`-$${discount}`);
+                    $('#pos-info-div span[name=total]').html(`$${total}`);
+
+                    $("#pos-sale-form-edit select[name=lo_id]").val(lo_id);
+                    $('#pos-sale-info input[name=lo_name]').val(lo_name);
+                    $("#pos-sale-form-edit select[name=ts_id]").val(ts_id);
+                    $('#pos-sale-info input[name=ts_name]').val(ts_name);
+                    $("#pos-sale-form-edit select[name=pm_id]").val(pm_id);
+                    $('#pos-sale-info input[name=pm_name]').val(pm_name);                    
+                    $('#pos-sale-info input[name=discount_per]').val(`${discount_per}%`);
+                    $('#pos-sale-form-edit input[name=discount_per]').val(discount_per);                    
+
                 } else {
                     loadNoti({
                         title: 'Error!',
@@ -298,7 +460,6 @@
             var response = sendDataPost('pos/app/set/customer', 'data', formData);
             response.then(function (response) {
                 if (response.success) {
-                    pos_get_info();
                     loadNoti({
                         icon: 'cs-info-hexagon',
                         title: 'Success!',
@@ -308,20 +469,20 @@
                         showProgressbar: true
                     });
                 } else {
-                    pos_get_info();
                     loadNoti({
                         title: 'Error!',
                         msg: response.msg,
                         color: 'danger'
                     });
                 }
-            }).catch(function (response) {
                 pos_get_info();
+            }).catch(function (response) {
                 loadNoti({
                     title: 'Error!',
                     msg: response.msg,
                     color: 'danger'
                 });
+                pos_get_info();
             });
         }
         window.pos_set_customer = pos_set_customer;
@@ -333,7 +494,6 @@
             var response = sendDataPost('pos/app/add/product', 'data', formData);
             response.then(function (response) {
                 if (response.success) {
-                    pos_get_info();
                     loadNoti({
                         icon: 'cs-info-hexagon',
                         title: 'Success!',
@@ -343,22 +503,106 @@
                         showProgressbar: true
                     });
                 } else {
-                    pos_get_info();
                     loadNoti({
                         title: 'Error!',
                         msg: response.msg,
                         color: 'danger'
                     });
                 }
-            }).catch(function (response) {
                 pos_get_info();
+            }).catch(function (response) {
                 loadNoti({
                     title: 'Error!',
                     msg: response.msg,
                     color: 'danger'
                 });
+                pos_get_info();
             });
         }
         window.pos_add_product = pos_add_product;
+
+        function edit_product(e){ 
+            var pr_id = $(e).attr('pr_id');
+            var quantity = $(e).attr('quantity')
+
+            $('#pos-products-form-edit input[name=pr_id]').val(pr_id);
+            $('#pos-products-form-edit input[name=quantity]').val(quantity);
+            $('#pos-products-edit-modal').modal('show');
+        }
+        window.edit_product = edit_product;
+
+        $('#pos-products-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#pos-products-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/app/set/product', 'data', new FormData(this));
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {                    
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+                $('#pos-products-edit-modal').modal('hide');
+                $('#pos-products-form-edit button[type="submit"]').prop('disabled', false);
+                pos_get_info();
+            }).catch(function (response) {                
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });                
+                $('#pos-products-edit-modal').modal('hide');
+                $('#pos-products-form-edit button[type="submit"]').prop('disabled', false);
+                pos_get_info();
+            });
+        });
+        
+        $('#pos-sale-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#pos-sale-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/app/set/sale', 'data', new FormData(this));
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {                    
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+                $('#pos-sale-edit-modal').modal('hide');
+                $('#pos-sale-form-edit button[type="submit"]').prop('disabled', false);
+                pos_get_info();
+            }).catch(function (response) {                
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+                $('#pos-sale-edit-modal').modal('hide');
+                $('#pos-sale-form-edit button[type="submit"]').prop('disabled', false);
+                pos_get_info();
+            });
+        });
     })();
 </script>

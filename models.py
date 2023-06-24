@@ -176,12 +176,14 @@ class pm_paymentmethods_model():
         cur.close()
         return data
     
-    def get_paymentmethods(self, get = None, page_start = 1, quantity = 10, search = None):
+    def get_paymentmethods(self, get = None, pm_status = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
         
         if get == 'table':
             like = f'%{search}%'
             cur.execute('SELECT pm_paymentmethods.* FROM pm_paymentmethods WHERE pm_paymentmethods.pm_id LIKE %s OR pm_paymentmethods.pm_name LIKE %s ORDER BY pm_paymentmethods.pm_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+        elif get == 'status':
+            cur.execute('SELECT pm_paymentmethods.* FROM pm_paymentmethods WHERE pm_paymentmethods.pm_status = %s', (pm_status,))
         else:
             cur.execute('SELECT pm_paymentmethods.* FROM pm_paymentmethods')
         
@@ -235,12 +237,14 @@ class lo_locations_model():
         cur.close()
         return data
     
-    def get_locations(self, get = None, page_start = 1, quantity = 10, search = None):
+    def get_locations(self, get = None, lo_status = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
         
         if get == 'table':
             like = f'%{search}%'
             cur.execute('SELECT lo_locations.* FROM lo_locations WHERE lo_locations.lo_id LIKE %s OR lo_locations.lo_name LIKE %s ORDER BY lo_locations.lo_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+        elif get == 'status':
+            cur.execute('SELECT lo_locations.* FROM lo_locations WHERE lo_locations.lo_status = %s',(lo_status,))
         else:
             cur.execute('SELECT lo_locations.* FROM lo_locations')
         
@@ -869,3 +873,20 @@ class ad_addresses_model():
         cur.close()
         return True
     
+class ts_typessales_model():
+    def __init__(self):
+        pass
+    
+    def get_typesale(self, ts_id):
+        cur = mysql.connection.cursor()
+        cur.execute('SELECT ts_typessales.* FROM ts_typessales WHERE ts_typessales.ts_id = %s', (ts_id,))         
+        data = cur.fetchone()
+        cur.close()
+        return data
+
+    def get_typessales(self):
+        cur = mysql.connection.cursor()
+        cur.execute('SELECT ts_typessales.* FROM ts_typessales')         
+        data = cur.fetchall()
+        cur.close()
+        return data
