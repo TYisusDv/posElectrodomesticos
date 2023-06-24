@@ -15,8 +15,8 @@ $(document).ready(function () {
     path = window.location.pathname;
     if (api_logged == 0 && path == "/") {
         path = "/auth/sign-in"
-    } else if (api_logged == 1 && (path == "/pos")) {
-        path = "/pos/dashboard"
+    } else if (api_logged == 1 && (path == "/pos" || path == "/pos/")) {
+        path = "/pos"
     }
     
     history.pushState(null, null, path);

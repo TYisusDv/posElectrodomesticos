@@ -28,7 +28,7 @@
         <div id="nav" class="nav-container d-flex">
             <div class="nav-content d-flex">
                 <div class="logo position-relative">
-                    <a href="/dashboard">
+                    <a href="/pos">
                         <div class="img"></div>
                     </a>
                 </div>
@@ -38,54 +38,54 @@
                         <img class="profile" alt="profile" src="{{web_settings.icon}}">
                         <div class="name" id="index-account-fullname">{{userinfo.pe_fullname}} ({{userinfo.mem_name}})</div>
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end user-menu wide" style="width: 250px;">
+                    <div class="dropdown-menu dropdown-menu-end user-menu wide" style="width: 300px;">
                         <div class="row mb-3 ms-0 me-0">
                             <div class="col-12 ps-1 mb-2">
-                                <div class="text-extra-small text-primary">ACCOUNT</div>
+                                <div class="text-extra-small text-primary">CUENTA</div>
                             </div>
                             <div class="col-6 ps-1 pe-1">
                                 <ul class="list-unstyled">
                                     <li>
-                                        <a href="/account/overview">Overview</a>
+                                        <a href="/account/overview">Descripción general</a>
                                     </li>
                                 </ul>
                             </div>
                             <div class="col-6 ps-1 pe-1">
                                 <ul class="list-unstyled">
                                     <li>
-                                        <a href="/account/lives">Lives</a>
+                                        <a href="/account/others">Otros</a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <div class="row mb-3 ms-0 me-0">
                             <div class="col-12 ps-1 mb-2">
-                                <div class="text-extra-small text-primary">SETTINGS</div>
+                                <div class="text-extra-small text-primary">AJUSTES</div>
                             </div>
                             <div class="col-6 ps-1 pe-1">
                                 <ul class="list-unstyled">
                                     <li>
-                                        <a href="/settings/profile">Profile</a>
+                                        <a href="/settings/profile">Perfil</a>
                                     </li>
                                 </ul>
                             </div>
                             <div class="col-6 ps-1 pe-1">
                                 <ul class="list-unstyled">
                                     <li>
-                                        <a href="/settings/security">Security</a>
+                                        <a href="/settings/security">Seguridad</a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <div class="row mb-3 ms-0 me-0">
                             <div class="col-12 ps-1 mb-2">
-                                <div class="text-extra-small text-primary">APPLICATION</div>
+                                <div class="text-extra-small text-primary">APLICACIÓN</div>
                             </div>
                             <div class="col-6 ps-1 pe-1">
                                 <ul class="list-unstyled">
                                     <li>
                                         <a href="javascript:;" data-bs-toggle="modal"
-                                            data-bs-target="#settings">Themes</a>
+                                            data-bs-target="#settings">Temas</a>
                                     </li>
                                 </ul>
                             </div>
@@ -106,7 +106,7 @@
                                     <li>
                                         <a href="/settings/profile">
                                             <i data-acorn-icon="gear" class="me-2" data-acorn-size="17"></i>
-                                            <span class="align-middle">Settings</span>
+                                            <span class="align-middle">Ajustes</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -116,7 +116,7 @@
                                     <li>
                                         <a href="/auth/logout" lv="0">
                                             <i data-acorn-icon="logout" class="me-2" data-acorn-size="17"></i>
-                                            <span class="align-middle">Logout</span>
+                                            <span class="align-middle">Cerrar sesión</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -186,10 +186,10 @@
                                 </a>
                                 <ul>
                                     <li>
-                                        <a href="/pos/dashboard">
-                                            <i data-acorn-icon="navigate-diagonal" class="icon d-none"
+                                        <a href="/pos">
+                                            <i data-acorn-icon="pos" class="icon d-none"
                                                 data-acorn-size="18"></i>
-                                            <span class="label">Inicio</span>
+                                            <span class="label">Punto de venta</span>
                                         </a>
                                     </li>                                                                                           
                                 </ul>
@@ -254,6 +254,20 @@
                                             <i data-acorn-icon="bootstrap" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Marcas</span>
+                                        </a>
+                                    </li> 
+                                    <li>
+                                        <a href="/pos/manage/cities">
+                                            <i data-acorn-icon="pin" class="icon d-none"
+                                                data-acorn-size="18"></i>
+                                            <span class="label">Ciudades</span>
+                                        </a>
+                                    </li> 
+                                    <li>
+                                        <a href="/pos/manage/states">
+                                            <i data-acorn-icon="compass" class="icon d-none"
+                                                data-acorn-size="18"></i>
+                                            <span class="label">Estados</span>
                                         </a>
                                     </li> 
                                     <li>

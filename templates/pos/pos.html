@@ -1,0 +1,364 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Punto de venta</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Pos</a></li>
+                    <li class="breadcrumb-item"><a href="/pos">Punto de venta</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">App</h2>
+    <div class="row g-2">
+        <div class="col-12 col-lg-3 col-xl-3">
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="card mb-5">
+                        <div class="card-body" id="pos-customers-div">
+                            <h1 class="text-primary font-heading display-7">Cliente #<span class="text-body"
+                                    name="cu_id">N/A</span></h1>
+                            <div class="d-flex justify-content-center mb-4">
+                                <img src="/static/img/icon.jpg" alt="alternate text"
+                                    class="rounded-xl border border-separator-light border-4 sw-13 sh-13">
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="user"></i>
+                                <input class="form-control" placeholder="Nombre completo" name="pe_fullname" disabled>
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="email"></i>
+                                <input class="form-control" placeholder="Correo electrónico" name="pe_email" disabled>
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="phone"></i>
+                                <input class="form-control" placeholder="Número telefónico" name="pe_phone" disabled>
+                            </div>
+                            <div class="filled form-group tooltip-end-top">
+                                <button class="btn btn-primary w-100 fs-6" data-bs-toggle="modal"
+                                    data-bs-target="#pos-customers-modal"><i data-acorn-icon="search"
+                                        data-acorn-size="18"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6 col-xl-6">
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="card mb-5" style="height: 600px;">
+                        <div class="card-body">
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <button class="btn btn-primary w-100 fs-6" data-bs-toggle="modal"
+                                    data-bs-target="#pos-products-modal"><i data-acorn-icon="plus"
+                                        data-acorn-size="18"></i> Ingresar o escanear producto</button>
+                            </div>
+                            <hr class="m-0" />
+                            <div class="mt-2 p-3" style="height: 350px; overflow: auto;" id="pos-products-cart">
+                                
+                            </div>
+                            <hr />
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <h1 class="text-primary font-heading display-7 d-flex"
+                                        style="justify-content: space-between;">Subtotal: <span
+                                            class="text-body font-standard">$0</span></h1>
+                                    <h1 class="text-primary font-heading display-7 d-flex"
+                                        style="justify-content: space-between;">Comisión: <span
+                                            class="text-body font-standard">$0</span></h1>
+                                    <h1 class="text-primary font-heading display-7 d-flex"
+                                        style="justify-content: space-between;">Descuento: <span
+                                            class="text-body font-standard">$0</span></h1>
+                                </div>
+                                <div class="col-6">
+                                    <h1 class="text-primary font-heading display-6 d-flex justify-content-end">Total
+                                    </h1>
+                                    <span class="text-body font-standard display-7 d-flex justify-content-end">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-3 col-xl-3">
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h1 class="text-primary font-heading display-7 mb-3">Venta</h1>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="shop"></i>
+                                <input class="form-control" placeholder="Sucursal" name="pe_fullname" disabled>
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="credit-card"></i>
+                                <input class="form-control" placeholder="Tipo de pago" name="pe_email" disabled>
+                            </div>
+                            <div class="mb-3 filled form-group tooltip-end-top">
+                                <i data-acorn-icon="grid-1"></i>
+                                <input class="form-control" placeholder="Cantidad de pagos" name="pe_phone" disabled>
+                            </div>
+                            <div class="filled form-group tooltip-end-top">
+                                <button class="btn btn-primary w-100"><i data-acorn-icon="edit-square"
+                                        data-acorn-size="18"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="filled form-group tooltip-end-top">
+                                <button class="btn btn-primary w-100 fs-6"><i data-acorn-icon="basket"
+                                        data-acorn-size="18"></i> Finalizar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="pos-customers-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-customers-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-customers-modalLabel">Clientes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-paymentmethods-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="ps-2 col-4">
+                        <div class="mb-2 filled form-group tooltip-end-top">
+                            <i data-acorn-icon="search"></i>
+                            <input class="form-control" placeholder="Búsqueda" id="pos-customers-search">
+                        </div>
+                    </div>
+                    <div class="p-3" style="height: 350px; overflow: auto;" id="pos-customers-table">
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pos-products-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-products-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-products-modalLabel">Productos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-paymentmethods-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="ps-2 col-4">
+                        <div class="mb-2 filled form-group tooltip-end-top">
+                            <i data-acorn-icon="search"></i>
+                            <input class="form-control" placeholder="Búsqueda" id="pos-products-search">
+                        </div>
+                    </div>
+                    <div class="p-3" style="height: 350px; overflow: auto;" id="pos-products-table">
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        $(document).ready(function () {
+            pos_customers_table(1);
+            pos_products_table(1);
+            pos_get_info();
+        });
+
+        $('#pos-customers-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                pos_customers_table(1);
+            }, 500);
+        });
+
+        $('#pos-products-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                pos_products_table(1);
+            }, 500);
+        });
+
+        function pos_customers_table(page) {
+            $('#pos-customers-table').fadeOut(400, function () {
+                $(this).html(loaderHTML).fadeIn(400);
+            });
+
+            var formData = new FormData();
+            formData.append('page', 1);
+            formData.append('search', $('#pos-customers-search').val());
+            var response = sendDataPost('pos/app/get/customers', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    $('#pos-customers-table').fadeOut(400, function () {
+                        $(this).html(response.html).fadeIn(400);
+                    });
+                } else {
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+
+        function pos_products_table(page) {
+            $('#pos-products-table').fadeOut(400, function () {
+                $(this).html(loaderHTML).fadeIn(400);
+            });
+
+            var formData = new FormData();
+            formData.append('page', 1);
+            formData.append('search', $('#pos-products-search').val());
+            var response = sendDataPost('pos/app/get/products', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    $('#pos-products-table').fadeOut(400, function () {
+                        $(this).html(response.html).fadeIn(400);
+                    });
+                } else {
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+
+        function pos_get_info() {
+            var formData = new FormData();
+            var response = sendDataPost('pos/app/get/info', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    $('#pos-products-cart').html('');
+                    var cu_id = response.info.customer.cu_id;
+                    var pe_id = response.info.customer.pe_id;
+                    var pe_email = response.info.customer.pe_email;
+                    var pe_fullname = response.info.customer.pe_fullname;
+                    var pe_phone = response.info.customer.pe_phone;
+
+                    $('#pos-customers-div span[name=cu_id]').html(cu_id);
+                    $('#pos-customers-div input[name=pe_fullname]').val(pe_fullname);
+                    $('#pos-customers-div input[name=pe_email]').val(pe_email);
+                    $('#pos-customers-div input[name=pe_phone]').val(pe_phone);
+
+                    $.each(response.info.products, function (index, product) {
+                        var productHTML = product.html;
+                        $('#pos-products-cart').append(productHTML);
+                    });
+                } else {
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+
+        function pos_set_customer(e) {
+            var cu_id = $(e).attr('cu_id');
+            var formData = new FormData();
+            formData.append('cu_id', cu_id)
+            var response = sendDataPost('pos/app/set/customer', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    pos_get_info();
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {
+                    pos_get_info();
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                pos_get_info();
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.pos_set_customer = pos_set_customer;
+
+        function pos_add_product(e) {
+            var pr_id = $(e).attr('pr_id');
+            var formData = new FormData();
+            formData.append('pr_id', pr_id)
+            var response = sendDataPost('pos/app/add/product', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    pos_get_info();
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {
+                    pos_get_info();
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                pos_get_info();
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.pos_add_product = pos_add_product;
+    })();
+</script>

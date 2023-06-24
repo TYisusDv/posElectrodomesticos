@@ -16,8 +16,11 @@ def web_main(path):
             v_userinfo = us_users_model().get_user(us_id=session['us_id'])
             v_usersession = sess_usersessions_model().get_session(sess_id=session['sess_id'])
             v_apipermissions = api_permissions(v_userinfo['mem_id'])
-
-            return render_template("/pos/index.html", web_settings = web_settings, userinfo = v_userinfo, apipermissions = v_apipermissions) 
+            
+            if 111529 in v_apipermissions and v_userinfo['us_status'] == 1:
+                return render_template("/pos/index.html", web_settings = web_settings, userinfo = v_userinfo, apipermissions = v_apipermissions) 
+            else:
+                return 'NO TIENES ACCESO'
         else:
             return redirect('/pos')       
     except Exception as e:        

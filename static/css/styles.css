@@ -14118,11 +14118,11 @@ h6 {
 }
 
 .font-standard {
-    font-family: var(--font)
+    font-family: var(--font) !important
 }
 
 .font-heading {
-    font-family: var(--font-heading)
+    font-family: var(--font-heading) !important
 }
 
 .text-medium {
@@ -14273,6 +14273,25 @@ h6 {
 @media (max-width:767.98px) {
     .display-6 {
         font-size: 1.5em
+    }
+}
+
+.display-7 {
+    font-family: var(--font-heading);
+    font-size: 1.5em;
+    line-height: 1.2;
+    font-weight: 300
+}
+
+@media (max-width:991.98px) {
+    .display-7 {
+        font-size: 1.4em
+    }
+}
+
+@media (max-width:767.98px) {
+    .display-7 {
+        font-size: 1.4em
     }
 }
 

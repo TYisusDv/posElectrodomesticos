@@ -4,6 +4,19 @@ class us_users_model():
     def __init__(self):
         pass
     
+    def gen_user_id(self):
+        unique_number = None
+        cur = mysql.connection.cursor()
+        while not unique_number:
+            randomNumber = str(random.randint(100000, 999999))
+            query = "SELECT us_id FROM us_users WHERE us_id = %s"
+            cur.execute(query, (randomNumber,))
+            result = cur.fetchone()
+            if not result:
+                unique_number = randomNumber
+        cur.close()
+        return unique_number
+
     def get_user(self, get = None, us_id = None, email = None):
         cur = mysql.connection.cursor()
         
@@ -46,14 +59,14 @@ class us_users_model():
 
     def insert_user(self, us_id = None, fullname = None, email = None, password = None, phone = None, mem_id = None):
         cur = mysql.connection.cursor()       
-        cur.execute('INSERT INTO pe_persons(pe_fullname, pe_email, pe_phone) VALUES(%s, %s, %s)', (fullname, email, phone,))
-        pe_id = cur.lastrowid
+        pe_id = str(uuid.uuid4())
+        pe_persons_model().insert_person(pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)
         cur.execute('INSERT INTO us_users(us_id, us_password, mem_id, pe_id) VALUES(%s, %s, %s, %s)', (us_id, password, mem_id, pe_id,))
         mysql.connection.commit()
         cur.close()
         return True
 
-    def update_user(self, update = None, us_id = None, fullname = None, email = None, password = None, phone = None, permissions = None, mem_id = None):
+    def update_user(self, update = None, us_id = None, fullname = None, email = None, password = None, phone = None, permissions = None, mem_id = None, us_status = None):
         cur = mysql.connection.cursor()
         
         if update == 'password':        
@@ -62,6 +75,8 @@ class us_users_model():
             pe_id = self.get_user(us_id=us_id)['pe_id']
             pe_persons_model().update_person(update = 'all', pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)  
             cur.execute('UPDATE us_users SET us_password = %s, us_permissions = %s, mem_id = %s WHERE us_id = %s', (password, permissions, mem_id, us_id,))
+        elif update == 'status':  
+            cur.execute('UPDATE us_users SET us_status = %s WHERE us_id = %s', (us_status, us_id,))
         else:
             cur.close()
             return False
@@ -419,7 +434,7 @@ class cu_customers_model():
 
     def get_customer(self, cu_id):
         cur = mysql.connection.cursor()
-        cur.execute('SELECT cu_customers.* FROM cu_customers WHERE cu_customers.cu_id = %s', (cu_id,))
+        cur.execute('SELECT cu_customers.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM cu_customers INNER JOIN pe_persons ON pe_persons.pe_id = cu_customers.pe_id WHERE cu_customers.cu_id = %s', (cu_id,))
         data = cur.fetchone()
         cur.close()
         return data
@@ -429,7 +444,7 @@ class cu_customers_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT cu_customers.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM cu_customers INNER JOIN pe_persons ON pe_persons.pe_id = cu_customers.pe_id WHERE cu_customers.cu_id LIKE %s OR cu_customers.cu_regdate LIKE %s ORDER BY cu_customers.cu_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+            cur.execute('SELECT cu_customers.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM cu_customers INNER JOIN pe_persons ON pe_persons.pe_id = cu_customers.pe_id WHERE cu_customers.cu_id LIKE %s OR cu_customers.cu_regdate LIKE %s OR pe_persons.pe_email LIKE %s OR pe_persons.pe_fullname LIKE %s OR pe_persons.pe_phone LIKE %s ORDER BY cu_customers.cu_regdate DESC LIMIT %s, %s',(like, like, like, like, like, page_start, quantity,))
         else:
             cur.execute('SELECT cu_customers.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM cu_customers INNER JOIN pe_persons ON pe_persons.pe_id = cu_customers.pe_id')
         
@@ -442,7 +457,7 @@ class cu_customers_model():
 
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM cu_customers WHERE cu_customers.cu_id LIKE %s OR cu_customers.cu_regdate LIKE %s', (like, like,))
+            cur.execute('SELECT COUNT(*) AS total FROM cu_customers INNER JOIN pe_persons ON pe_persons.pe_id = cu_customers.pe_id WHERE cu_customers.cu_id LIKE %s OR cu_customers.cu_regdate LIKE %s OR pe_persons.pe_email LIKE %s OR pe_persons.pe_fullname LIKE %s OR pe_persons.pe_phone LIKE %s',(like, like, like, like, like,))
         else:
             cur.execute('SELECT COUNT(*) AS total FROM cu_customers')
         
@@ -452,8 +467,8 @@ class cu_customers_model():
 
     def insert_customer(self, cu_id = None, fullname = None, email = None, phone = None):
         cur = mysql.connection.cursor()  
-        cur.execute('INSERT INTO pe_persons(pe_fullname, pe_email, pe_phone) VALUES(%s, %s, %s)', (fullname, email, phone,))
-        pe_id = cur.lastrowid     
+        pe_id = str(uuid.uuid4())
+        pe_persons_model().insert_person(pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)
         cur.execute('INSERT INTO cu_customers(cu_id, pe_id) VALUES(%s, %s)', (cu_id, pe_id,))
         mysql.connection.commit()
         cur.close()
@@ -488,6 +503,13 @@ class pe_persons_model():
         data = cur.fetchone()
         cur.close()
         return data
+
+    def insert_person(self, pe_id = None, pe_fullname = None, pe_email = None, pe_phone = None):
+        cur = mysql.connection.cursor()        
+        cur.execute('INSERT INTO pe_persons(pe_id, pe_fullname, pe_email, pe_phone) VALUES(%s, %s, %s, %s)', (pe_id, pe_fullname, pe_email, pe_phone,))
+        mysql.connection.commit()
+        cur.close()
+        return True
 
     def update_person(self, update = None, pe_id = None, pe_fullname = None, pe_email = None, pe_phone = None):
         cur = mysql.connection.cursor()
@@ -556,8 +578,8 @@ class pv_providers_model():
 
     def insert_provider(self, pv_id = None, fullname = None, email = None, phone = None):
         cur = mysql.connection.cursor()  
-        cur.execute('INSERT INTO pe_persons(pe_fullname, pe_email, pe_phone) VALUES(%s, %s, %s)', (fullname, email, phone,))
-        pe_id = cur.lastrowid     
+        pe_id = str(uuid.uuid4())
+        pe_persons_model().insert_person(pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)
         cur.execute('INSERT INTO pv_providers(pv_id, pe_id) VALUES(%s, %s)', (pv_id, pe_id,))
         mysql.connection.commit()
         cur.close()
@@ -585,17 +607,20 @@ class pr_products_model():
     
     def get_product(self, pr_id):
         cur = mysql.connection.cursor()
-        cur.execute('SELECT pr_products.* FROM pr_products WHERE pr_products.pr_id = %s', (pr_id,))
+        cur.execute('SELECT pr_products.*, br_brands.br_name FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id WHERE pr_products.pr_id = %s', (pr_id,))
         data = cur.fetchone()
         cur.close()
         return data
     
-    def get_products(self, get = None, page_start = 1, quantity = 10, search = None):
+    def get_products(self, get = None, page_start = 1, quantity = 10, search = None, pr_status = None):
         cur = mysql.connection.cursor()
         
         if get == 'table':
             like = f'%{search}%'
             cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+        elif get == 'tablestatus':
+            like = f'%{search}%'
+            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s) ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(pr_status, like, like, page_start, quantity,))
         else:
             cur.execute('SELECT pr_products.* FROM pr_products')
         
@@ -603,12 +628,15 @@ class pr_products_model():
         cur.close()        
         return data
 
-    def get_products_count(self, get = None, search = None):       
+    def get_products_count(self, get = None, search = None, pr_status = None):       
         cur = mysql.connection.cursor()
 
         if get == 'table':
             like = f'%{search}%'
             cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s', (like, like,))
+        elif get == 'tablestatus':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s)', (pr_status, like, like,))
         else:
             cur.execute('SELECT COUNT(*) AS total FROM pr_products')
         
@@ -638,3 +666,206 @@ class pr_products_model():
         cur.close()
         return True
 
+class ci_cities_model():
+    def __init__(self):
+        pass
+
+    def get_city(self, get = None, ci_id = None, ci_name = None, st_name = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'name':
+            cur.execute('SELECT ci_cities.* FROM ci_cities WHERE ci_cities.ci_name = %s', (ci_name,))
+        elif get == 'nameandstate':
+            cur.execute('SELECT ci_cities.*, st_states.st_name FROM ci_cities INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ci_cities.ci_name = %s AND st_states.st_name = %s', (ci_name, st_name,))
+        else:
+            cur.execute('SELECT ci_cities.* FROM ci_cities WHERE ci_cities.ci_id = %s', (ci_id,))
+            
+        data = cur.fetchone()
+        cur.close()
+        return data
+
+    def get_cities(self, get = None, ci_status = None, page_start = 1, quantity = 10, search = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'status':
+            cur.execute('SELECT ci_cities.* FROM ci_cities WHERE ci_cities.ci_status = %s', (ci_status,))
+        elif get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT ci_cities.*, st_states.st_name FROM ci_cities INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ci_cities.ci_id LIKE %s OR ci_cities.ci_name LIKE %s ORDER BY ci_cities.ci_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+        else:
+            cur.execute('SELECT ci_cities.* FROM ci_cities')
+            
+        data = cur.fetchall()
+        cur.close()
+        return data
+
+    def get_cities_count(self, get = None, search = None):       
+        cur = mysql.connection.cursor()
+
+        if get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM ci_cities WHERE ci_cities.ci_id LIKE %s OR ci_cities.ci_name LIKE %s', (like, like,))
+        else:
+            cur.execute('SELECT COUNT(*) AS total FROM ci_cities')
+        
+        data = cur.fetchone()['total']
+        cur.close()        
+        return data
+    
+    def insert_city(self, ci_name = None, st_id = None):
+        cur = mysql.connection.cursor()  
+        cur.execute('INSERT INTO ci_cities(ci_name, st_id) VALUES(%s, %s)', (ci_name, st_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+    
+    def update_city(self, update = None, ci_name = None, ci_status = None, ci_id = None, st_id = None):
+        cur = mysql.connection.cursor()
+        
+        if update == 'all':        
+            cur.execute('UPDATE ci_cities SET ci_name = %s, st_id = %s WHERE ci_id = %s', (ci_name, st_id, ci_id,))
+        elif update == 'status':        
+            cur.execute('UPDATE ci_cities SET ci_status = %s WHERE ci_id = %s', (ci_status, ci_id,))
+        else:
+            cur.close()
+            return False
+
+        mysql.connection.commit()
+        cur.close()
+        return True
+
+class st_states_model():
+    def __init__(self):
+        pass
+    
+    def get_state(self, get = None, st_id = None, st_name = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'name':
+            cur.execute('SELECT st_states.* FROM st_states WHERE st_states.st_name = %s', (st_name,))
+        else:
+            cur.execute('SELECT st_states.* FROM st_states WHERE st_states.st_id = %s', (st_id,))
+            
+        data = cur.fetchone()
+        cur.close()
+        return data
+    
+    def get_states(self, get = None, st_status = None, page_start = 1, quantity = 10, search = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'status':
+            cur.execute('SELECT st_states.* FROM st_states WHERE st_states.st_status = %s', (st_status,))
+        elif get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT st_states.* FROM st_states WHERE st_states.st_id LIKE %s OR st_states.st_name LIKE %s ORDER BY st_states.st_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+        else:
+            cur.execute('SELECT st_states.* FROM st_states')
+            
+        data = cur.fetchall()
+        cur.close()
+        return data
+
+    def get_states_count(self, get = None, search = None):       
+        cur = mysql.connection.cursor()
+
+        if get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM st_states WHERE st_states.st_id LIKE %s OR st_states.st_name LIKE %s', (like, like,))
+        else:
+            cur.execute('SELECT COUNT(*) AS total FROM st_states')
+        
+        data = cur.fetchone()['total']
+        cur.close()        
+        return data
+
+    def insert_state(self, st_name = None):
+        cur = mysql.connection.cursor()  
+        cur.execute('INSERT INTO st_states(st_name) VALUES(%s)', (st_name,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+    
+    def update_state(self, update = None, st_name = None, st_status = None, st_id = None):
+        cur = mysql.connection.cursor()
+        
+        if update == 'all':        
+            cur.execute('UPDATE st_states SET st_name = %s WHERE st_id = %s', (st_name, st_id,))
+        elif update == 'status':        
+            cur.execute('UPDATE st_states SET st_status = %s WHERE st_id = %s', (st_status, st_id,))
+        else:
+            cur.close()
+            return False
+
+        mysql.connection.commit()
+        cur.close()
+        return True
+    
+class ad_addresses_model():
+    def __init__(self):
+        pass
+    
+    def get_address(self, get = None, ad_id = None, pe_id = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'idperson':
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.ad_id = %s AND pe_id = %s', (ad_id, pe_id,))
+        else:
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.ad_id = %s AND pe_id = %s', (ad_id, pe_id,))
+            
+        data = cur.fetchone()
+        cur.close()
+        return data
+    
+    def get_addresses(self, get = None, pe_id = None, ad_status = None, page_start = 1, quantity = 10, search = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'tableperson':
+            like = f'%{search}%'
+            cur.execute('SELECT ad_addresses.*, ci_cities.ci_name, st_states.st_name FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_postalcode LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_regdate DESC LIMIT %s, %s',(pe_id, like, like, like, like, like, page_start, quantity,))
+        elif get == 'person':
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s',(pe_id,))
+        elif get == 'personstatus':
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s AND ad_status = %s',(pe_id, ad_status,))
+        else:
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses')
+        
+        data = cur.fetchall()
+        cur.close()        
+        return data
+    
+    def get_addresses_count(self, get = None, pe_id = None, search = None):       
+        cur = mysql.connection.cursor()
+
+        if get == 'tableperson':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_postalcode LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_id ASC',(pe_id, like, like, like, like, like,))
+        else:
+            cur.execute('SELECT COUNT(*) AS total FROM ad_addresses')
+        
+        data = cur.fetchone()['total']
+        cur.close()        
+        return data
+
+    def insert_address(self, ad_address = None, ad_postalcode = None, ci_id = None, pe_id = None):
+        cur = mysql.connection.cursor()  
+        ad_id = str(uuid.uuid4())
+        cur.execute('INSERT INTO ad_addresses(ad_id, ad_address, ad_postalcode, ci_id, pe_id) VALUES(%s, %s, %s, %s, %s)', (ad_id, ad_address, ad_postalcode, ci_id, pe_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+    
+    def update_address(self, update = None, ad_address = None, ad_postalcode = None, ci_id = None, ad_status=None, ad_id = None):
+        cur = mysql.connection.cursor()
+        
+        if update == 'all':        
+            cur.execute('UPDATE ad_addresses SET ad_address = %s, ad_postalcode = %s, ad_regdate = NOW(), ci_id = %s WHERE ad_id = %s', (ad_address, ad_postalcode, ci_id, ad_id,))
+        elif update == 'status':        
+            cur.execute('UPDATE ad_addresses SET ad_status = %s WHERE ad_id = %s', (ad_status, ad_id,))
+        else:
+            cur.close()
+            return False
+
+        mysql.connection.commit()
+        cur.close()
+        return True
+    

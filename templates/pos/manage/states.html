@@ -1,0 +1,318 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Estados</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/states">Estados</a></li>
+                </ul>
+            </nav>
+        </div>        
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="user" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Visible</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{visible_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="eye-off" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Oculto</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{hidden_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="manage-states-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Estatus</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-states-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="manage-states-modal-edit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-states-modal-editLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-states-modal-editLabel">Editar estado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-states-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="st_id" readonly>
+                    </div>                    
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="pin"></i>
+                        <input class="form-control" placeholder="Nombre" name="st_name">
+                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $(document).ready(function () {
+            table_setdata('#manage-states-table', 'pos/manage/states/table');
+        });
+
+        function edit_state(e){
+            var state_json = JSON.parse($(e).attr('state'));
+            var id = table_tempelement(state_json.id).find('span').text();
+            var name = table_tempelement(state_json.name).text();
+
+            $('#manage-states-form-edit input[name=st_id]').val(id);
+            $('#manage-states-form-edit input[name=st_name]').val(name);
+
+            $('#manage-states-modal-edit').modal('show');
+        }
+        window.edit_state = edit_state;
+
+        $('#manage-states-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#manage-states-table', 'pos/manage/states/table', $('#manage-states-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/states'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#manage-states-table', 'pos/manage/states/table', $('#manage-states-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        function check_status_state(e) {
+            var switchElement = $(e);
+            var st_id = $(e).attr('st_id');
+            var st_status = 0;
+
+            if ($(e).is(':checked')) {
+                st_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (st_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('st_id', st_id);
+            formData.append('st_status', st_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/states/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_state = check_status_state;
+
+        $('#manage-states-form-add').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-states-form-add button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/states/add', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-states-modal-add').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-states-form-add button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-states-modal-add').modal('hide');
+                $('#manage-states-form-add button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#manage-states-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-states-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/states/edit', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-states-modal-edit').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-states-form-edit button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-states-modal-edit').modal('hide');
+                $('#manage-states-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+    })();
+</script>

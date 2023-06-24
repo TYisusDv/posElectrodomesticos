@@ -37,8 +37,13 @@ def api_web(path):
             #POS
             if v_apiurlsplit[1] == 'pos':  
                 #EMPLEADO
-                if 111529 in v_apipermissions:
-                    if v_apiurlsplit[2] == 'manage':
+                if 111529 in v_apipermissions and v_userinfo['us_status'] == 1:
+                    #POS
+                    if v_apiurlsplit[2] is None:
+                        return json.dumps({'success': True, 'html': render_template('/pos/pos.html')})
+                    
+                    #MANAGE
+                    elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/users'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -124,6 +129,40 @@ def api_web(path):
                             total_count = len(brands)
                             
                             return json.dumps({'success': True, 'html': render_template('/pos/manage/brands.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count)})
+                        elif v_apiurlsplit[3] == 'cities' and v_apiurlsplit[4] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/cities'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            cities = ci_cities_model().get_cities()
+                            states = st_states_model().get_states(get='status', st_status=1)
+                            hidden_count = sum(1 for city in cities if city["ci_status"] == 0)
+                            visible_count = sum(1 for city in cities if city["ci_status"] == 1)
+                            total_count = len(cities)
+                            
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/cities.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, states = states)})
+                        elif v_apiurlsplit[3] == 'states' and v_apiurlsplit[4] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/states'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            states = st_states_model().get_states()
+                            hidden_count = sum(1 for state in states if state["st_status"] == 0)
+                            visible_count = sum(1 for state in states if state["st_status"] == 1)
+                            total_count = len(states)
+                            
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/states.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count)})
+                        elif v_apiurlsplit[3] == 'addresses' and v_apiurlsplit[5] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/addresses'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            pe_id = v_apiurlsplit[4]
+                            
+                            if pe_persons_model().get_person(pe_id=pe_id):
+                                addresses = ad_addresses_model().get_addresses(get='personstatus', pe_id = pe_id, ad_status = 1)
+                                cities = ci_cities_model().get_cities(get='status', ci_status=1)
+                                states = st_states_model().get_states(get='status', st_status=1)                    
+                                total_count = len(addresses)
+                                
+                                return json.dumps({'success': True, 'html': render_template('/pos/manage/addresses.html', pe_id = pe_id, total_count = total_count, cities = cities, states = states)})
                         
                 #ERROR 404
                 if v_apiverifysession == 1: 
@@ -163,6 +202,9 @@ def api_web(path):
                         hash = api_hashbcrypt(passw)
                         us_users_model().update_user(update='password', us_id=userinfo['us_id'], password=hash)
                     
+                    if userinfo['us_status'] == 0:
+                        return json.dumps({'success': False, 'msg': '¡Has sido bloqueado! Contacta con un administrador o soporte técnico.'})
+                    
                     us_id = userinfo['us_id']
                     sess_id = str(uuid.uuid4())
 
@@ -184,7 +226,8 @@ def api_web(path):
             #POS
             if v_apiurlsplit[1] == 'pos':  
                 #EMPLEADO
-                if 111529 in v_apipermissions:
+                if 111529 in v_apipermissions and v_userinfo['us_status'] == 1:
+                    #ACCOUNT
                     if v_apiurlsplit[2] == 'account': 
                         if v_apiurlsplit[3] == 'info' and v_apiurlsplit[4] is None:    
                             sess_usersessions_model().update_session(update='online', sess_id=session['sess_id'], online=1)                        
@@ -195,9 +238,205 @@ def api_web(path):
                                 'email': v_userinfo['pe_email']
                             }
                             return json.dumps({'success': True, 'account': account}) 
-                
+                    
+                    #APP
+                    elif v_apiurlsplit[2] == 'app':
+                        if v_apiurlsplit[3] == 'get':
+                            if v_apiurlsplit[4] == 'customers' and v_apiurlsplit[5] is None:
+                                page = v_requestform.get('page')
+                                if not page or not page.isnumeric():
+                                    page = 1
+                                
+                                search = v_requestform.get('search')
+                                if not search:
+                                    search = ''
+
+                                page = int(page)
+                                quantity = 10
+                                page_start = (page - 1) * quantity 
+
+                                table = []
+                                customers = cu_customers_model().get_customers(get='table', page_start=page_start, quantity = quantity, search = search)
+                                for customer in customers:
+                                    status = "<span class='badge bg-danger'>Prohibido<span>" 
+                                    if customer['cu_status'] == 1:
+                                        status = "<span class='badge bg-primary'>Activo<span>"
+
+                                    response = {
+                                        'cu_id': customer['cu_id'],
+                                        'pe_fullname': customer['pe_fullname'],
+                                        'pe_email': customer['pe_email'],
+                                        'pe_phone': customer['pe_phone'],
+                                        'cu_status': status,                        
+                                    }
+
+                                    table.append(response)
+
+                                if not table:
+                                    response = {
+                                        'cu_id': 'N/A',
+                                        'pe_fullname': '¡Sin resultados!',
+                                        'pe_email': 'N/A',
+                                        'pe_phone': 'N/A',
+                                        'cu_status': "<span class='badge bg-danger'>N/A<span>",                        
+                                    }
+
+                                    table.append(response)
+                                
+                                customers_total = cu_customers_model().get_customers_count(get='table', search=search)
+                                total_pages = math.ceil(customers_total / quantity)
+
+                                return json.dumps({'success': True, 'html': render_template('/widget/card-customers.html', table = table), "total_pages": total_pages}) 
+                            elif v_apiurlsplit[4] == 'products' and v_apiurlsplit[5] is None:
+                                page = v_requestform.get('page')
+                                if not page or not page.isnumeric():
+                                    page = 1
+                                
+                                search = v_requestform.get('search')
+                                if not search:
+                                    search = ''
+
+                                page = int(page)
+                                quantity = 10
+                                page_start = (page - 1) * quantity 
+
+                                table = []
+                                products = pr_products_model().get_products(get='tablestatus', pr_status = 1, page_start=page_start, quantity = quantity, search = search)
+                                for product in products:
+                                    response = {
+                                        'pr_id': product['pr_id'],
+                                        'pr_barcode': product['pr_barcode'],
+                                        'pr_name': product['pr_name'],
+                                        'pr_model': product['pr_model'],
+                                        'pr_price': product['pr_price'],
+                                        'br_name': product['br_name'],
+                                    }
+
+                                    table.append(response)
+
+                                if not table:
+                                    response = {
+                                        'pr_id': 'N/A',
+                                        'pr_barcode': 'N/A',
+                                        'pr_name': '¡Sin resultados!',
+                                        'pr_model': 'N/A',
+                                        'pr_price': 'N/A',
+                                        'br_name': 'N/A',
+                                    }
+
+                                    table.append(response)
+                                
+                                products_total = pr_products_model().get_products_count(get='tablestatus', pr_status = 1, search=search)
+                                total_pages = math.ceil(products_total / quantity)
+
+                                return json.dumps({'success': True, 'html': render_template('/widget/card-products.html', table = table), "total_pages": total_pages}) 
+                            elif v_apiurlsplit[4] == 'info' and v_apiurlsplit[5] is None:
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    info = {
+                                        'customer': {
+                                            'cu_id': 'N/A',
+                                            'pe_id': '',
+                                            'pe_fullname': '',
+                                            'pe_email': '',
+                                            'pe_phone': '',
+                                        },
+                                        'products': []
+                                    }
+
+                                    token = serializer.dumps(info)                                   
+
+                                response = make_response(json.dumps({'success': True, 'info': info}))                         
+                                response.set_cookie('posinfo', token) 
+                                
+                                return response
+                        elif v_apiurlsplit[3] == 'set':
+                            if v_apiurlsplit[4] == 'customer' and v_apiurlsplit[5] is None:
+                                cu_id = v_requestform.get('cu_id')
+                                if not cu_id:
+                                    return json.dumps({'success': False, 'msg': '¡El cliente está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                cu_customer = cu_customers_model().get_customer(cu_id)
+                                if cu_customer is None:
+                                    return json.dumps({'success': False, 'msg': '¡El cliente no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif cu_customer['cu_status'] == 0:
+                                    return json.dumps({'success': False, 'msg': '¡El cliente esta prohibido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
+                                
+                                info['customer']['cu_id'] = cu_customer['cu_id']
+                                info['customer']['pe_id'] = cu_customer['pe_id']
+                                info['customer']['pe_fullname'] = cu_customer['pe_fullname']
+                                info['customer']['pe_email'] = cu_customer['pe_email']
+                                info['customer']['pe_phone'] = cu_customer['pe_phone']
+
+                                token = serializer.dumps(info) 
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))                         
+                                response.set_cookie('posinfo', token) 
+
+                                return response
+                        elif v_apiurlsplit[3] == 'add':
+                            if v_apiurlsplit[4] == 'product' and v_apiurlsplit[5] is None:
+                                pr_id = v_requestform.get('pr_id')
+                                if not pr_id:
+                                    return json.dumps({'success': False, 'msg': '¡El producto está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                pr_product = pr_products_model().get_product(pr_id)
+                                if pr_product is None:
+                                    return json.dumps({'success': False, 'msg': '¡El producto no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif pr_product['pr_status'] == 0:
+                                    return json.dumps({'success': False, 'msg': '¡El producto esta desactivado! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
+                                
+                                existing_product = None
+                                for product in info['products']:
+                                    if product['pr_id'] == pr_id:
+                                        existing_product = product
+                                        break
+
+                                if existing_product is not None:
+                                    existing_product['quantity'] += 1
+                                    existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
+                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity=existing_product['quantity'], total=existing_product['total'])
+                                else:
+                                    new_product = {
+                                        'pr_id': pr_product['pr_id'],
+                                        'pr_img': f'/static/img/product/{pr_product["pr_id"]}.jpg',
+                                        'pr_barcode': pr_product['pr_barcode'],
+                                        'pr_name': pr_product['pr_name'],
+                                        'pr_model': pr_product['pr_model'],
+                                        'pr_price': pr_product['pr_price'],
+                                        'br_name': pr_product['br_name'],
+                                        'quantity': 1,
+                                        'total': pr_product['pr_price'],
+                                        'html': render_template('/widget/card-products-cart.html', pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], quantity=1, total=pr_product['pr_price'])
+                                    }
+                                    info['products'].append(new_product)
+
+                                token = serializer.dumps(info)
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}))
+                                response.set_cookie('posinfo', token)
+
+                                return response
+
                     #MANAGE
-                    if v_apiurlsplit[2] == 'manage':
+                    elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users':
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/users'):
                                 return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
@@ -218,16 +457,23 @@ def api_web(path):
                                 table = []
                                 users = us_users_model().get_users(get='table', page_start=page_start, quantity = quantity, search = search)
                                 for user in users:
+                                    status = "" 
+                                    if user['us_status'] == 1:
+                                        status = "checked"
+
                                     response = {
                                         'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user["us_id"]}</span>',
                                         'fullname': user['pe_fullname'],
                                         'email': user['pe_email'],
                                         'membership': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user["mem_name"]}</span>',        
-                                        'phone': user['pe_phone'],                        
-                                        'regdate': str(user['us_regdate']),
+                                        'phone': user['pe_phone'], 
                                     }
+                                    
+                                    response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" us_id="{user["us_id"]}" onclick="check_status_user(this)" {status}></div>'
+                                    
+                                    response['regdate'] = str(user['us_regdate'])
 
-                                    response['actions'] = f'<button class="btn btn-primary" user="{escape(json.dumps(response))}" user_permissions="{user["us_permissions"]}" onclick="edit_user(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                    response['actions'] = f'<button class="btn btn-primary" user="{escape(json.dumps(response))}" user_permissions="{user["us_permissions"]}" onclick="edit_user(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{user["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
                                     table.append(response)
                                 
@@ -267,7 +513,7 @@ def api_web(path):
                                 elif mem_memberships_model().get_membership(mem_id) is None:
                                     return json.dumps({'success': False, 'msg': '¡La membresía no es válida! Por favor, corríjala y vuelva a intentarlo.'})                  
                                 
-                                us_id = api_genuniqueid()
+                                us_id = us_users_model().gen_user_id()
                                 us_password = api_hashbcrypt(us_password) 
 
                                 us_users_model().insert_user(us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, mem_id=mem_id)
@@ -331,6 +577,21 @@ def api_web(path):
 
                                 us_users_model().update_user(update='all', us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, permissions = us_permissions, mem_id=mem_id)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                            elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
+                                us_id = v_requestform.get('us_id')
+                                if not us_id:
+                                    return json.dumps({'success': False, 'msg': '¡El usuario está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif us_users_model().get_user(us_id=us_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡El usuario no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                us_status = v_requestform.get('us_status')
+                                if not us_status:
+                                    return json.dumps({'success': False, 'msg': '¡El estatus está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not us_status.isnumeric():
+                                    return json.dumps({'success': False, 'msg': '¡El estatus no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                us_users_model().update_user(update='status', us_status=us_status, us_id=us_id)
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'})                                               
                         elif v_apiurlsplit[3] == 'customers':
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/customers'):
                                 return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
@@ -364,7 +625,7 @@ def api_web(path):
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" cu_id="{customer["cu_id"]}" onclick="check_status_customer(this)" {status}></div>'
                                     response['regdate'] = str(customer['cu_regdate'])
-                                    response['actions'] = f'<button class="btn btn-primary" customer="{escape(json.dumps(response))}" onclick="edit_customer(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                    response['actions'] = f'<button class="btn btn-primary" customer="{escape(json.dumps(response))}" onclick="edit_customer(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{customer["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
                                     table.append(response)
                                 
@@ -447,7 +708,7 @@ def api_web(path):
                                     return json.dumps({'success': False, 'msg': '¡El estatus no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
 
                                 cu_customers_model().update_customer(update='status', status=cu_status, cu_id=cu_id)
-                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'})                        
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'})                                                            
                         elif v_apiurlsplit[3] == 'paymentmethods':
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/paymentmethods'):
                                 return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
@@ -890,7 +1151,7 @@ def api_web(path):
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pv_id="{provider["pv_id"]}" onclick="check_status_provider(this)" {status}></div>'
                                     response['regdate'] = str(provider['pv_regdate'])
-                                    response['actions'] = f'<button class="btn btn-primary" provider="{escape(json.dumps(response))}" onclick="edit_provider(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                    response['actions'] = f'<button class="btn btn-primary" provider="{escape(json.dumps(response))}" onclick="edit_provider(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{provider["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
                                     table.append(response)
                                 
@@ -1128,6 +1389,290 @@ def api_web(path):
 
                                 br_brands_model().update_brand(update='status', status=br_status, br_id=br_id)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                        elif v_apiurlsplit[3] == 'cities':
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/cities'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                            if v_apiurlsplit[4] == 'table' and v_apiurlsplit[5] is None:
+                                page = v_requestform.get('page')
+                                if not page or not page.isnumeric():
+                                    page = 1
+                                
+                                search = v_requestform.get('search')
+                                if not search:
+                                    search = ''
+
+                                page = int(page)
+                                quantity = 10
+                                page_start = (page - 1) * quantity 
+
+                                table = []
+                                cities = ci_cities_model().get_cities(get='table', page_start=page_start, quantity = quantity, search = search)
+                                for city in cities:
+                                    status = "" 
+                                    if city['ci_status'] == 1:
+                                        status = "checked" 
+
+                                    response = {
+                                        'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{city["ci_id"]}</span>',
+                                        'name': city['ci_name'],
+                                        'state': city['st_name']
+                                    }
+
+                                    response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ci_id="{city["ci_id"]}" onclick="check_status_city(this)" {status}></div>'
+                                    response['actions'] = f'<button class="btn btn-primary" city="{escape(json.dumps(response))}" onclick="edit_city(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+
+                                    table.append(response)
+                                
+                                cities_total = ci_cities_model().get_cities_count(get='table', search=search)
+                                total_pages = math.ceil(cities_total / quantity)
+
+                                return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                            elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
+                                ci_id = v_requestform.get('ci_id')
+                                if not ci_id:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif ci_cities_model().get_city(ci_id=ci_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                ci_name = v_requestform.get('ci_name')
+                                if not ci_name:
+                                    return json.dumps({'success': False, 'msg': '¡El nombre está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                ci_name = ci_name.strip().capitalize()
+                                
+                                st_name = v_requestform.get('st_name')
+                                if not st_name:
+                                    return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                st_name = st_name.strip().capitalize() 
+                                
+                                st_id = None
+                                while not st_id:
+                                    result = st_states_model().get_state(get='name', st_name=st_name)
+                                    if result:
+                                        st_id = result['st_id']
+                                    else:
+                                        st_states_model().insert_state(st_name=st_name)
+
+                                ci_cities_model().update_city(update='all', ci_name=ci_name, ci_id=ci_id, st_id=st_id)
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                            elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
+                                ci_id = v_requestform.get('ci_id')
+                                if not ci_id:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif ci_cities_model().get_city(ci_id=ci_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                ci_status = v_requestform.get('ci_status')
+                                if not ci_status:
+                                    return json.dumps({'success': False, 'msg': '¡El estatus está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not ci_status.isnumeric():
+                                    return json.dumps({'success': False, 'msg': '¡El estatus no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                ci_cities_model().update_city(update='status', ci_status=ci_status, ci_id=ci_id)
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                        elif v_apiurlsplit[3] == 'states':
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/states'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                            if v_apiurlsplit[4] == 'table' and v_apiurlsplit[5] is None:
+                                page = v_requestform.get('page')
+                                if not page or not page.isnumeric():
+                                    page = 1
+                                
+                                search = v_requestform.get('search')
+                                if not search:
+                                    search = ''
+
+                                page = int(page)
+                                quantity = 10
+                                page_start = (page - 1) * quantity 
+
+                                table = []
+                                states = st_states_model().get_states(get='table', page_start=page_start, quantity = quantity, search = search)
+                                for state in states:
+                                    status = "" 
+                                    if state['st_status'] == 1:
+                                        status = "checked" 
+
+                                    response = {
+                                        'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{state["st_id"]}</span>',
+                                        'name': state['st_name']
+                                    }
+
+                                    response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" st_id="{state["st_id"]}" onclick="check_status_state(this)" {status}></div>'
+                                    response['actions'] = f'<button class="btn btn-primary" state="{escape(json.dumps(response))}" onclick="edit_state(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+
+                                    table.append(response)
+                                
+                                states_total = st_states_model().get_states_count(get='table', search=search)
+                                total_pages = math.ceil(states_total / quantity)
+
+                                return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                            elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
+                                st_id = v_requestform.get('st_id')
+                                if not st_id:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif st_states_model().get_state(st_id=st_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                st_name = v_requestform.get('st_name')
+                                if not st_name:
+                                    return json.dumps({'success': False, 'msg': '¡El nombre está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                st_states_model().update_state(update='all', st_name=st_name, st_id=st_id)
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                            elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
+                                st_id = v_requestform.get('st_id')
+                                if not st_id:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif st_states_model().get_state(st_id=st_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                st_status = v_requestform.get('st_status')
+                                if not st_status:
+                                    return json.dumps({'success': False, 'msg': '¡El estatus está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not st_status.isnumeric():
+                                    return json.dumps({'success': False, 'msg': '¡El estatus no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                st_states_model().update_state(update='status', st_status=st_status, st_id=st_id)
+                                return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                        elif v_apiurlsplit[3] == 'addresses':
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/brands'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                            pe_id = v_apiurlsplit[4]
+                            if pe_persons_model().get_person(pe_id=pe_id):                                
+                                if v_apiurlsplit[5] == 'table' and v_apiurlsplit[6] is None:  
+                                    page = v_requestform.get('page')
+                                    if not page or not page.isnumeric():
+                                        page = 1
+                                    
+                                    search = v_requestform.get('search')
+                                    if not search:
+                                        search = ''
+
+                                    page = int(page)
+                                    quantity = 10
+                                    page_start = (page - 1) * quantity 
+
+                                    table = []
+                                    addresses = ad_addresses_model().get_addresses(get='tableperson', pe_id=pe_id, page_start=page_start, quantity = quantity, search = search)
+                                    for address in addresses:
+                                        response = {
+                                            'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_id"]}</span>',
+                                            'address': address['ad_address'],
+                                            'postalcode': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_postalcode"]}</span>',
+                                            'city': address['ci_name'],
+                                            'state': address['st_name'],
+                                        }
+                                        
+                                        response['actions'] = f'<button class="btn btn-primary" address="{escape(json.dumps(response))}" onclick="edit_address(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-danger" ad_id="{address["ad_id"]}" onclick="delete_address(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Eliminar</button>'
+
+                                        table.append(response)
+                                    
+                                    addresses_total = ad_addresses_model().get_addresses_count(get='tableperson', pe_id=pe_id, search=search)
+                                    total_pages = math.ceil(addresses_total / quantity)
+
+                                    return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                                elif v_apiurlsplit[5] == 'add' and v_apiurlsplit[6] is None:                                   
+                                    ad_address = v_requestform.get('ad_address')
+                                    if not ad_address:
+                                        return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                    ad_postalcode = v_requestform.get('ad_postalcode')
+                                    if not ad_postalcode:
+                                        return json.dumps({'success': False, 'msg': '¡El código postal está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    
+                                    st_name = v_requestform.get('st_name')
+                                    if not st_name:
+                                        return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    st_name = st_name.strip().capitalize() 
+                                    
+                                    st_id = None
+                                    while not st_id:
+                                        result = st_states_model().get_state(get='name', st_name=st_name)
+                                        if result:
+                                            st_id = result['st_id']
+                                        else:
+                                            st_states_model().insert_state(st_name=st_name)
+                                    
+                                    ci_name = v_requestform.get('ci_name')
+                                    if not ci_name:
+                                        return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    ci_name = ci_name.strip().capitalize() 
+                                    
+                                    ci_id = None
+                                    while not ci_id:
+                                        result = ci_cities_model().get_city(get='nameandstate', ci_name=ci_name, st_name=st_name)
+                                        if result:
+                                            ci_id = result['ci_id']
+                                        else:
+                                            ci_cities_model().insert_city(ci_name=ci_name, st_id=st_id)
+
+                                    ad_address = ad_address.strip().capitalize()
+
+                                    ad_addresses_model().insert_address(ad_address = ad_address, ad_postalcode = ad_postalcode, ci_id = ci_id, pe_id = pe_id)
+                                    return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
+                                elif v_apiurlsplit[5] == 'edit' and v_apiurlsplit[6] is None:
+                                    ad_id = v_requestform.get('ad_id')
+                                    if not ad_id:
+                                        return json.dumps({'success': False, 'msg': '¡El ID está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    if not ad_addresses_model().get_address(ad_id = ad_id, pe_id = pe_id):
+                                        return json.dumps({'success': False, 'msg': '¡El ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    
+                                    ad_address = v_requestform.get('ad_address')
+                                    if not ad_address:
+                                        return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                    ad_postalcode = v_requestform.get('ad_postalcode')
+                                    if not ad_postalcode:
+                                        return json.dumps({'success': False, 'msg': '¡El código postal está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    
+                                    st_name = v_requestform.get('st_name')
+                                    if not st_name:
+                                        return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    st_name = st_name.strip().capitalize() 
+                                    
+                                    st_id = None
+                                    while not st_id:
+                                        result = st_states_model().get_state(get='name', st_name=st_name)
+                                        if result:
+                                            st_id = result['st_id']
+                                        else:
+                                            st_states_model().insert_state(st_name=st_name)
+                                    
+                                    ci_name = v_requestform.get('ci_name')
+                                    if not ci_name:
+                                        return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    ci_name = ci_name.strip().capitalize() 
+                                    
+                                    ci_id = None
+                                    while not ci_id:
+                                        result = ci_cities_model().get_city(get='nameandstate', ci_name=ci_name, st_name=st_name)
+                                        if result:
+                                            ci_id = result['ci_id']
+                                        else:
+                                            ci_cities_model().insert_city(ci_name=ci_name, st_id=st_id)
+
+                                    ad_address = ad_address.strip().capitalize()
+
+                                    ad_addresses_model().update_address(update = 'allperson', ad_address = ad_address, ad_postalcode = ad_postalcode, ci_id = ci_id, ad_id = ad_id)
+                                    return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
+                                elif v_apiurlsplit[5] == 'delete' and v_apiurlsplit[6] is None:
+                                    ad_id = v_requestform.get('ad_id')
+                                    if not ad_id:
+                                        return json.dumps({'success': False, 'msg': '¡El ID está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    if not ad_addresses_model().get_address(ad_id = ad_id, pe_id = pe_id):
+                                        return json.dumps({'success': False, 'msg': '¡El ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                    ad_addresses_model().update_address(update='status', ad_status=0, ad_id=ad_id)
+                                    return json.dumps({'success': True, 'msg': '¡Se eliminó correctamente!'}) 
 
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
     except Exception as e:
@@ -1149,5 +1694,6 @@ def api_web_authlogout():
     
     response = make_response(redirect('/'))    
     response.delete_cookie('pos')
+    response.delete_cookie('posinfo')
     session.clear()
     return response

@@ -1,0 +1,12 @@
+<div class="row g-2 rounded-lg hover-scale-up cursor-pointer mb-3" style="background: rgba(var(--separator-rgb));">
+    <div class="col-2 col-sm-3 col-md-2 mb-2">
+        <img src="{{pr_img}}" alt="alternate text" class="ms-2 rounded-xl border border-separator-light border-4 sw-8 sh-8">
+    </div>
+    <div class="col-6 col-sm-6 col-md-7 mb-2 p-2">
+        <span class="text-body font-heading" style="font-size: 16px;">{{pr_name}} ({{pr_model}}) • {{br_name}} </span><br>
+        <span class="text-body font-standard d-flex align-content-center" style="font-size: 14px;"><i data-acorn-icon="barcode" data-acorn-size="18" class="me-1"></i> {{pr_barcode}} • ${{pr_price}} x {{quantity}}</span>
+    </div>
+    <div class="col-3 col-sm-3 col-md-3 mb-2 p-3">
+        <span class="text-body font-heading" style="font-size: 18px; justify-content: space-between;">${{total}}</span><br>
+    </div>
+</div>

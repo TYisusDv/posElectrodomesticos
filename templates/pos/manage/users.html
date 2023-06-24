@@ -93,7 +93,8 @@
                             <th scope="col">Correo electrónico</th>
                             <th scope="col">Tipo de usuario</th>
                             <th scope="col">Teléfono</th>
-                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Estatus</th>
+                            <th scope="col">Fecha de registro</th>                            
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -273,16 +274,40 @@
                         <div class="col-6">
                             <div class="mb-2 filled custom-control-container ps-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-9" value="/pos/manage/sales">
-                                    <label class="form-check-label" for="manage-users-permissions-9">Administrar ventas</label>
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-9" value="/pos/manage/cities">
+                                    <label class="form-check-label" for="manage-users-permissions-9">Administrar ciudades</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="mb-2 filled custom-control-container ps-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-10" value="/pos/manage/dbbackup">
-                                    <label class="form-check-label" for="manage-users-permissions-10">Administrar copias de seguridad</label>
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-10" value="/pos/manage/states">
+                                    <label class="form-check-label" for="manage-users-permissions-10">Administrar estados</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-11" value="/pos/manage/sales">
+                                    <label class="form-check-label" for="manage-users-permissions-11">Administrar ventas</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-12" value="/pos/manage/dbbackup">
+                                    <label class="form-check-label" for="manage-users-permissions-12">Administrar copias de seguridad</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-13" value="/pos/manage/addresses">
+                                    <label class="form-check-label" for="manage-users-permissions-13">Administrar direcciones</label>
                                 </div>
                             </div>
                         </div>
@@ -360,6 +385,58 @@
             }
             clearInterval(table_interval);           
         }, 100);
+
+        function check_status_user(e) {
+            var switchElement = $(e);
+            var us_id = $(e).attr('us_id');
+            var us_status = 0;
+
+            if ($(e).is(':checked')) {
+                us_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (us_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('us_id', us_id);
+            formData.append('us_status', us_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/users/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_user = check_status_user;
 
         $('#admin-users-form-add').submit(function (e) {
             e.preventDefault();
