@@ -88,36 +88,59 @@
             <div class="row g-2">
                 <div class="col-12">
                     <div class="card mb-3">
-                        <div class="card-body" id="pos-sale-info">
-                            <h1 class="text-primary font-heading display-7 mb-3">Venta</h1>
-                            <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="shop"></i>
-                                <input class="form-control" placeholder="Sucursal" name="lo_name" disabled>
-                            </div>
-                            <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="diagram-2"></i>
-                                <input class="form-control" placeholder="Tipo de venta" name="ts_name" disabled>
-                            </div>
-                            <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="grid-1"></i>
-                                <input class="form-control" placeholder="Cantidad de pagos" name="ts_details" disabled>
-                            </div>
-                            <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-sale-info-ts_firstpayment-div">
-                                <i data-acorn-icon="dollar"></i>
-                                <input class="form-control" placeholder="Primer abono" name="ts_firstpayment" disabled>
-                            </div>
-                            <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="credit-card"></i>
-                                <input class="form-control" placeholder="Método de pago" name="pm_name" disabled>
-                            </div>
-                            <div class="mb-3 filled form-group tooltip-end-top">
-                                <i data-acorn-icon="sale-tag"></i>
-                                <input class="form-control" placeholder="Descuento" name="discount_per" disabled>
-                            </div>
-                            <div class="filled form-group tooltip-end-top">
-                                <button class="btn btn-primary w-100" id="pos-sale-btn" data-bs-toggle="modal" data-bs-target="#pos-sale-edit-modal"><i data-acorn-icon="edit-square"
-                                        data-acorn-size="18"></i></button>
-                            </div>
+                        <div class="card-body">
+                            <form id="pos-sale-form-edit" autocomplete="off">
+                                <h1 class="text-primary font-heading display-7 mb-3">Venta</h1>
+                                <div class="mb-3 filled form-group tooltip-end-top">
+                                    <i data-acorn-icon="shop"></i>
+                                    <select class="form-control" name="lo_id">
+                                        <option value="0" class="bg-dark">Selecciona la sucursal...</option>
+                                        {% for location in locations %}
+                                        <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>                    
+                                <div class="mb-3 filled form-group tooltip-end-top">
+                                    <i data-acorn-icon="diagram-2"></i>
+                                    <select class="form-control" name="ts_id">
+                                        <option value="0" class="bg-dark">Selecciona el tipo de venta...</option>
+                                        {% for typesale in typessales %}
+                                        <option value="{{typesale.ts_id}}" class="bg-dark">{{typesale.ts_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_amountpayments-edit-div">
+                                    <label for="">Cantidad de pagos</label>
+                                    <i data-acorn-icon="grid-1" style="top: 32px;"></i>
+                                    <input class="form-control" placeholder="Cantidad de pagos que debe realizar" name="ts_amountpayments">
+                                </div> 
+                                <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_days-edit-div">
+                                    <label for="">Tiempo en dias</label>
+                                    <i data-acorn-icon="clock" style="top: 32px;"></i>
+                                    <input class="form-control" placeholder="Tiempo en dias" name="ts_days">
+                                </div>  
+                                <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_firstpayment-edit-div">
+                                    <label for="">Primer abono</label>
+                                    <i data-acorn-icon="dollar" style="top: 32px;"></i>
+                                    <input class="form-control" placeholder="¿De cuánto será el primer abono? (Se recomienda mínimo el 10%)" name="ts_firstpayment">
+                                </div>  
+                                <div class="mb-3 filled form-group tooltip-end-top">
+                                    <i data-acorn-icon="credit-card"></i>
+                                    <select class="form-control" name="pm_id">
+                                        <option value="0" class="bg-dark">Selecciona el método de pago...</option>
+                                        {% for paymentmethod in paymentmethods %}
+                                        <option value="{{paymentmethod.pm_id}}" class="bg-dark">{{paymentmethod.pm_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div> 
+                                <div class="mb-3 filled form-group tooltip-end-top">
+                                    <i data-acorn-icon="sale-tag"></i>
+                                    <input class="form-control" placeholder="Porcentaje de descuento" name="discount_per" value="0">
+                                </div> 
+                                <div class="filled form-group tooltip-end-top">
+                                    <button class="btn btn-primary w-100" type="submit" id="pos-sale-btn"><i data-acorn-icon="save" data-acorn-size="18"></i></button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                     <div class="card mb-3">
@@ -204,68 +227,6 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="pos-sale-edit-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="pos-sale-edit-modalLabel" style="display: none;" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pos-sale-edit-modalLabel">Editar venta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="pos-sale-form-edit" autocomplete="off">
-                <div class="modal-body">     
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="shop"></i>
-                        <select class="form-control" name="lo_id">
-                            <option value="0" class="bg-dark">Selecciona la sucursal...</option>
-                            {% for location in locations %}
-                            <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>                    
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="diagram-2"></i>
-                        <select class="form-control" name="ts_id">
-                            <option value="0" class="bg-dark">Selecciona el tipo de venta...</option>
-                            {% for typesale in typessales %}
-                            <option value="{{typesale.ts_id}}" class="bg-dark">{{typesale.ts_name}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_amountpayments-edit-div">
-                        <i data-acorn-icon="grid-1"></i>
-                        <input class="form-control" placeholder="Cantidad de pagos que debe realizar" name="ts_amountpayments">
-                    </div> 
-                    <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_days-edit-div">
-                        <i data-acorn-icon="clock"></i>
-                        <input class="form-control" placeholder="Tiempo en dias" name="ts_days">
-                    </div>  
-                    <div class="mb-3 filled form-group tooltip-end-top d-none" id="pos-ts_firstpayment-edit-div">
-                        <i data-acorn-icon="dollar"></i>
-                        <input class="form-control" placeholder="¿De cuánto será el primer abono? (Se recomienda mínimo el 10%)" name="ts_firstpayment">
-                    </div>  
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="credit-card"></i>
-                        <select class="form-control" name="pm_id">
-                            <option value="0" class="bg-dark">Selecciona el método de pago...</option>
-                            {% for paymentmethod in paymentmethods %}
-                            <option value="{{paymentmethod.pm_id}}" class="bg-dark">{{paymentmethod.pm_name}}</option>
-                            {% endfor %}
-                        </select>
-                    </div> 
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="sale-tag"></i>
-                        <input class="form-control" placeholder="Porcentaje de descuento" name="discount_per" value="0">
-                    </div>  
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
-                        Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 <div class="modal fade" id="pos-finalize-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
     aria-labelledby="pos-finalize-modalLabel" style="display: none;" aria-hidden="true">
     <div class="modal-dialog">
@@ -332,6 +293,18 @@
             $('.modal').on('hidden.bs.modal', function () {                
                 pos_get_info();
             });
+
+            $("#pos-sale-form-edit select[name='lo_id'], #pos-sale-form-edit select[name='ts_id'], #pos-sale-form-edit select[name='pm_id']").on("change", function() {             
+                $("#pos-sale-btn").click();
+            });
+        });
+
+        $("#pos-sale-form-edit input[name='ts_amountpayments'], #pos-sale-form-edit input[name='ts_days'], #pos-sale-form-edit input[name='ts_firstpayment'], #pos-sale-form-edit input[name='discount_per']").on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                $("#pos-sale-btn").click();
+            }, 500);
         });
 
         function pos_sale_edit_options(selectedValue){
@@ -526,21 +499,18 @@
                     pos_sale_edit_options(ts_id);
                     if(ts_id == 100002){
                         pos_total = ts_total;
-                        $('#pos-sale-info-ts_firstpayment-div').removeClass('d-none');
                         $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">($${subtotal.toFixed(2)})</span> $${ts_firstpayment.toFixed(2)}`);                   
                         $('#pos-info-div span[name=commission]').html(`$${commission.toFixed(2)}`);
                         $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">($${discount.toFixed(2)})</span> -$0`);
-                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">($${total})</span> $${ts_total.toFixed(2)}`);
+                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">($${total.toFixed(2)})</span> $${ts_total.toFixed(2)}`);
                     } else if(ts_id == 100003){
                         pos_total = 0;
-                        $('#pos-sale-info-ts_firstpayment-div').addClass('d-none');
                         $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">($${subtotal.toFixed(2)})</span> $0`);                   
                         $('#pos-info-div span[name=commission]').html(`$0`);
                         $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">($${discount.toFixed(2)})</span> -$0`);
                         $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">($${total.toFixed(2)})</span> $0`);
                     } else {
                         pos_total = total;
-                        $('#pos-sale-info-ts_firstpayment-div').addClass('d-none');
                         $('#pos-info-div span[name=subtotal]').html(`$${subtotal.toFixed(2)}`);                   
                         $('#pos-info-div span[name=commission]').html(`$${commission.toFixed(2)}`);
                         $('#pos-info-div span[name=discount]').html(`-$${discount.toFixed(2)}`);
@@ -563,17 +533,11 @@
 
                     
                     $("#pos-sale-form-edit select[name=lo_id]").val(lo_id);
-                    $('#pos-sale-info input[name=lo_name]').val(lo_name);
                     $("#pos-sale-form-edit select[name=ts_id]").val(ts_id);
-                    $('#pos-sale-info input[name=ts_name]').val(ts_name);
-                    $('#pos-sale-info input[name=ts_details]').val(ts_details);
                     $("#pos-sale-form-edit input[name=ts_amountpayments]").val(ts_amountpayments);
                     $("#pos-sale-form-edit input[name=ts_days]").val(ts_days);
-                    $('#pos-sale-info input[name=ts_firstpayment]').val(ts_firstpayment);
                     $("#pos-sale-form-edit input[name=ts_firstpayment]").val(ts_firstpayment);
                     $("#pos-sale-form-edit select[name=pm_id]").val(pm_id);
-                    $('#pos-sale-info input[name=pm_name]').val(pm_name);                    
-                    $('#pos-sale-info input[name=discount_per]').val(`${discount_per}%`);
                     $('#pos-sale-form-edit input[name=discount_per]').val(discount_per);                    
                     
                     $('#pos-finalize-btn').prop('disabled', true);
@@ -727,7 +691,7 @@
                         color: 'danger'
                     });
                 }
-                $('#pos-sale-edit-modal').modal('hide');
+                pos_get_info();
                 $('#pos-sale-form-edit button[type="submit"]').prop('disabled', false);
             }).catch(function (response) {                
                 loadNoti({
@@ -735,7 +699,7 @@
                     msg: response.msg,
                     color: 'danger'
                 });
-                $('#pos-sale-edit-modal').modal('hide');
+                pos_get_info();
                 $('#pos-sale-form-edit button[type="submit"]').prop('disabled', false);
             });
         });

@@ -186,11 +186,12 @@ def api_web(path):
                                     if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
                                         return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
                                     
+                                    paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
-                                    remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                    remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
                                     
-                                    return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment)})
+                                    return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment, paymentmethods = paymentmethods)})
                         
                 #ERROR 404
                 if v_apiverifysession == 1: 
@@ -464,7 +465,7 @@ def api_web(path):
                                 info['customer']['pe_phone'] = cu_customer['pe_phone']
 
                                 token = serializer.dumps(info) 
-                                response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))                         
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se guardó correctamente!'}))                         
                                 response.set_cookie('posinfo', token) 
 
                                 return response
@@ -519,17 +520,17 @@ def api_web(path):
                                 
                                 lo_location = lo_locations_model().get_location(lo_id)
                                 if lo_location is None:
-                                    return json.dumps({'success': False, 'msg': '¡La sucursal no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    lo_id = 0
                                 elif lo_location['lo_status'] == 0:
                                     return json.dumps({'success': False, 'msg': '¡La sucursal esta prohibida! Por favor, corríjala y vuelva a intentarlo.'})
-
+                                
                                 ts_id = v_requestform.get('ts_id')
                                 if not ts_id:
                                     return json.dumps({'success': False, 'msg': '¡El tipo de venta está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 
                                 ts_typesale = ts_typessales_model().get_typesale(ts_id)
                                 if ts_typesale is None:
-                                    return json.dumps({'success': False, 'msg': '¡El tipo de venta no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    ts_id = 0
                                                                 
                                 pm_id = v_requestform.get('pm_id')
                                 if not pm_id:
@@ -537,7 +538,7 @@ def api_web(path):
                                 
                                 pm_paymentmethod = pm_paymentmethods_model().get_paymentmethod(pm_id)
                                 if pm_paymentmethod is None:
-                                    return json.dumps({'success': False, 'msg': '¡El método de pago no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    pm_id = 0
                                 elif pm_paymentmethod['pm_status'] == 0:
                                     return json.dumps({'success': False, 'msg': '¡El método de pago esta prohibido! Por favor, corríjalo y vuelva a intentarlo.'})
 
@@ -564,49 +565,66 @@ def api_web(path):
                                 if ts_id == '100002':
                                     ts_amountpayments = v_requestform.get('ts_amountpayments')
                                     if not ts_amountpayments:
-                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_amountpayments = 1
                                     elif not ts_amountpayments.isnumeric():
-                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_amountpayments = 1
                                     elif int(ts_amountpayments) <= 0:
-                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_amountpayments = 1
 
                                     ts_amountpayments = int(ts_amountpayments)
 
                                     ts_firstpayment = v_requestform.get('ts_firstpayment')
                                     if not ts_firstpayment:
-                                        return json.dumps({'success': False, 'msg': '¡El primer abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_firstpayment = 0
                                     elif not api_isFloat(ts_firstpayment):
-                                        return json.dumps({'success': False, 'msg': '¡El primer abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
-                                    elif float(ts_firstpayment) <= 0:
-                                        return json.dumps({'success': False, 'msg': '¡El primer abono debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_firstpayment = 0
+                                    elif float(ts_firstpayment) < 0:
+                                        ts_firstpayment = 0
 
                                     ts_firstpayment = float(ts_firstpayment)
 
                                 if ts_id == '100002' or ts_id == '100003':
                                     ts_days = v_requestform.get('ts_days')
                                     if not ts_days:
-                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_days = 0
                                     elif not ts_days.isnumeric():
-                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
-                                    elif int(ts_days) <= 0:
-                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        ts_days = 0
+                                    elif int(ts_days) < 0:
+                                        ts_days = 0
                                     
                                     ts_days = int(ts_days)
+                                
+                                if int(lo_id) <= 0:
+                                    lo_name = ''
+                                else:
+                                    lo_name = lo_location['lo_name']
+
+                                if int(ts_id) <= 0:
+                                    ts_name = ''
+                                else:
+                                    ts_name = ts_typesale['ts_name']
+
+                                if int(pm_id) <= 0:
+                                    pm_name = ''
+                                    pm_per = 0
+                                else:
+                                    pm_name = pm_paymentmethod['pm_name']
+                                    pm_per = pm_paymentmethod['pm_per']
 
                                 info['location']['lo_id'] = int(lo_id)
-                                info['location']['lo_name'] = lo_location['lo_name']
+                                info['location']['lo_name'] = lo_name
                                 info['typesale']['ts_id'] = int(ts_id)
-                                info['typesale']['ts_name'] = ts_typesale['ts_name']
+                                info['typesale']['ts_name'] = ts_name
                                 info['typesale']['ts_amountpayments'] = ts_amountpayments
                                 info['typesale']['ts_days'] = ts_days
                                 info['typesale']['ts_firstpayment'] = ts_firstpayment
                                 info['paymentmethod']['pm_id'] = int(pm_id)
-                                info['paymentmethod']['pm_name'] = pm_paymentmethod['pm_name']
+                                info['paymentmethod']['pm_name'] = pm_name
                                 info['discount_per'] = float(discount_per)
-                                info['commission_per'] = float(pm_paymentmethod['pm_per'])
+                                info['commission_per'] = float(pm_per)
 
                                 token = serializer.dumps(info) 
-                                response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))                         
+                                response = make_response(json.dumps({'success': True, 'msg': '¡Se guardó correctamente!'}))                         
                                 response.set_cookie('posinfo', token) 
 
                                 return response                           
@@ -754,6 +772,7 @@ def api_web(path):
                             response.delete_cookie('posinfo')
 
                             return response
+                    
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users':
@@ -2051,7 +2070,7 @@ def api_web(path):
 
                                     response = {
                                         'alert': alert,
-                                        'remainingpayment': f'${remainingpayment}',
+                                        'remainingpayment': '${:.2f}'.format(remainingpayment).rstrip('0').rstrip('.'),
                                         'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
                                         'sa_regdate': str(sale['sa_regdate']),
                                         'ts_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["ts_name"]}</span>',
@@ -2082,7 +2101,7 @@ def api_web(path):
                                 if v_apiurlsplit[5] == 'payments':
                                     if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
                                         return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
-                            
+
                                     if v_apiurlsplit[6] == 'table' and v_apiurlsplit[7] is None: 
                                         page = v_requestform.get('page')
                                         if not page or not page.isnumeric():
@@ -2110,7 +2129,7 @@ def api_web(path):
                                                 difference_date = sp_limitdate - v_datetimenow
                                                 days_difference = difference_date.days
                                             
-                                            remainingpayment = (payment['sp_subtotal'] + payment['sp_commission']) - payment['sp_pay']
+                                            remainingpayment = payment['sp_subtotal'] - payment['sp_pay']
                                             if remainingpayment <= 0:
                                                 color = 'dark'
                                             elif days_difference < 0:
@@ -2137,7 +2156,7 @@ def api_web(path):
                                                 'sp_commission': f'${payment["sp_commission"]}',
                                                 'total': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">${payment["sp_subtotal"] + payment["sp_commission"]}</span>',
                                                 'sp_pay': f'${payment["sp_pay"]}',
-                                                'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">${(payment["sp_subtotal"] + payment["sp_commission"]) - payment["sp_pay"]}</span>',
+                                                'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">${(payment["sp_subtotal"]) - payment["sp_pay"]}</span>',
                                                 'sp_limitdate': str(payment['sp_limitdate']),
                                                 'pm_name': paymentmethod,
                                                 'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user}</span>',
@@ -2155,6 +2174,55 @@ def api_web(path):
                                         total_pages = math.ceil(payments_total / quantity)
 
                                         return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                                    elif v_apiurlsplit[6] == 'add' and v_apiurlsplit[7] is None:
+                                        amount = v_requestform.get('amount')
+                                        if not amount:
+                                            return json.dumps({'success': False, 'msg': '¡El abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})                                
+                                        elif not api_isFloat(amount) or float(amount) < 0:
+                                            return json.dumps({'success': False, 'msg': '¡El abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                        amount = float(amount)
+
+                                        pay = v_requestform.get('pay')
+                                        if not pay:
+                                            return json.dumps({'success': False, 'msg': '¡El pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})                                
+                                        elif not api_isFloat(pay) or float(pay) < 0:
+                                            return json.dumps({'success': False, 'msg': '¡El pago no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        
+                                        pay = float(pay)
+
+                                        pm_id = v_requestform.get('pm_id')
+                                        if not pm_id:
+                                            return json.dumps({'success': False, 'msg': '¡El método de pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        
+                                        pm_paymentmethod = pm_paymentmethods_model().get_paymentmethod(pm_id)
+                                        if pm_paymentmethod is None:
+                                            return json.dumps({'success': False, 'msg': '¡El método de pago no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        elif pm_paymentmethod['pm_status'] == 0:
+                                            return json.dumps({'success': False, 'msg': '¡El método de pago esta prohibido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        
+                                        commission = amount * (pm_paymentmethod['pm_per'] / 100)
+
+                                        salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
+                                        total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                                        remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                        if remainingpayment <= 0:
+                                            return json.dumps({'success': False, 'msg': '¡Esta venta ya fue abonada en su totalidad!'})       
+
+                                        for salepayment in salepayments:
+                                            if salepayment['sp_pay'] < salepayment['sp_subtotal'] and amount > 0:
+                                                new_pay = salepayment['sp_pay'] + amount
+                                                if new_pay > salepayment['sp_subtotal']:
+                                                    new_pay = salepayment['sp_subtotal']
+
+                                                amount = amount - new_pay
+
+                                                sp_salepayments_model().update_salepayment(update='pay', sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+
+                                                commission = 0
+                                        
+                                        return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
+                                    
 
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
     except Exception as e:

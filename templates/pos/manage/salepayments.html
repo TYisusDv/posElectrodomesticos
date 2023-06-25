@@ -9,6 +9,7 @@
                 </ul>
             </nav>
         </div>
+        {% if remainingpayment|float > 0 %}
         <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
             <div class="btn-group">
                 <button type="button" class="btn btn-outline-primary dropdown-toggle mb-1" data-bs-toggle="dropdown"
@@ -23,6 +24,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 <section class="scroll-section mb-5">
@@ -87,7 +89,7 @@
                                 <div class="d-flex align-items-center lh-1-25">Total restante</div>
                             </div>
                             <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">${{remainingpayment}}</div>
+                                <div class="cta-2 text-primary">{% if remainingpayment|float <= 0 %}$0{% else %}${{remainingpayment}}{% endif %}</div>
                             </div>
                         </div>
                     </div>
@@ -180,13 +182,31 @@
             </div>
             <form id="manage-payments-form-add" autocomplete="off">
                 <div class="modal-body">  
+                    <div class="mb-4 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="grid-1"></i>
+                        <input class="form-control" placeholder="¿Cuánto abonará?" name="amount">
+                    </div>  
+                    <div class="mb-4 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="¿Con cuánto pago?" name="pay">
+                    </div>  
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="text"></i>
-                        <input class="form-control" placeholder="Nombre" name="br_name">
-                    </div>                   
+                        <i data-acorn-icon="credit-card"></i>
+                        <select class="form-control" name="pm_id">
+                            <option value="0" class="bg-dark">Selecciona el método de pago...</option>
+                            {% for paymentmethod in paymentmethods %}
+                            <option value="{{paymentmethod.pm_id}}" class="bg-dark">{{paymentmethod.pm_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div> 
+                    <div class="filled form-group tooltip-end-top">
+                        <h1 class="text-primary font-heading display-6 d-flex justify-content-end">Cambio
+                        </h1>
+                        <span class="text-body font-standard display-7 d-flex justify-content-end align-items-center" name="change">$0</span>
+                    </div>                
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                    <button type="submit" disabled class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
                         Agregar</button>
                 </div>
             </form>
@@ -246,6 +266,39 @@
             }, 500);
         });
 
+        $("#manage-payments-form-add select[name=pm_id]").on("change", function() {             
+            sale_payments_change();
+        });
+
+        $('#manage-payments-form-add input[name=amount], #manage-payments-form-add input[name=pay]').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                sale_payments_change();
+            }, 500);
+        });
+
+        function sale_payments_change(){
+            var amount = $('#manage-payments-form-add input[name=amount]').val();
+            var pay = $('#manage-payments-form-add input[name=pay]').val();
+            var pm_id = $('#manage-payments-form-add select[name=pm_id]').val();
+            var change = pay - amount ;
+            $('#manage-payments-form-add span[name=change]').html(`$${change.toFixed(2)}`)
+            
+            console.log(amount.length)
+            if (amount.length <= 0 || amount === ''){
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
+            } else if (pay.length <= 0 || pay === ''){
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
+            } else if (isNaN(change) || change < 0){
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
+            } else if (pm_id <= 0){
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
+            } else {                    
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', false);
+            }
+        }
+
         var table_interval = setInterval(function () {
             if(path == '/pos/manage/{{sale.sa_id}}/payments'){
                 if (table_page !== table_page_previous) {
@@ -278,7 +331,7 @@
             formData.append('br_status', br_status);
             $(e).prop('disabled', true);
 
-            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/status', 'data', formData);
+            var response = sendDataPost('pos/manage/sale/{{sale.sa_id}}/payments/status', 'data', formData);
             response.then(function (response) {
                 if (response.success) {
                     loadNoti({
@@ -313,7 +366,7 @@
             e.preventDefault();
 
             $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
-            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/add', 'data', new FormData(this));
+            var response = sendDataPost('pos/manage/sale/{{sale.sa_id}}/payments/add', 'data', new FormData(this));
             response.then(function (response) {
                 $('#manage-payments-modal-add').modal('hide');
                 if (response.success) {
@@ -349,7 +402,7 @@
             e.preventDefault();
 
             $('#manage-payments-form-edit button[type="submit"]').prop('disabled', true);
-            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/edit', 'data', new FormData(this));
+            var response = sendDataPost('pos/manage/sale/{{sale.sa_id}}/payments/edit', 'data', new FormData(this));
             response.then(function (response) {
                 $('#manage-payments-modal-edit').modal('hide');
                 if (response.success) {
