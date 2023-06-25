@@ -5,7 +5,6 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from passlib.hash import bcrypt
 from itsdangerous import URLSafeSerializer
-from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import json, uuid, requests, re, math, time, sys, hashlib, random, shutil, os, base64, subprocess, psutil, glob, arrow, socket
 
@@ -27,10 +26,10 @@ if app_local:
     app_link = 'http://127.0.0.1:5000'
     app_debug = True
 else:
-    db_user = 'enigmatm'
-    db_password = 'eNigMAtm01TM@19#ByJNigHt&21'
-    db_db = 'enigmatm'
-    app_link = 'https://enigmatm.pro'
+    db_user = 'mihogar'
+    db_password = 'f!^EE6Jd3Y*08F0z^D@Z$9Tj5'
+    db_db = 'mihogar'
+    app_link = 'https://mihogarelectrodomesticos.com'
     app_debug = False
 
 app.secret_key = "sEcrEr&#kEy@1902#TyIsusDv$#q12"
