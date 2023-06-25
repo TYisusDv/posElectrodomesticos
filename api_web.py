@@ -166,6 +166,31 @@ def api_web(path):
                                 total_count = len(addresses)
                                 
                                 return json.dumps({'success': True, 'html': render_template('/pos/manage/addresses.html', pe_id = pe_id, total_count = total_count, cities = cities, states = states)})
+                        elif v_apiurlsplit[3] == 'sales' and v_apiurlsplit[4] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sales'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            sales = sa_sales_model().get_sales()  
+                            salepayments = sp_salepayments_model().get_salepayments(get = 'limitdate')                  
+                            canceled = sum(1 for sale in sales if sale["sa_status"] == 0)
+                            total_sales = sum(1 for sale in sales if sale["sa_status"] == 1)
+                            total_count = len(sales)
+                            total_count_salepayments = len(salepayments)
+                            
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/sales.html', total_count = total_count, canceled = canceled, total_sales = total_sales, total_count_salepayments = total_count_salepayments)})
+                        elif v_apiurlsplit[3] == 'sale':
+                            sa_id = v_apiurlsplit[4] 
+                            sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+                            if sa_sale:
+                                if v_apiurlsplit[5] == 'payments' and v_apiurlsplit[6] is None: 
+                                    if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
+                                        return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                                    
+                                    salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
+                                    total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                                    remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                    
+                                    return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment)})
                         
                 #ERROR 404
                 if v_apiverifysession == 1: 
@@ -342,22 +367,27 @@ def api_web(path):
                                     info = {
                                         'location': {
                                             'lo_id': 0,
-                                            'lo_name': '',
+                                            'lo_name': None,
                                         },
                                         'typesale': {
                                             'ts_id': 0,
-                                            'ts_name': '',
+                                            'ts_name': None,
+                                            'ts_amountpayments': None,
+                                            'ts_days': None,
+                                            'ts_firstpayment': None,
+                                            'ts_details': None,
+                                            'ts_total': 0,
                                         },
                                         'paymentmethod': {
                                             'pm_id': 0,
-                                            'pm_name': '',
+                                            'pm_name': None,
                                         },                                        
                                         'customer': {
                                             'cu_id': 'N/A',
-                                            'pe_id': '',
-                                            'pe_fullname': '',
-                                            'pe_email': '',
-                                            'pe_phone': '',
+                                            'pe_id': None,
+                                            'pe_fullname': None,
+                                            'pe_email': None,
+                                            'pe_phone': None,
                                         },
                                         'products': [],
                                         'subtotal': 0,
@@ -365,18 +395,42 @@ def api_web(path):
                                         'commission_per': 0,
                                         'discount_per': 0,
                                         'discount': 0,
-                                    }
+                                        'total': 0,
+                                        'fin': False,
+                                    }                                
 
                                 subtotal = sum(product['total'] for product in info['products'])
                                 commission = subtotal * (info['commission_per'] / 100)
                                 total_full = (subtotal + commission)
-                                descuento = total_full * (info['discount_per'] / 100)
-                                total = total_full - descuento
+                                discount = total_full * (info['discount_per'] / 100)
+                                total = total_full - discount
+                                
+                                info['subtotal'] = subtotal
+                                info['commission'] = commission
+                                info['discount'] = discount
+                                info['total'] = total
 
-                                info['subtotal'] = '{:.2f}'.format(subtotal).rstrip('0').rstrip('.')
-                                info['commission'] = '{:.2f}'.format(commission).rstrip('0').rstrip('.')
-                                info['discount'] = '{:.2f}'.format(descuento).rstrip('0').rstrip('.')
-                                info['total'] = '{:.2f}'.format(total).rstrip('0').rstrip('.')
+                                ts_total = 0
+                                if info['typesale']['ts_id'] == 100001:
+                                    ts_details = '1 solo pago'                                    
+                                elif info['typesale']['ts_id'] == 100002:
+                                    ts_commission = info['typesale']['ts_firstpayment'] * (info['commission_per'] / 100)
+                                    ts_total = (info['typesale']['ts_firstpayment'] + ts_commission)
+
+                                    ts_details = f'{info["typesale"]["ts_amountpayments"]} pago(s) cada {info["typesale"]["ts_days"]} dia(s)'
+                                    info['commission'] = ts_commission
+                                elif info['typesale']['ts_id'] == 100003:
+                                    ts_details = f'Se pagará en {info["typesale"]["ts_days"]} dia(s)'
+                                else:
+                                    ts_details = ''
+
+                                info['typesale']['ts_details'] = ts_details
+                                info['typesale']['ts_total'] = ts_total
+
+                                if len(info['products']) > 0 and info['location']['lo_id'] > 0 and info['typesale']['ts_id'] > 0 and info['paymentmethod']['pm_id'] > 0:
+                                    info['fin'] = True
+                                else:
+                                    info['fin'] = False
 
                                 token = serializer.dumps(info) 
                                 response = make_response(json.dumps({'success': True, 'info': info}))                         
@@ -503,11 +557,50 @@ def api_web(path):
                                 except:
                                     return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})                                 
 
-                                info['location']['lo_id'] = lo_id
+                                ts_amountpayments = None
+                                ts_days = None
+                                ts_firstpayment = None
+                                
+                                if ts_id == '100002':
+                                    ts_amountpayments = v_requestform.get('ts_amountpayments')
+                                    if not ts_amountpayments:
+                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif not ts_amountpayments.isnumeric():
+                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif int(ts_amountpayments) <= 0:
+                                        return json.dumps({'success': False, 'msg': '¡La cantidad de pagos debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                    ts_amountpayments = int(ts_amountpayments)
+
+                                    ts_firstpayment = v_requestform.get('ts_firstpayment')
+                                    if not ts_firstpayment:
+                                        return json.dumps({'success': False, 'msg': '¡El primer abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif not api_isFloat(ts_firstpayment):
+                                        return json.dumps({'success': False, 'msg': '¡El primer abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif float(ts_firstpayment) <= 0:
+                                        return json.dumps({'success': False, 'msg': '¡El primer abono debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                    ts_firstpayment = float(ts_firstpayment)
+
+                                if ts_id == '100002' or ts_id == '100003':
+                                    ts_days = v_requestform.get('ts_days')
+                                    if not ts_days:
+                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif not ts_days.isnumeric():
+                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif int(ts_days) <= 0:
+                                        return json.dumps({'success': False, 'msg': '¡El tiempo en días debe ser mayor a 0! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    
+                                    ts_days = int(ts_days)
+
+                                info['location']['lo_id'] = int(lo_id)
                                 info['location']['lo_name'] = lo_location['lo_name']
-                                info['typesale']['ts_id'] = ts_id
+                                info['typesale']['ts_id'] = int(ts_id)
                                 info['typesale']['ts_name'] = ts_typesale['ts_name']
-                                info['paymentmethod']['pm_id'] = pm_id
+                                info['typesale']['ts_amountpayments'] = ts_amountpayments
+                                info['typesale']['ts_days'] = ts_days
+                                info['typesale']['ts_firstpayment'] = ts_firstpayment
+                                info['paymentmethod']['pm_id'] = int(pm_id)
                                 info['paymentmethod']['pm_name'] = pm_paymentmethod['pm_name']
                                 info['discount_per'] = float(discount_per)
                                 info['commission_per'] = float(pm_paymentmethod['pm_per'])
@@ -516,8 +609,7 @@ def api_web(path):
                                 response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))                         
                                 response.set_cookie('posinfo', token) 
 
-                                return response
-                            
+                                return response                           
                         elif v_apiurlsplit[3] == 'add':
                             if v_apiurlsplit[4] == 'product' and v_apiurlsplit[5] is None:
                                 pr_id = v_requestform.get('pr_id')
@@ -568,7 +660,100 @@ def api_web(path):
                                 response.set_cookie('posinfo', token)
 
                                 return response
+                        elif v_apiurlsplit[3] == 'finalize' and v_apiurlsplit[4] is None:
+                            sa_pay = v_requestform.get('pay')
+                            if not sa_pay:
+                                return json.dumps({'success': False, 'msg': '¡El pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})                                
+                            elif not api_isFloat(sa_pay) or float(sa_pay) < 0:
+                                return json.dumps({'success': False, 'msg': '¡El pago no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
 
+                            sa_pay = float(sa_pay)
+
+                            token = request.cookies.get('posinfo')
+                            serializer = URLSafeSerializer(app.secret_key)
+                            info = None
+                            try:
+                                info = serializer.loads(token)
+                            except:
+                                return json.dumps({'success': False, 'msg': '¡No se creó la venta! Póngase en contacto con un soporte técnico.'})
+
+                            ts_amountpayments = info['typesale']['ts_amountpayments']
+                            if not ts_amountpayments:
+                                ts_amountpayments = 1
+
+                            ts_firstpayment = info['typesale']['ts_firstpayment']
+                            if not ts_firstpayment:
+                                ts_firstpayment = 0
+
+                            ts_days = info['typesale']['ts_days']
+                            if not ts_days:
+                                ts_days = 0
+
+                            cu_id = info['customer']['cu_id']
+                            if cu_id == 'N/A' or cu_id == 0:
+                                cu_id = None
+
+                            sa_id = str(uuid.uuid4())
+                            lo_id = info['location']['lo_id']
+                            ts_id = info['typesale']['ts_id']
+                            pm_id = info['paymentmethod']['pm_id']
+                            commission = float(info['commission'])
+                            sp_limitdate = datetime.now()
+                            sa_pay = sa_pay - commission
+
+                            total = float(info['subtotal']) - float(info['discount'])
+
+                            sa_sales_model().insert_sale(sa_id = sa_id, sa_subtotal = info['subtotal'], sa_discount = info['discount'], sa_amountpayments = ts_amountpayments, sa_days = ts_days, lo_id = lo_id, ts_id = ts_id, cu_id = cu_id, us_id = session['us_id'])
+
+                            for product in info['products']:
+                                sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
+
+                            if ts_id == 100002: 
+                                sp_subtotal = math.floor(total / ts_amountpayments)
+                                for i in range(ts_amountpayments - 1): 
+                                    sp_limitdate = sp_limitdate + timedelta(days=ts_days)
+
+                                    sp_id = sp_salepayments_model().gen_salepayment_id()
+                                    sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
+                                
+                                sp_limitdate = sp_limitdate + timedelta(days=ts_days)                                
+                                sp_subtotal = total - (sp_subtotal * (ts_amountpayments - 1))
+                                sp_id = sp_salepayments_model().gen_salepayment_id()
+                                sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
+
+                                salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)       
+
+                                for salepayment in salepayments:
+                                    if salepayment['sp_pay'] < salepayment['sp_subtotal'] and ts_firstpayment > 0:
+                                        new_pay = salepayment['sp_pay'] + ts_firstpayment
+                                        if new_pay > salepayment['sp_subtotal']:
+                                            new_pay = salepayment['sp_subtotal']
+
+                                        ts_firstpayment = ts_firstpayment - new_pay
+
+                                        sp_salepayments_model().update_salepayment(update='pay', sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+
+                                        commission = 0
+                            else:
+                                sp_regdate = sp_limitdate
+                                sp_limitdate = sp_limitdate + timedelta(days=ts_days)
+
+                                sp_id = sp_salepayments_model().gen_salepayment_id()
+                                new_pay = total + commission
+                                us_id = session['us_id']
+                                if ts_id == 100003:
+                                    sp_regdate = None
+                                    new_pay = 0
+                                    commission = 0
+                                    pm_id = None    
+                                    us_id = None                                
+
+                                sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = total, sp_commission = commission, sp_pay = new_pay, sp_limitdate = sp_limitdate, sp_regdate = sp_regdate, pm_id = pm_id, us_id = us_id, sa_id = sa_id)
+
+                            response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!'}))
+                            response.delete_cookie('posinfo')
+
+                            return response
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users':
@@ -1807,6 +1992,169 @@ def api_web(path):
 
                                     ad_addresses_model().update_address(update='status', ad_status=0, ad_id=ad_id)
                                     return json.dumps({'success': True, 'msg': '¡Se eliminó correctamente!'}) 
+                        elif v_apiurlsplit[3] == 'sales':
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sales'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                            if (v_apiurlsplit[4] == 'table' and v_apiurlsplit[5] is None) or (v_apiurlsplit[4] == 'late' and v_apiurlsplit[5] == 'table' and v_apiurlsplit[6] is None):
+                                page = v_requestform.get('page')
+                                if not page or not page.isnumeric():
+                                    page = 1
+                                
+                                search = v_requestform.get('search')
+                                if not search:
+                                    search = ''
+
+                                page = int(page)
+                                quantity = 10
+                                page_start = (page - 1) * quantity 
+
+                                table = []
+
+                                if v_apiurlsplit[4] == 'late':
+                                    sales_ids = []
+                                    sales = []
+                                    salepayments = sp_salepayments_model().get_salepayments(get = 'limitdate')
+                                    for salepayment in salepayments:
+                                        sales.append(sa_sales_model().get_sale(get = 'sa_id', sa_id = salepayment['sa_id']))
+                                else:
+                                    sales = sa_sales_model().get_sales(get='table', page_start=page_start, quantity = quantity, search = search)
+
+                                for sale in sales:
+                                    customer = f'({sale["cu_id"]}) {sale["cu_pe_fullname"]}'
+                                    if not sale["cu_id"]:
+                                        customer = 'N/A' 
+
+                                    salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sale['sa_id'])
+                                                                   
+                                    sp_limitdate = None
+                                    days_difference = 99
+                                    for salepayment in salepayments:
+                                        if salepayment['sp_pay'] < salepayment['sp_subtotal']:
+                                            sp_limitdate = salepayment['sp_limitdate']
+                                            break                                    
+                                    
+                                    if sp_limitdate:
+                                        difference_date = sp_limitdate - v_datetimenow
+                                        days_difference = difference_date.days
+                                    
+                                    total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                                    remainingpayment = sale["sa_subtotal"] - total_pay
+                                    if remainingpayment <= 0:
+                                        alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Pagado</span>'
+                                    elif days_difference < 0:
+                                        alert = f'<span class="badge bg-danger fw-bold" style="font-size: 12px;">Alerta ({days_difference})</span>'
+                                    elif days_difference < 6:
+                                        alert = f'<span class="badge bg-warning fw-bold text-black" style="font-size: 12px;">Medio ({days_difference})</span>'
+                                    else:
+                                        alert = f'<span class="badge bg-success fw-bold" style="font-size: 12px;">Bajo ({days_difference})</span>'
+
+                                    response = {
+                                        'alert': alert,
+                                        'remainingpayment': f'${remainingpayment}',
+                                        'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
+                                        'sa_regdate': str(sale['sa_regdate']),
+                                        'ts_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["ts_name"]}</span>',
+                                        'sa_subtotal': f'${sale["sa_subtotal"]}',
+                                        'sa_discount': f'-${sale["sa_discount"]}',
+                                        'total': f'${sale["sa_subtotal"] - sale["sa_discount"]}',
+                                        'customer': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{customer}</span>',
+                                        'sa_amountpayments': sale['sa_amountpayments'],
+                                        'sa_days': sale['sa_days'],
+                                        'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">({sale["us_id"]}) {sale["us_pe_fullname"]}</span>',
+                                    }
+                                    response['actions'] = f'<a class="btn btn-primary" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a> <button class="btn btn-danger" sale="{escape(json.dumps(response))}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
+
+                                    table.append(response)
+                                
+                                if v_apiurlsplit[4] == 'late':
+                                    sales_total = 10
+                                else:
+                                    sales_total = sa_sales_model().get_sales_count(get='table', search=search)
+                                
+                                total_pages = math.ceil(sales_total / quantity)
+
+                                return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                        elif v_apiurlsplit[3] == 'sale':
+                            sa_id = v_apiurlsplit[4] 
+                            sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+                            if sa_sale:
+                                if v_apiurlsplit[5] == 'payments':
+                                    if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
+                                        return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                                    if v_apiurlsplit[6] == 'table' and v_apiurlsplit[7] is None: 
+                                        page = v_requestform.get('page')
+                                        if not page or not page.isnumeric():
+                                            page = 1
+                                        
+                                        search = v_requestform.get('search')
+                                        if not search:
+                                            search = ''
+
+                                        page = int(page)
+                                        quantity = 10
+                                        page_start = (page - 1) * quantity 
+
+                                        table = []
+                                        payments = sp_salepayments_model().get_salepayments(get='table-sa_id', sa_id = sa_id, page_start=page_start, quantity = quantity, search = search)
+                                        for payment in payments:
+                                            sp_regdate = payment['sp_regdate']
+                                            if not sp_regdate:
+                                                sp_regdate = 'N/A'
+
+                                            sp_limitdate = payment['sp_limitdate']
+                                            days_difference = 99                                 
+                                            
+                                            if sp_limitdate:
+                                                difference_date = sp_limitdate - v_datetimenow
+                                                days_difference = difference_date.days
+                                            
+                                            remainingpayment = (payment['sp_subtotal'] + payment['sp_commission']) - payment['sp_pay']
+                                            if remainingpayment <= 0:
+                                                color = 'dark'
+                                            elif days_difference < 0:
+                                                color = 'danger'
+                                            elif days_difference < 6:
+                                                color = f'warning text-black'
+                                            else:
+                                                color = f'success '
+                                            
+                                            paymentmethod = payment['pm_name']
+                                            if not payment['pm_id']:
+                                                paymentmethod = 'N/A'
+
+                                            user = f'({payment["us_id"]}) {payment["pe_fullname"]}'
+                                            if not payment['us_id']:
+                                                user = 'N/A'
+
+                                            total_pay = sum(salepayment['sp_pay'] for salepayment in payments)
+                                            remainingpayment = sa_sale["sa_subtotal"] - total_pay
+
+                                            response = {
+                                                'sp_id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{payment["sp_id"]}</span>',
+                                                'sp_subtotal': f'${payment["sp_subtotal"]}',
+                                                'sp_commission': f'${payment["sp_commission"]}',
+                                                'total': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">${payment["sp_subtotal"] + payment["sp_commission"]}</span>',
+                                                'sp_pay': f'${payment["sp_pay"]}',
+                                                'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">${(payment["sp_subtotal"] + payment["sp_commission"]) - payment["sp_pay"]}</span>',
+                                                'sp_limitdate': str(payment['sp_limitdate']),
+                                                'pm_name': paymentmethod,
+                                                'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user}</span>',
+                                                'sp_regdate': str(sp_regdate),
+                                            }
+                                            
+                                            if remainingpayment <= 0:
+                                                response['actions'] = f''
+                                            else:
+                                                response['actions'] = f'<button class="btn btn-primary" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+
+                                            table.append(response)
+                                        
+                                        payments_total = sp_salepayments_model().get_salepayments_count(get='table-sa_id', sa_id = sa_id, search=search)
+                                        total_pages = math.ceil(payments_total / quantity)
+
+                                        return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
 
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
     except Exception as e:

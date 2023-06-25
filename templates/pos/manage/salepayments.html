@@ -1,0 +1,384 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Pagos</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/{{sale.sa_id}}/payments">Pagos</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle mb-1" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="true">
+                    <i data-acorn-icon="menu" class="icon" data-acorn-size="16"></i>
+                </button>
+                <div class="dropdown-menu"
+                    style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate(0px, 38px);"
+                    data-popper-placement="bottom-start">
+                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal"
+                        data-bs-target="#manage-payments-modal-add">Agregar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="grid-1" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total de pagos</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{sale.sa_amountpayments}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="dollar" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total a pagar</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{sale.sa_subtotal - sale.sa_discount}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>   
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="dollar" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total restante</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">${{remainingpayment}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="calendar" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Fecha de registro</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{sale.sa_regdate.strftime('%Y-%m-%d')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="manage-payments-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Subtotal</th>
+                            <th scope="col">Comisión</th>
+                            <th scope="col">Total a pagar</th>
+                            <th scope="col">Total pagado</th>
+                            <th scope="col">Total restante</th>
+                            <th scope="col">Fecha limite</th>
+                            <th scope="col">Metodo de pago</th>
+                            <th scope="col">Empleado</th>
+                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-payments-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="manage-payments-modal-add" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-payments-modal-addLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-payments-modal-addLabel">Agregar pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-payments-form-add" autocomplete="off">
+                <div class="modal-body">  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nombre" name="br_name">
+                    </div>                   
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="manage-payments-modal-edit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-payments-modal-editLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-payments-modal-editLabel">Editar pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-payments-form-edit" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="br_id" readonly>
+                    </div>                    
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nombre" name="br_name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $(document).ready(function () {
+            table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table');
+        });
+
+        function edit_brand(e){
+            var brand_json = JSON.parse($(e).attr('brand'));
+            var id = table_tempelement(brand_json.id).find('span').text();
+            var name = table_tempelement(brand_json.name).text();
+
+            $('#manage-payments-form-edit input[name=br_id]').val(id);
+            $('#manage-payments-form-edit input[name=br_name]').val(name);
+
+            $('#manage-payments-modal-edit').modal('show');
+        }
+        window.edit_brand = edit_brand;
+
+        $('#manage-payments-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table', $('#manage-payments-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/{{sale.sa_id}}/payments'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table', $('#manage-payments-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        function check_status_brand(e) {
+            var switchElement = $(e);
+            var br_id = $(e).attr('br_id');
+            var br_status = 0;
+
+            if ($(e).is(':checked')) {
+                br_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (br_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('br_id', br_id);
+            formData.append('br_status', br_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_brand = check_status_brand;
+
+        $('#manage-payments-form-add').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/add', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-payments-modal-add').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-payments-form-add button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-payments-modal-add').modal('hide');
+                $('#manage-payments-form-add button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#manage-payments-form-edit').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-payments-form-edit button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/{{sale.sa_id}}/payments/edit', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-payments-modal-edit').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-payments-form-edit button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-payments-modal-edit').modal('hide');
+                $('#manage-payments-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+    })();
+</script>

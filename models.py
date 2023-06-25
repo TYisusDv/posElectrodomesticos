@@ -890,3 +890,134 @@ class ts_typessales_model():
         data = cur.fetchall()
         cur.close()
         return data
+
+class sa_sales_model():
+    def __init__(self):
+        pass
+    
+    def get_sale(self, get = None, sa_id = None):
+        cur = mysql.connection.cursor()
+
+        if get == 'sa_id':
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s', (sa_id,))  
+        else:
+            cur.close()
+            return None
+
+        data = cur.fetchone()
+        cur.close()        
+        return data
+        
+    def get_sales(self, get = None, page_start = 1, quantity = 10, search = None):
+        cur = mysql.connection.cursor()
+        
+        if get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id LIMIT %s, %s',(page_start, quantity,))
+        else:
+            cur.execute('SELECT sa_sales.* FROM sa_sales')
+        
+        data = cur.fetchall()
+        cur.close()        
+        return data
+    
+    def get_sales_count(self, get = None, pe_id = None, search = None):       
+        cur = mysql.connection.cursor()
+
+        if get == 'table':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM sa_sales')
+        else:
+            cur.execute('SELECT COUNT(*) AS total FROM sa_sales')
+        
+        data = cur.fetchone()['total']
+        cur.close()        
+        return data
+    
+    def insert_sale(self, sa_id = None, sa_subtotal = None, sa_discount = None, sa_amountpayments = None, sa_days = None, lo_id = None, ts_id = None, cu_id = None, us_id = None):
+        cur = mysql.connection.cursor()          
+        cur.execute('INSERT INTO sa_sales(sa_id, sa_subtotal, sa_discount, sa_amountpayments, sa_days, lo_id, ts_id, cu_id, us_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (sa_id, sa_subtotal, sa_discount, sa_amountpayments, sa_days, lo_id, ts_id, cu_id, us_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+
+class sd_saledetails_model():
+    def __init__(self):
+        pass
+
+    def insert_saledetail(self, sd_price = None, sd_quantity = None, pr_id = None, sa_id = None):
+        cur = mysql.connection.cursor()          
+        cur.execute('INSERT INTO sd_saledetails(sd_price, sd_quantity, pr_id, sa_id) VALUES(%s, %s, %s, %s)', (sd_price, sd_quantity, pr_id, sa_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+
+class sp_salepayments_model():
+    def __init__(self):
+        pass
+
+    def gen_salepayment_id(self):
+        unique_number = None
+        cur = mysql.connection.cursor()
+        while not unique_number:
+            randomNumber = str(random.randint(100000, 999999))
+            query = "SELECT sp_id FROM sp_salepayments WHERE sp_id = %s"
+            cur.execute(query, (randomNumber,))
+            result = cur.fetchone()
+            if not result:
+                unique_number = randomNumber
+        cur.close()
+        return unique_number
+    
+    def get_salepayments(self, get = None, sa_id = None, page_start = 1, quantity = 10, search = None):
+        cur = mysql.connection.cursor()
+
+        if get == 'sa_id':
+            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC', (sa_id,))  
+        elif get == 'limitdate':
+            cur.execute('SELECT sp.sa_id, MIN(sp.sp_limitdate) AS min_limitdate FROM sp_salepayments sp WHERE sp.sp_pay < sp.sp_subtotal AND sp.sp_limitdate < NOW() GROUP BY sp.sa_id ORDER BY min_limitdate ASC')  
+        elif get == 'table-sa_id':
+            like = f'%{search}%'
+            cur.execute('SELECT sp_salepayments.*, pm_paymentmethods.pm_name, pe_persons.pe_fullname FROM sp_salepayments LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id LEFT JOIN us_users ON us_users.us_id = sp_salepayments.us_id LEFT JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC LIMIT %s, %s',(sa_id, page_start, quantity,))
+        else:
+            cur.close()
+            return []
+    
+        data = cur.fetchall()
+        cur.close()
+        return data
+    
+    def get_salepayments_count(self, get = None, sa_id = None, search = None):
+        cur = mysql.connection.cursor()
+
+        if get == 'table-sa_id':
+            like = f'%{search}%'
+            cur.execute('SELECT COUNT(*) AS total FROM sp_salepayments WHERE sp_salepayments.sa_id = %s',(sa_id,))  
+        else:
+            cur.close()
+            return 0
+    
+        data = cur.fetchone()['total']
+        cur.close()
+        return data
+
+    def insert_salepayment(self, sp_id = None, sp_subtotal = None, sp_commission = None, sp_pay = None, sp_limitdate = None, sp_regdate = None, pm_id = None, us_id = None, sa_id = None):
+        cur = mysql.connection.cursor()          
+        cur.execute('INSERT INTO sp_salepayments(sp_id, sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (sp_id, sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+    
+    def update_salepayment(self, update = None, sp_commission = None, sp_pay = None, pm_id = None, us_id = None, sp_id = None):
+        cur = mysql.connection.cursor()  
+        
+        if update == 'pay':
+            cur.execute('UPDATE sp_salepayments SET sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_commission, sp_pay, pm_id, us_id, sp_id,))
+        else:
+            cur.close()
+            return False
+
+        mysql.connection.commit()
+        cur.close()
+        return True
+    

@@ -1,0 +1,259 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Ventas</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/sales">Ventas</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer" onclick="pos_set_link_table('pos/manage/sales/table')">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="basket" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Total</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer" onclick="pos_set_link_table('pos/manage/sales/table')">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="grid-1" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Ventas</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_sales}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="close" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Canceladas</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{canceled}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <div class="col-12 col-md-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer" onclick="pos_set_link_table('pos/manage/sales/late/table')">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="trend-down" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Clientes atrasados</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{total_count_salepayments}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="col-md-3">
+                <div class="mb-3 filled form-group tooltip-end-top">
+                    <i data-acorn-icon="search"></i>
+                    <input class="form-control" placeholder="Búsqueda" id="manage-sales-search">
+                </div>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Alerta</th>
+                            <th scope="col">Pago restante</th>
+                            <th scope="col">Sucursal</th>
+                            <th scope="col">Fecha de registro</th>
+                            <th scope="col">Tipo de venta</th>
+                            <th scope="col">Subtotal</th>
+                            <th scope="col">Descuento</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Cantidad de pagos</th>
+                            <th scope="col">Límite en días</th>
+                            <th scope="col">Empleado</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-sales-table">
+
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination semibordered justify-content-center mb-0">
+                    <li class="page-item">
+                        <a class="page-link prev-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-left"></i>
+                        </a>
+                    </li>
+                    <div id="table-pages" style="display: flex;">
+
+                    </div>
+                    <li class="page-item">
+                        <a class="page-link next-link" href="javascript:;" tabindex="-1" aria-disabled="true">
+                            <i data-acorn-icon="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+<script>
+    (function() {
+        var pos_manage_sales_table_link = 'pos/manage/sales/table';
+        $(document).ready(function () {
+            table_setdata('#manage-sales-table', pos_manage_sales_table_link);
+        });
+
+        function edit_sale(e){
+            var sale_json = JSON.parse($(e).attr('sale'));
+            var id = table_tempelement(sale_json.id).find('span').text();
+            var name = table_tempelement(sale_json.name).text();
+
+            $('#manage-sales-form-edit input[name=ca_id]').val(id);
+            $('#manage-sales-form-edit input[name=ca_name]').val(name);
+
+            $('#manage-sales-modal-edit').modal('show');
+        }
+        window.edit_sale = edit_sale;
+
+        $('#manage-sales-search').on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                table_setdata('#manage-sales-table', pos_manage_sales_table_link, $('#manage-sales-search').val());
+            }, 500);
+        });
+
+        var table_interval = setInterval(function () {
+            if(path == '/pos/manage/sales'){
+                if (table_page !== table_page_previous) {
+                    table_setdata('#manage-sales-table', pos_manage_sales_table_link, $('#manage-sales-search').val());
+                    table_page_previous = table_page;
+                }
+                return;
+            }
+            clearInterval(table_interval);           
+        }, 100);
+
+        function pos_set_link_table(link){
+            pos_manage_sales_table_link = link;
+            table_setdata('#manage-sales-table', pos_manage_sales_table_link);
+        }
+        window.pos_set_link_table = pos_set_link_table;
+
+        function check_status_sale(e) {
+            var switchElement = $(e);
+            var ca_id = $(e).attr('ca_id');
+            var ca_status = 0;
+
+            if ($(e).is(':checked')) {
+                ca_status = 1;
+            }
+
+            var statusBackBool = true;
+            if (ca_status == 1) {
+                statusBackBool = false;
+            }
+
+            switchElement.prop('checked', statusBackBool);
+
+            var formData = new FormData();
+            formData.append('ca_id', ca_id);
+            formData.append('ca_status', ca_status);
+            $(e).prop('disabled', true);
+
+            var response = sendDataPost('pos/manage/sales/status', 'data', formData);
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    switchElement.prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                switchElement.prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        }
+        window.check_status_sale = check_status_sale;
+
+
+    })();
+</script>
