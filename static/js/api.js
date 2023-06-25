@@ -97,7 +97,7 @@ function loadView() {
                     enctype: 'multipart/form-data',
                     beforeSend: function (xhr, settings) {
                         if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
-                            xhr.setRequestHeader('X-CSRFToken', token)
+                            xhr.setRequestHeader('X-CSRFToken', CSRFToken)
                         }                   
                     },
                     success: function (xhr) {                        
@@ -151,7 +151,7 @@ function sendDataPost(url, type, formData) {
                 enctype: 'multipart/form-data',
                 beforeSend: function (xhr, settings) {
                     if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
-                        xhr.setRequestHeader('X-CSRFToken', token);
+                        xhr.setRequestHeader('X-CSRFToken', CSRFToken);
                     }
                 },
                 success: function (xhr) {
