@@ -180,7 +180,7 @@ def api_web(path):
                             return json.dumps({'success': True, 'html': render_template('/pos/manage/sales.html', total_count = total_count, canceled = canceled, total_sales = total_sales, total_count_salepayments = total_count_salepayments)})
                         elif v_apiurlsplit[3] == 'sale':
                             sa_id = v_apiurlsplit[4] 
-                            sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+                            sa_sale = sa_sales_model().get_sale(get = 'sa_id>sa_status', sa_id = sa_id, sa_status = 1)
                             if sa_sale:
                                 if v_apiurlsplit[5] == 'payments' and v_apiurlsplit[6] is None: 
                                     if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
@@ -544,7 +544,7 @@ def api_web(path):
 
                                 discount_per = v_requestform.get('discount_per')
                                 if not discount_per:
-                                    return json.dumps({'success': False, 'msg': '¡El descuento está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    discount_per = 0
                                 elif not api_isFloat(discount_per):
                                     return json.dumps({'success': False, 'msg': '¡El descuento no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif float(discount_per) > 100 or float(discount_per) < 0:
@@ -2090,7 +2090,9 @@ def api_web(path):
                                     
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
                                     remainingpayment = sale["sa_subtotal"] - total_pay
-                                    if remainingpayment <= 0:
+                                    if not sale["sa_status"]:
+                                        alert = f'<span class="badge bg-danger fw-bold" style="font-size: 12px;">Cancelada</span>'
+                                    elif remainingpayment <= 0:
                                         alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Pagado</span>'
                                     elif days_difference < 0:
                                         alert = f'<span class="badge bg-danger fw-bold" style="font-size: 12px;">Alerta ({days_difference})</span>'
@@ -2113,7 +2115,14 @@ def api_web(path):
                                         'sa_days': sale['sa_days'],
                                         'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">({sale["us_id"]}) {sale["us_pe_fullname"]}</span>',
                                     }
-                                    response['actions'] = f'<a class="btn btn-primary" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a> <button class="btn btn-danger" sale="{escape(json.dumps(response))}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
+
+                                    actions = ''
+                                    if sale["sa_status"]:
+                                        actions = f'<a class="btn btn-primary mb-1" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a>'
+                                        
+                                        actions = actions + f' <button class="btn btn-danger mb-1" sa_id="{sale["sa_id"]}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
+                                    
+                                    response['actions'] = actions
 
                                     table.append(response)
                                 
@@ -2124,10 +2133,29 @@ def api_web(path):
                                 
                                 total_pages = math.ceil(sales_total / quantity)
 
-                                return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
+                                return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages})
+                            elif v_apiurlsplit[4] == 'cancel' and v_apiurlsplit[5] is None:
+                                    sa_id = v_requestform.get('sa_id')
+                                    if not sa_id:
+                                        return json.dumps({'success': False, 'msg': '¡El ID está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+                                    if not sa_sale:
+                                        return json.dumps({'success': False, 'msg': '¡El ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                    salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
+                                    total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                                    remainingpayment = sa_sale["sa_subtotal"] - total_pay
+
+                                    if remainingpayment <= 0:
+                                        return json.dumps({'success': False, 'msg': 'No se puede cancelar, ya que fue pagado en su totalidad.'})
+                                            
+                                    
+                                    sa_sales_model().update_sale(update='sa_status', sa_status=0, sa_id=sa_id)
+                                    return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'}) 
+                        
                         elif v_apiurlsplit[3] == 'sale':
                             sa_id = v_apiurlsplit[4] 
-                            sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+                            sa_sale = sa_sales_model().get_sale(get = 'sa_id>sa_status', sa_id = sa_id, sa_status = 1)
                             if sa_sale:
                                 if v_apiurlsplit[5] == 'payments':
                                     if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
@@ -2252,6 +2280,36 @@ def api_web(path):
 
                                                 commission = 0
                                         
+                                        return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
+                                    elif v_apiurlsplit[6] == 'edit' and v_apiurlsplit[7] is None:
+                                        if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
+                                            return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                                    
+                                        sp_id = v_requestform.get('sp_id')
+                                        if not sp_id:
+                                            return json.dumps({'success': False, 'msg': '¡El ID está vacío! Por favor, corríjalo y vuelva a intentarlo.'}) 
+                                        
+                                        sp_salepayment = sp_salepayments_model().get_salepayment(get = 'sp_id', sp_id = sp_id)
+                                        if sp_salepayment is None:
+                                            return json.dumps({'success': False, 'msg': '¡La ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                        sp_pay = v_requestform.get('sp_pay')
+                                        if not sp_pay:
+                                            return json.dumps({'success': False, 'msg': '¡El abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})   
+                                        elif not api_isFloat(sp_pay) or float(sp_pay) < 0:
+                                            return json.dumps({'success': False, 'msg': '¡El abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        
+                                        sp_pay = float(sp_pay)
+
+                                        sp_limitdate = v_requestform.get('sp_limitdate')
+                                        if not sp_limitdate:
+                                            return json.dumps({'success': False, 'msg': '¡La fecha limite está vacía! Por favor, corríjala y vuelva a intentarlo.'})                                
+
+                                        if sp_pay > sp_salepayment['sp_subtotal']:
+                                            return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})   
+
+                                        sp_salepayments_model().update_salepayment(update='edit', sp_pay = sp_pay, us_id = session['us_id'], sp_id = sp_id, sp_limitdate = sp_limitdate)
+
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                                     
 

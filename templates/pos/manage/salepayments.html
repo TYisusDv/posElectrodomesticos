@@ -225,11 +225,15 @@
                 <div class="modal-body">
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="barcode"></i>
-                        <input class="form-control" placeholder="ID" name="br_id" readonly>
-                    </div>                    
+                        <input class="form-control" placeholder="ID" name="sp_id" readonly>
+                    </div> 
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="text"></i>
-                        <input class="form-control" placeholder="Nombre" name="br_name">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Total pagado" name="sp_pay">
+                    </div>                   
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="datetime-local" placeholder="Fecha limite" name="sp_limitdate">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -246,17 +250,19 @@
             table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table');
         });
 
-        function edit_brand(e){
-            var brand_json = JSON.parse($(e).attr('brand'));
-            var id = table_tempelement(brand_json.id).find('span').text();
-            var name = table_tempelement(brand_json.name).text();
+        function edit_payment(e){
+            var payment_json = JSON.parse($(e).attr('payment'));
+            var sp_id = table_tempelement(payment_json.sp_id).find('span').text();
+            var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('$', '');
+            var sp_limitdate = table_tempelement(payment_json.sp_limitdate).text();
 
-            $('#manage-payments-form-edit input[name=br_id]').val(id);
-            $('#manage-payments-form-edit input[name=br_name]').val(name);
+            $('#manage-payments-form-edit input[name=sp_id]').val(sp_id);
+            $('#manage-payments-form-edit input[name=sp_pay]').val(sp_pay);
+            $('#manage-payments-form-edit input[name=sp_limitdate]').val(sp_limitdate);
 
             $('#manage-payments-modal-edit').modal('show');
         }
-        window.edit_brand = edit_brand;
+        window.edit_payment = edit_payment;
 
         $('#manage-payments-search').on('input', function () {
             clearTimeout(typingTimer);
@@ -285,7 +291,6 @@
             var change = pay - amount ;
             $('#manage-payments-form-add span[name=change]').html(`$${change.toFixed(2)}`)
             
-            console.log(amount.length)
             if (amount.length <= 0 || amount === ''){
                 $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
             } else if (pay.length <= 0 || pay === ''){
@@ -309,58 +314,6 @@
             }
             clearInterval(table_interval);           
         }, 100);
-
-        function check_status_brand(e) {
-            var switchElement = $(e);
-            var br_id = $(e).attr('br_id');
-            var br_status = 0;
-
-            if ($(e).is(':checked')) {
-                br_status = 1;
-            }
-
-            var statusBackBool = true;
-            if (br_status == 1) {
-                statusBackBool = false;
-            }
-
-            switchElement.prop('checked', statusBackBool);
-
-            var formData = new FormData();
-            formData.append('br_id', br_id);
-            formData.append('br_status', br_status);
-            $(e).prop('disabled', true);
-
-            var response = sendDataPost('pos/manage/sale/{{sale.sa_id}}/payments/status', 'data', formData);
-            response.then(function (response) {
-                if (response.success) {
-                    loadNoti({
-                        icon: 'cs-info-hexagon',
-                        title: 'Success!',
-                        msg: response.msg,
-                        color: 'primary',
-                        time: 500,
-                        showProgressbar: true
-                    });
-                    loadView();
-                } else {
-                    switchElement.prop('disabled', false);
-                    loadNoti({
-                        title: 'Error!',
-                        msg: response.msg,
-                        color: 'danger'
-                    });
-                }
-            }).catch(function (response) {
-                switchElement.prop('disabled', false);
-                loadNoti({
-                    title: 'Error!',
-                    msg: response.msg,
-                    color: 'danger'
-                });
-            });
-        }
-        window.check_status_brand = check_status_brand;
 
         $('#manage-payments-form-add').submit(function (e) {
             e.preventDefault();
