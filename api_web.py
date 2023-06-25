@@ -1898,12 +1898,19 @@ def api_web(path):
                                     table = []
                                     addresses = ad_addresses_model().get_addresses(get='tableperson', pe_id=pe_id, page_start=page_start, quantity = quantity, search = search)
                                     for address in addresses:
+                                        atype = address['ad_type'] if address['ad_type'] is not None else 'N/A'
+                                        reference = address['ad_reference'] if address['ad_type'] is not None else 'N/A'
+                                        contact = address['ad_contact'] if address['ad_type'] is not None else 'N/A'
+
                                         response = {
                                             'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_id"]}</span>',
+                                            'type': atype,
                                             'address': address['ad_address'],
                                             'postalcode': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_postalcode"]}</span>',
                                             'city': address['ci_name'],
                                             'state': address['st_name'],
+                                            'reference': reference,
+                                            'contact': contact,
                                         }
                                         
                                         response['actions'] = f'<button class="btn btn-primary" address="{escape(json.dumps(response))}" onclick="edit_address(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-danger" ad_id="{address["ad_id"]}" onclick="delete_address(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Eliminar</button>'
@@ -1914,7 +1921,11 @@ def api_web(path):
                                     total_pages = math.ceil(addresses_total / quantity)
 
                                     return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
-                                elif v_apiurlsplit[5] == 'add' and v_apiurlsplit[6] is None:                                   
+                                elif v_apiurlsplit[5] == 'add' and v_apiurlsplit[6] is None:  
+                                    ad_type = v_requestform.get('ad_type')
+                                    if not ad_type:
+                                        ad_type = None
+                                                                     
                                     ad_address = v_requestform.get('ad_address')
                                     if not ad_address:
                                         return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
@@ -1927,6 +1938,14 @@ def api_web(path):
                                     if not st_name:
                                         return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
                                     
+                                    ad_reference = v_requestform.get('ad_reference')
+                                    if not ad_reference:
+                                        ad_reference = None
+                                    
+                                    ad_contact = v_requestform.get('ad_contact')
+                                    if not ad_contact:
+                                        ad_contact = None
+
                                     st_name = st_name.strip().capitalize() 
                                     
                                     st_id = None
@@ -1953,7 +1972,7 @@ def api_web(path):
 
                                     ad_address = ad_address.strip().capitalize()
 
-                                    ad_addresses_model().insert_address(ad_address = ad_address, ad_postalcode = ad_postalcode, ci_id = ci_id, pe_id = pe_id)
+                                    ad_addresses_model().insert_address(ad_type = ad_type, ad_address = ad_address, ad_postalcode = ad_postalcode, ad_reference = ad_reference, ad_contact = ad_contact, ci_id = ci_id, pe_id = pe_id)
                                     return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                                 elif v_apiurlsplit[5] == 'edit' and v_apiurlsplit[6] is None:
                                     ad_id = v_requestform.get('ad_id')
@@ -1962,6 +1981,10 @@ def api_web(path):
                                     if not ad_addresses_model().get_address(ad_id = ad_id, pe_id = pe_id):
                                         return json.dumps({'success': False, 'msg': '¡El ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
+                                    ad_type = v_requestform.get('ad_type')
+                                    if not ad_type:
+                                        ad_type = None
+                                        
                                     ad_address = v_requestform.get('ad_address')
                                     if not ad_address:
                                         return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
@@ -1970,6 +1993,14 @@ def api_web(path):
                                     if not ad_postalcode:
                                         return json.dumps({'success': False, 'msg': '¡El código postal está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
+                                    ad_reference = v_requestform.get('ad_reference')
+                                    if not ad_reference:
+                                        ad_reference = None
+                                    
+                                    ad_contact = v_requestform.get('ad_contact')
+                                    if not ad_contact:
+                                        ad_contact = None
+
                                     st_name = v_requestform.get('st_name')
                                     if not st_name:
                                         return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
@@ -2000,7 +2031,7 @@ def api_web(path):
 
                                     ad_address = ad_address.strip().capitalize()
 
-                                    ad_addresses_model().update_address(update = 'allperson', ad_address = ad_address, ad_postalcode = ad_postalcode, ci_id = ci_id, ad_id = ad_id)
+                                    ad_addresses_model().update_address(update = 'all', ad_type = ad_type, ad_address = ad_address, ad_postalcode = ad_postalcode, ad_reference = ad_reference, ad_contact = ad_contact, ci_id = ci_id, ad_id = ad_id)
                                     return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
                                 elif v_apiurlsplit[5] == 'delete' and v_apiurlsplit[6] is None:
                                     ad_id = v_requestform.get('ad_id')

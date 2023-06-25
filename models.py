@@ -850,19 +850,19 @@ class ad_addresses_model():
         cur.close()        
         return data
 
-    def insert_address(self, ad_address = None, ad_postalcode = None, ci_id = None, pe_id = None):
+    def insert_address(self, ad_type = None, ad_address = None, ad_postalcode = None, ad_reference = None, ad_contact = None, ci_id = None, pe_id = None):
         cur = mysql.connection.cursor()  
         ad_id = str(uuid.uuid4())
-        cur.execute('INSERT INTO ad_addresses(ad_id, ad_address, ad_postalcode, ci_id, pe_id) VALUES(%s, %s, %s, %s, %s)', (ad_id, ad_address, ad_postalcode, ci_id, pe_id,))
+        cur.execute('INSERT INTO ad_addresses(ad_id, ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, pe_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', (ad_id, ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, pe_id,))
         mysql.connection.commit()
         cur.close()
         return True
     
-    def update_address(self, update = None, ad_address = None, ad_postalcode = None, ci_id = None, ad_status=None, ad_id = None):
+    def update_address(self, update = None, ad_type = None, ad_address = None, ad_postalcode = None, ad_reference = None, ad_contact = None, ci_id = None, ad_status=None, ad_id = None):
         cur = mysql.connection.cursor()
         
         if update == 'all':        
-            cur.execute('UPDATE ad_addresses SET ad_address = %s, ad_postalcode = %s, ad_regdate = NOW(), ci_id = %s WHERE ad_id = %s', (ad_address, ad_postalcode, ci_id, ad_id,))
+            cur.execute('UPDATE ad_addresses SET ad_type = %s, ad_address = %s, ad_postalcode = %s, ad_reference = %s, ad_contact = %s, ad_regdate = NOW(), ci_id = %s WHERE ad_id = %s', (ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, ad_id,))
         elif update == 'status':        
             cur.execute('UPDATE ad_addresses SET ad_status = %s WHERE ad_id = %s', (ad_status, ad_id,))
         else:

@@ -67,10 +67,13 @@
                     <thead>
                         <tr>
                             <th scope="col">ID</th>
+                            <th scope="col">Tipo</th>
                             <th scope="col">Dirección</th>
                             <th scope="col">Código postal</th>
                             <th scope="col">Ciudad</th>
                             <th scope="col">Estado</th>
+                            <th scope="col">Referencia</th>
+                            <th scope="col">Contacto</th>
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -108,7 +111,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="manage-addresses-form-add" autocomplete="off">
-                <div class="modal-body">  
+                <div class="modal-body"> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="category"></i>
+                        <input class="form-control" placeholder="Tipo" name="ad_type">
+                    </div> 
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
                         <input class="form-control" placeholder="Dirección" name="ad_address">
@@ -124,6 +131,14 @@
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-add" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="refresh-horizontal"></i>
+                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                    </div>       
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="content"></i>
+                        <input class="form-control" placeholder="Contacto" name="ad_contact">
                     </div>  
                 </div>
                 <div class="modal-footer">
@@ -147,7 +162,11 @@
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="barcode"></i>
                         <input class="form-control" placeholder="ID" name="ad_id" readonly>
-                    </div>                    
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="category"></i>
+                        <input class="form-control" placeholder="Tipo" name="ad_type">
+                    </div>                   
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
                         <input class="form-control" placeholder="Dirección" name="ad_address">
@@ -163,7 +182,15 @@
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-edit" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
-                    </div>  
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="refresh-horizontal"></i>
+                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                    </div>       
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="content"></i>
+                        <input class="form-control" placeholder="Contacto" name="ad_contact">
+                    </div>         
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -234,16 +261,22 @@
         function edit_address(e){
             var address_json = JSON.parse($(e).attr('address'));
             var id = table_tempelement(address_json.id).find('span').text();
+            var type = table_tempelement(address_json.type).text();
             var address = table_tempelement(address_json.address).text();
             var postalcode = table_tempelement(address_json.postalcode).find('span').text();
             var city = table_tempelement(address_json.city).text();
             var state = table_tempelement(address_json.state).text();
+            var reference = table_tempelement(address_json.reference).text();
+            var contact = table_tempelement(address_json.contact).text();
 
             $('#manage-addresses-form-edit input[name=ad_id]').val(id);
+            $('#manage-addresses-form-edit input[name=ad_type]').val(type);
             $('#manage-addresses-form-edit input[name=ad_address]').val(address);
             $('#manage-addresses-form-edit input[name=ad_postalcode]').val(postalcode);
             $('#manage-addresses-form-edit input[name=ci_name]').val(city);
             $('#manage-addresses-form-edit input[name=st_name]').val(state);
+            $('#manage-addresses-form-edit input[name=ad_reference]').val(reference);
+            $('#manage-addresses-form-edit input[name=ad_contact]').val(contact);
 
             $('#manage-addresses-modal-edit').modal('show');
         }
