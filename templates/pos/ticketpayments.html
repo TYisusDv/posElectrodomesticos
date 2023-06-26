@@ -55,13 +55,15 @@
         </tr>
       </thead>
       <tbody>
-        {% for salepayment in sp_salepayments %}
+        {% for salepayment in sp_salepayments %}        
+        {% if salepayment.sp_subtotal <= salepayment.sp_pay or salepayment.sp_no|string == request.args.get('no')|urlencode %}
         <tr>
-          <td>{{salepayment.sp_id}}</td>
+          <td>{{salepayment.sp_no}}</td>
           <td>Q{{'{:.2f}'.format(salepayment.sp_subtotal).rstrip('0').rstrip('.')}}</td>
           <td>Q{{'{:.2f}'.format(salepayment.sp_pay).rstrip('0').rstrip('.')}}</td>
           <td>{{salepayment.sp_limitdate.strftime('%d/%m/%Y')}}</td>
         </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -69,7 +71,7 @@
         <div id="qrcode"></div>
     </div>
     <div class="info" style="font-size: 12px;">
-        <p><strong>Recibo</strong></p>
+        <p><strong>Venta</strong></p>
         <p>{{sa_sale.sa_id}}</p>
     </div>
     <button id="print-button" onclick="imprimirTicket()">Imprimir</button>

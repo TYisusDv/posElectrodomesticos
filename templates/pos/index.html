@@ -200,6 +200,7 @@
                                     <span class="label">Administrar</span>
                                 </a>
                                 <ul>
+                                    {% if '/pos/manage/users' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/users">
                                             <i data-acorn-icon="user" class="icon d-none"
@@ -207,20 +208,26 @@
                                             <span class="label">Usuarios</span>
                                         </a>
                                     </li> 
+                                    {% endif %}
+                                    {% if '/pos/manage/customers' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/customers">
                                             <i data-acorn-icon="shield" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Clientes</span>
                                         </a>
-                                    </li>   
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/paymentmethods' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/paymentmethods">
                                             <i data-acorn-icon="dollar" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Métodos de pago</span>
                                         </a>
-                                    </li>    
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/locations' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/locations">
                                             <i data-acorn-icon="compass" class="icon d-none"
@@ -228,13 +235,17 @@
                                             <span class="label">Ubicaciones</span>
                                         </a>
                                     </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/products' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/products">
                                             <i data-acorn-icon="cart" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Productos</span>
                                         </a>
-                                    </li>  
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/providers' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/providers">
                                             <i data-acorn-icon="factory" class="icon d-none"
@@ -242,48 +253,61 @@
                                             <span class="label">Proveedores</span>
                                         </a>
                                     </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/categories' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/categories">
                                             <i data-acorn-icon="category" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Categorías</span>
                                         </a>
-                                    </li> 
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/brands' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/brands">
                                             <i data-acorn-icon="bootstrap" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Marcas</span>
                                         </a>
-                                    </li> 
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/cities' in userinfo.us_permissions %} 
                                     <li>
                                         <a href="/pos/manage/cities">
                                             <i data-acorn-icon="pin" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Ciudades</span>
                                         </a>
-                                    </li> 
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/states' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/states">
                                             <i data-acorn-icon="compass" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Estados</span>
                                         </a>
-                                    </li> 
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/sales' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/sales">
                                             <i data-acorn-icon="basket" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Ventas</span>
                                         </a>
-                                    </li>       
+                                    </li>
+                                    {% endif %}
+                                    {% if '/pos/manage/dbbackup' in userinfo.us_permissions %}
                                     <li>
                                         <a href="/pos/manage/dbbackup">
                                             <i data-acorn-icon="cloud-download" class="icon d-none"
                                                 data-acorn-size="18"></i>
                                             <span class="label">Copia de seguridad</span>
                                         </a>
-                                    </li>                                    
+                                    </li>
+                                    {% endif %}
                                 </ul>
                             </li>
                             <li>

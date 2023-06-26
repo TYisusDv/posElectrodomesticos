@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, e
 from flask_mysqldb import MySQL
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from passlib.hash import bcrypt
 from itsdangerous import URLSafeSerializer
 from apscheduler.schedulers.background import BackgroundScheduler

@@ -989,6 +989,8 @@ class sp_salepayments_model():
 
         if get == 'sp_id':
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sp_id = %s', (sp_id,))  
+        elif get == 'max_sp_no':
+            cur.execute('SELECT COALESCE(MAX(sp_no), 1000000) AS max_sp_no FROM sp_salepayments')  
         else:
             cur.close()
             return None
@@ -1029,20 +1031,20 @@ class sp_salepayments_model():
         cur.close()
         return data
 
-    def insert_salepayment(self, sp_subtotal = None, sp_commission = None, sp_pay = None, sp_limitdate = None, sp_regdate = None, pm_id = None, us_id = None, sa_id = None):
+    def insert_salepayment(self, sp_no = None, sp_subtotal = None, sp_commission = None, sp_pay = None, sp_limitdate = None, sp_regdate = None, pm_id = None, us_id = None, sa_id = None):
         cur = mysql.connection.cursor()          
-        cur.execute('INSERT INTO sp_salepayments(sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', (sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id,))
+        cur.execute('INSERT INTO sp_salepayments(sp_no, sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (sp_no, sp_subtotal, sp_commission, sp_pay, sp_limitdate, sp_regdate, pm_id, us_id, sa_id,))
         mysql.connection.commit()
         cur.close()
         return True
     
-    def update_salepayment(self, update = None, sp_commission = None, sp_pay = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
+    def update_salepayment(self, update = None, sp_no = None, sp_commission = None, sp_pay = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
         cur = mysql.connection.cursor()  
         
         if update == 'pay':
-            cur.execute('UPDATE sp_salepayments SET sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_commission, sp_pay, pm_id, us_id, sp_id,))
+            cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_commission, sp_pay, pm_id, us_id, sp_id,))
         elif update == 'edit':
-            cur.execute('UPDATE sp_salepayments SET sp_pay = %s, sp_limitdate = %s, sp_regdate = NOW(), us_id = %s WHERE sp_id = %s', (sp_pay, sp_limitdate, us_id, sp_id,))
+            cur.execute('UPDATE sp_salepayments SET sp_pay = %s, sp_limitdate = %s, us_id = %s WHERE sp_id = %s', (sp_pay, sp_limitdate, us_id, sp_id,))
         else:
             cur.close()
             return False

@@ -721,13 +721,8 @@
                         time: 1000,
                         showProgressbar: true
                     });  
-                    setTimeout(function(){
-                        var wTicket = 500;
-                        var hTicket = 800;
-                        var posX = (window.innerWidth - wTicket) / 2;
-                        var posY = (window.innerHeight - hTicket) / 2;
-
-                        window.open('/api/web/pos/app/ticket/' + response.sa_id + '?change=' + pos_change, '_blank', 'width=' + wTicket + ', height=' + hTicket + ', left=' + posX + ', top=' + posY);
+                    setTimeout(function(){                       
+                        window.open(`/api/web/pos/app/ticket/${response.sa_id}?change=${pos_change}&no=${response.sp_no}`, '_blank', 'fullscreen=yes');
 
                         window.location.reload();
                     }, 2000);

@@ -135,6 +135,7 @@
                     <thead>
                         <tr>
                             <th scope="col">ID</th>
+                            <th scope="col">Recibo</th>
                             <th scope="col">Subtotal</th>
                             <th scope="col">Comisión</th>
                             <th scope="col">Total a pagar</th>
@@ -233,7 +234,7 @@
                     </div>                   
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="calendar"></i>
-                        <input class="form-control" type="datetime-local" placeholder="Fecha limite" name="sp_limitdate">
+                        <input class="form-control" type="date" placeholder="Fecha limite" name="sp_limitdate">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -272,11 +273,8 @@
             var day = parts[0].trim();
             var month = parts[1].trim();
             var year = parts[2].trim().substring(0, 4);
-            var time = parts[2].trim().substring(5);
-            var hours = time.split(':')[0].trim();
-            var minutes = time.split(':')[1].trim();
 
-            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+            return year + '-' + month + '-' + day;
         }
 
 
@@ -350,12 +348,7 @@
                     });
                     loadView();
 
-                    var wTicket = 500;
-                    var hTicket = 800;
-                    var posX = (window.innerWidth - wTicket) / 2;
-                    var posY = (window.innerHeight - hTicket) / 2;
-
-                    window.open('/api/web/pos/app/ticket/{{sale.sa_id}}' + '?change=' + pos_change, '_blank', 'width=' + wTicket + ', height=' + hTicket + ', left=' + posX + ', top=' + posY);
+                    window.open(`/api/web/pos/app/ticket/{{sale.sa_id}}?change=${pos_change}&no=${response.sp_no}`, '_blank', 'fullscreen=yes');
                 } else {
                     $('#manage-payments-form-add button[type="submit"]').prop('disabled', false);
                     loadNoti({
