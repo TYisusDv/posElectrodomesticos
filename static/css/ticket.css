@@ -1,0 +1,82 @@
+@font-face {
+    font-family: "Como-Bold";
+    src: url("/static/fonts/Como-Bold.ttf");
+}
+
+@font-face {
+    font-family: "Como-Medium";
+    src: url("/static/fonts/Como-Medium.ttf");
+}
+
+@font-face {
+    font-family: "Como-SemiBold";
+    src: url("/static/fonts/Como-SemiBold.ttf");
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: "Como-SemiBold", "Nunito Sans", sans-serif;
+}
+
+strong{
+    font-family: "Como-Bold", "Nunito Sans", sans-serif;
+}
+
+.ticket {
+  width: 350px;
+  margin: 20px auto;
+  padding: 10px;
+  border: 1px solid #000;
+}
+
+h1 {
+  text-align: center;
+}
+
+p{
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.logo {
+  text-align: center;
+}
+
+.logo img {
+  width: auto;
+  height: 200px;
+}
+
+.info {
+    text-align: center;
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+table th{
+    font-family: "Como-Bold", "Nunito Sans", sans-serif;
+}
+
+table th,
+table td {
+  padding: 5px;
+  border-bottom: 1px solid #000;
+}
+
+.total {
+  text-align: right;
+}
+
+@media print {
+  #print-button {
+    display: none;
+  }
+}

@@ -768,7 +768,7 @@ def api_web(path):
 
                                 sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = total, sp_commission = commission, sp_pay = new_pay, sp_limitdate = sp_limitdate, sp_regdate = sp_regdate, pm_id = pm_id, us_id = us_id, sa_id = sa_id)
 
-                            response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!'}))
+                            response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!', 'sa_id': sa_id}))
                             response.delete_cookie('posinfo')
 
                             return response
@@ -809,7 +809,7 @@ def api_web(path):
                                     
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" us_id="{user["us_id"]}" onclick="check_status_user(this)" {status}></div>'
                                     
-                                    response['regdate'] = str(user['us_regdate'])
+                                    response['regdate'] = str(user['us_regdate'].strftime('%d/%m/%Y %H:%M'))
 
                                     response['actions'] = f'<button class="btn btn-primary" user="{escape(json.dumps(response))}" user_permissions="{user["us_permissions"]}" onclick="edit_user(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{user["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
@@ -962,7 +962,7 @@ def api_web(path):
                                     }
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" cu_id="{customer["cu_id"]}" onclick="check_status_customer(this)" {status}></div>'
-                                    response['regdate'] = str(customer['cu_regdate'])
+                                    response['regdate'] = str(customer['cu_regdate'].strftime('%d/%m/%Y %H:%M'))
                                     response['actions'] = f'<button class="btn btn-primary" customer="{escape(json.dumps(response))}" onclick="edit_customer(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{customer["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
                                     table.append(response)
@@ -1254,7 +1254,7 @@ def api_web(path):
                                     }
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pr_id="{product["pr_id"]}" onclick="check_status_product(this)" {status}></div>'
-                                    response['regdate'] = str(product['pr_regdate'])
+                                    response['regdate'] = str(product['pr_regdate'].strftime('%d/%m/%Y %H:%M'))
                                     response['actions'] = f'<button class="btn btn-primary" product="{escape(json.dumps(response))}" onclick="edit_product(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
 
                                     table.append(response)
@@ -1488,7 +1488,7 @@ def api_web(path):
                                     }
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pv_id="{provider["pv_id"]}" onclick="check_status_provider(this)" {status}></div>'
-                                    response['regdate'] = str(provider['pv_regdate'])
+                                    response['regdate'] = str(provider['pv_regdate'].strftime('%d/%m/%Y %H:%M'))
                                     response['actions'] = f'<button class="btn btn-primary" provider="{escape(json.dumps(response))}" onclick="edit_provider(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <a class="btn btn-light" href="/pos/manage/addresses/{provider["pe_id"]}"><i data-acorn-icon="news" data-acorn-size="16"></i> Direcciones</a>'
 
                                     table.append(response)
@@ -1905,12 +1905,12 @@ def api_web(path):
                                         response = {
                                             'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_id"]}</span>',
                                             'type': atype,
+                                            'reference': reference,
+                                            'contact': contact,
                                             'address': address['ad_address'],
                                             'postalcode': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_postalcode"]}</span>',
                                             'city': address['ci_name'],
-                                            'state': address['st_name'],
-                                            'reference': reference,
-                                            'contact': contact,
+                                            'state': address['st_name'],                                                                                        
                                         }
                                         
                                         response['actions'] = f'<button class="btn btn-primary" address="{escape(json.dumps(response))}" onclick="edit_address(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-danger" ad_id="{address["ad_id"]}" onclick="delete_address(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Eliminar</button>'
@@ -2103,13 +2103,13 @@ def api_web(path):
 
                                     response = {
                                         'alert': alert,
-                                        'remainingpayment': '${:.2f}'.format(remainingpayment).rstrip('0').rstrip('.'),
+                                        'remainingpayment': 'Q{:.2f}'.format(remainingpayment).rstrip('0').rstrip('.'),
                                         'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
-                                        'sa_regdate': str(sale['sa_regdate']),
+                                        'sa_regdate': str(sale['sa_regdate'].strftime('%d/%m/%Y %H:%M')),
                                         'ts_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["ts_name"]}</span>',
-                                        'sa_subtotal': f'${sale["sa_subtotal"]}',
-                                        'sa_discount': f'-${sale["sa_discount"]}',
-                                        'total': f'${sale["sa_subtotal"] - sale["sa_discount"]}',
+                                        'sa_subtotal': f'Q{sale["sa_subtotal"]}',
+                                        'sa_discount': f'-Q{sale["sa_discount"]}',
+                                        'total': f'Q{sale["sa_subtotal"] - sale["sa_discount"]}',
                                         'customer': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{customer}</span>',
                                         'sa_amountpayments': sale['sa_amountpayments'],
                                         'sa_days': sale['sa_days'],
@@ -2121,6 +2121,7 @@ def api_web(path):
                                         actions = f'<a class="btn btn-primary mb-1" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a>'
                                         
                                         actions = actions + f' <button class="btn btn-danger mb-1" sa_id="{sale["sa_id"]}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
+                                        actions = actions + f'<a class="btn btn-primary mb-1" href="/api/web/pos/app/ticket/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
                                     
                                     response['actions'] = actions
 
@@ -2151,8 +2152,7 @@ def api_web(path):
                                             
                                     
                                     sa_sales_model().update_sale(update='sa_status', sa_status=0, sa_id=sa_id)
-                                    return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'}) 
-                        
+                                    return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'})                        
                         elif v_apiurlsplit[3] == 'sale':
                             sa_id = v_apiurlsplit[4] 
                             sa_sale = sa_sales_model().get_sale(get = 'sa_id>sa_status', sa_id = sa_id, sa_status = 1)
@@ -2211,12 +2211,12 @@ def api_web(path):
 
                                             response = {
                                                 'sp_id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{payment["sp_id"]}</span>',
-                                                'sp_subtotal': f'${payment["sp_subtotal"]}',
-                                                'sp_commission': f'${payment["sp_commission"]}',
-                                                'total': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">${payment["sp_subtotal"] + payment["sp_commission"]}</span>',
-                                                'sp_pay': f'${payment["sp_pay"]}',
-                                                'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">${(payment["sp_subtotal"]) - payment["sp_pay"]}</span>',
-                                                'sp_limitdate': str(payment['sp_limitdate']),
+                                                'sp_subtotal': f'Q{payment["sp_subtotal"]}',
+                                                'sp_commission': f'Q{payment["sp_commission"]}',
+                                                'total': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">Q{payment["sp_subtotal"] + payment["sp_commission"]}</span>',
+                                                'sp_pay': f'Q{payment["sp_pay"]}',
+                                                'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">Q{(payment["sp_subtotal"]) - payment["sp_pay"]}</span>',
+                                                'sp_limitdate': str(payment['sp_limitdate'].strftime('%d/%m/%Y %H:%M')) + f'<br>({days_difference} días)',
                                                 'pm_name': paymentmethod,
                                                 'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user}</span>',
                                                 'sp_regdate': str(sp_regdate),
@@ -2225,7 +2225,11 @@ def api_web(path):
                                             if remainingpayment <= 0:
                                                 response['actions'] = f''
                                             else:
-                                                response['actions'] = f'<button class="btn btn-primary" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                                btn_disabled = ''
+                                                if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
+                                                    btn_disabled = 'disabled'
+
+                                                response['actions'] = f'<button class="btn btn-primary" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
 
                                             table.append(response)
                                         
@@ -2312,7 +2316,6 @@ def api_web(path):
 
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                                     
-
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
     except Exception as e:
         api_savelog('log/api-web-error.log', f'[E{sys.exc_info()[-1].tb_lineno}] {e}')
@@ -2325,6 +2328,18 @@ def api_web(path):
 @csrf.exempt
 def api_web_token():
     return json.dumps({'success': True, 'token':  generate_csrf()}), 200
+
+@app.route('/api/web/pos/app/ticket/<sa_id>', methods = ['GET'])
+def api_web_pos_app_ticket(sa_id):
+    sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+    if sa_sale:
+        sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
+        if sa_sale['ts_id'] == 100002:
+            sp_salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
+            return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
+        
+        return render_template('/pos/ticket.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails)
+    return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
 
 @app.route('/auth/logout', methods = ['GET'])
 def api_web_authlogout():  

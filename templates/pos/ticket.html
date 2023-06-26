@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ticket de Venta</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/ticket.css">
+  <script src="/static/js/qrcode.min.js"></script>
+
+</head>
+<body>
+  <div class="ticket">
+    <div class="logo">
+      <img src="/static/img/icon.jpg" alt="Mi Hogar">
+    </div>
+    <div class="info">
+      <p><strong>Mi hogar electrodomésticos</strong></p>
+      <p>4 Calle 4-60 zona 2 san lorenzo el cubo</p>
+      <p><strong>Nit:</strong> 98511688</p>
+      <p><strong>Tel:</strong> 5134-9923</p>
+      <p><strong>Vendedor:</strong> {{sa_sale.us_pe_fullname}}</p>
+      <p><strong>Fecha:</strong> {{sa_sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for saledetail in sd_saledetails %}
+        <tr>
+          <td>{{'{:.2f}'.format(saledetail.sd_quantity).rstrip('0').rstrip('.')}}</td>
+          <td>{{saledetail.pr_name}}</td>
+          <td>Q{{'{:.2f}'.format(saledetail.sd_price).rstrip('0').rstrip('.')}}</td>
+          <td>Q{{'{:.2f}'.format(saledetail.sd_price * saledetail.sd_quantity).rstrip('0').rstrip('.')}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="total">
+      <p><strong>Subtotal:</strong> Q{{'{:.2f}'.format(sa_sale.sa_subtotal).rstrip('0').rstrip('.')}}</p>
+      <p><strong>Descuento:</strong> Q{{'{:.2f}'.format(sa_sale.sa_discount).rstrip('0').rstrip('.')}}</p>
+      <p><strong>Total:</strong> Q{{'{:.2f}'.format(sa_sale.sa_subtotal - sa_sale.sa_discount).rstrip('0').rstrip('.')}}</p>
+      <p style="display: none;" id="change-p"><strong>Cambio:</strong> Q<span id="change">0</span></p>
+    </div>
+    <div class="info" style="margin-top: 30px; display: flex !important; justify-content: center;">
+        <div id="qrcode"></div>
+    </div>
+    <div class="info" style="font-size: 12px;">
+        <p><strong>Recibo</strong></p>
+        <p>{{sa_sale.sa_id}}</p>
+    </div>
+    <button id="print-button" onclick="imprimirTicket()">Imprimir</button>
+  </div>  
+  <script>
+    const queryString = window.location.search;
+    const params = new URLSearchParams(queryString);
+    const changeValue = params.get('change');
+    
+    function imprimirTicket() {
+        window.print();        
+    }
+
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+      width: 100,
+      height: 100
+    });
+
+    var textoQR = "{{sa_sale.sa_id}}";
+    qrcode.makeCode(textoQR);
+
+    const pElement = document.getElementById('change-p');
+    const spanElement = document.getElementById('change');
+
+    if (changeValue !== null) {
+      pElement.style.display = 'block';
+      spanElement.textContent = changeValue;
+    }
+  </script>
+</body>
+</html>

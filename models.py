@@ -959,7 +959,20 @@ class sa_sales_model():
 class sd_saledetails_model():
     def __init__(self):
         pass
+    
+    def get_saledetails(self, get = None, sa_id = None):
+        cur = mysql.connection.cursor()
 
+        if get == 'sa_id':
+            cur.execute('SELECT sd_saledetails.*, pr_products.pr_name FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id WHERE sd_saledetails.sa_id = %s ORDER BY sd_saledetails.sd_id ASC', (sa_id,))  
+        else:
+            cur.close()
+            return []
+    
+        data = cur.fetchall()
+        cur.close()
+        return data
+    
     def insert_saledetail(self, sd_price = None, sd_quantity = None, pr_id = None, sa_id = None):
         cur = mysql.connection.cursor()          
         cur.execute('INSERT INTO sd_saledetails(sd_price, sd_quantity, pr_id, sa_id) VALUES(%s, %s, %s, %s)', (sd_price, sd_quantity, pr_id, sa_id,))

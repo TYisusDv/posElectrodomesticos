@@ -261,6 +261,7 @@
         var pos_page_customers = 1;
         var pos_total_page_customers = 1;
         var pos_isLoading_customers = false;
+        var pos_change = 0;
 
         var pos_page_products = 1;
         var pos_total_page_products = 1;
@@ -379,7 +380,8 @@
             typingTimer = setTimeout(function () {
                 var pay = $('#pos-finalize-form input[name=pay]').val();
                 var change = pay - pos_total;
-                $('#pos-finalize-form span[name=change]').html(`$${change.toFixed(2)}`)
+                pos_change = change;
+                $('#pos-finalize-form span[name=change]').html(`Q${change.toFixed(2)}`)
 
                 if (isNaN(change) || change < 0){
                     $('#pos-finalize-form button[type="submit"]').prop('disabled', true);
@@ -499,22 +501,22 @@
                     pos_sale_edit_options(ts_id);
                     if(ts_id == 100002){
                         pos_total = ts_total;
-                        $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">($${subtotal.toFixed(2)})</span> $${ts_firstpayment.toFixed(2)}`);                   
-                        $('#pos-info-div span[name=commission]').html(`$${commission.toFixed(2)}`);
-                        $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">($${discount.toFixed(2)})</span> -$0`);
-                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">($${total.toFixed(2)})</span> $${ts_total.toFixed(2)}`);
+                        $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> Q${ts_firstpayment.toFixed(2)}`);                   
+                        $('#pos-info-div span[name=commission]').html(`Q${commission.toFixed(2)}`);
+                        $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">(Q${discount.toFixed(2)})</span> -$0`);
+                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">(Q${total.toFixed(2)})</span> Q${ts_total.toFixed(2)}`);
                     } else if(ts_id == 100003){
                         pos_total = 0;
-                        $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">($${subtotal.toFixed(2)})</span> $0`);                   
+                        $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> $0`);                   
                         $('#pos-info-div span[name=commission]').html(`$0`);
-                        $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">($${discount.toFixed(2)})</span> -$0`);
-                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">($${total.toFixed(2)})</span> $0`);
+                        $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">(Q${discount.toFixed(2)})</span> -$0`);
+                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">(Q${total.toFixed(2)})</span> $0`);
                     } else {
                         pos_total = total;
-                        $('#pos-info-div span[name=subtotal]').html(`$${subtotal.toFixed(2)}`);                   
-                        $('#pos-info-div span[name=commission]').html(`$${commission.toFixed(2)}`);
-                        $('#pos-info-div span[name=discount]').html(`-$${discount.toFixed(2)}`);
-                        $('#pos-info-div span[name=total]').html(`$${total.toFixed(2)}`);
+                        $('#pos-info-div span[name=subtotal]').html(`Q${subtotal.toFixed(2)}`);                   
+                        $('#pos-info-div span[name=commission]').html(`Q${commission.toFixed(2)}`);
+                        $('#pos-info-div span[name=discount]').html(`-Q${discount.toFixed(2)}`);
+                        $('#pos-info-div span[name=total]').html(`Q${total.toFixed(2)}`);
                     }
                     
                     $('#pos-finalize-form input[name=pay]').val('');
@@ -720,6 +722,13 @@
                         showProgressbar: true
                     });  
                     setTimeout(function(){
+                        var wTicket = 500;
+                        var hTicket = 800;
+                        var posX = (window.innerWidth - wTicket) / 2;
+                        var posY = (window.innerHeight - hTicket) / 2;
+
+                        window.open('/api/web/pos/app/ticket/' + response.sa_id + '?change=' + pos_change, '_blank', 'width=' + wTicket + ', height=' + hTicket + ', left=' + posX + ', top=' + posY);
+
                         window.location.reload();
                     }, 2000);
                 } else {                    

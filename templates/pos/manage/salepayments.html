@@ -89,7 +89,7 @@
                                 <div class="d-flex align-items-center lh-1-25">Total restante</div>
                             </div>
                             <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">{% if remainingpayment|float <= 0 %}$0{% else %}${{remainingpayment}}{% endif %}</div>
+                                <div class="cta-2 text-primary">{% if remainingpayment|float <= 0 %}$0{% else %}Q{{remainingpayment}}{% endif %}</div>
                             </div>
                         </div>
                     </div>
@@ -111,7 +111,7 @@
                                 <div class="d-flex align-items-center lh-1-25">Fecha de registro</div>
                             </div>
                             <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">{{sale.sa_regdate.strftime('%Y-%m-%d')}}</div>
+                                <div class="cta-2 text-primary">{{sale.sa_regdate.strftime('%d/%m/%Y')}}</div>
                             </div>
                         </div>
                     </div>
@@ -246,6 +246,7 @@
 </div>
 <script>
     (function() {
+        var pos_change = 0;
         $(document).ready(function () {
             table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table');
         });
@@ -253,8 +254,8 @@
         function edit_payment(e){
             var payment_json = JSON.parse($(e).attr('payment'));
             var sp_id = table_tempelement(payment_json.sp_id).find('span').text();
-            var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('$', '');
-            var sp_limitdate = table_tempelement(payment_json.sp_limitdate).text();
+            var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('Q', '');
+            var sp_limitdate = formatDate(table_tempelement(payment_json.sp_limitdate).text());
 
             $('#manage-payments-form-edit input[name=sp_id]').val(sp_id);
             $('#manage-payments-form-edit input[name=sp_pay]').val(sp_pay);
@@ -263,6 +264,20 @@
             $('#manage-payments-modal-edit').modal('show');
         }
         window.edit_payment = edit_payment;
+
+
+        function formatDate(dateString) {
+            var parts = dateString.split('/');
+            var day = parts[0].trim();
+            var month = parts[1].trim();
+            var year = parts[2].trim().substring(0, 4);
+            var time = parts[2].trim().substring(5);
+            var hours = time.split(':')[0].trim();
+            var minutes = time.split(':')[1].trim();
+
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+        }
+
 
         $('#manage-payments-search').on('input', function () {
             clearTimeout(typingTimer);
@@ -289,7 +304,8 @@
             var pay = $('#manage-payments-form-add input[name=pay]').val();
             var pm_id = $('#manage-payments-form-add select[name=pm_id]').val();
             var change = pay - amount ;
-            $('#manage-payments-form-add span[name=change]').html(`$${change.toFixed(2)}`)
+            pos_change = change;
+            $('#manage-payments-form-add span[name=change]').html(`Q${change.toFixed(2)}`)
             
             if (amount.length <= 0 || amount === ''){
                 $('#manage-payments-form-add button[type="submit"]').prop('disabled', true);
@@ -332,6 +348,13 @@
                         showProgressbar: true
                     });
                     loadView();
+
+                    var wTicket = 500;
+                    var hTicket = 800;
+                    var posX = (window.innerWidth - wTicket) / 2;
+                    var posY = (window.innerHeight - hTicket) / 2;
+
+                    window.open('/api/web/pos/app/ticket/{{sale.sa_id}}' + '?change=' + pos_change, '_blank', 'width=' + wTicket + ', height=' + hTicket + ', left=' + posX + ', top=' + posY);
                 } else {
                     $('#manage-payments-form-add button[type="submit"]').prop('disabled', false);
                     loadNoti({

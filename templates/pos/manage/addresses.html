@@ -68,12 +68,12 @@
                         <tr>
                             <th scope="col">ID</th>
                             <th scope="col">Tipo</th>
+                            <th scope="col">Referencia</th>           
+                            <th scope="col">Contacto</th>
                             <th scope="col">Dirección</th>
                             <th scope="col">Código postal</th>
                             <th scope="col">Ciudad</th>
-                            <th scope="col">Estado</th>
-                            <th scope="col">Referencia</th>
-                            <th scope="col">Contacto</th>
+                            <th scope="col">Estado</th>                                            
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -117,6 +117,14 @@
                         <input class="form-control" placeholder="Tipo" name="ad_type">
                     </div> 
                     <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="refresh-horizontal"></i>
+                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="content"></i>
+                        <input class="form-control" placeholder="Contacto" name="ad_contact">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
                         <input class="form-control" placeholder="Dirección" name="ad_address">
                     </div>
@@ -131,15 +139,7 @@
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-add" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
-                    </div>  
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="refresh-horizontal"></i>
-                        <input class="form-control" placeholder="Referencia" name="ad_reference">
-                    </div>       
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="content"></i>
-                        <input class="form-control" placeholder="Contacto" name="ad_contact">
-                    </div>  
+                    </div> 
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
@@ -166,7 +166,15 @@
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="category"></i>
                         <input class="form-control" placeholder="Tipo" name="ad_type">
-                    </div>                   
+                    </div>    
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="refresh-horizontal"></i>
+                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                    </div>   
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="content"></i>
+                        <input class="form-control" placeholder="Contacto" name="ad_contact">
+                    </div>              
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
                         <input class="form-control" placeholder="Dirección" name="ad_address">
@@ -182,15 +190,7 @@
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-edit" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
-                    </div>
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="refresh-horizontal"></i>
-                        <input class="form-control" placeholder="Referencia" name="ad_reference">
-                    </div>       
-                    <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="content"></i>
-                        <input class="form-control" placeholder="Contacto" name="ad_contact">
-                    </div>         
+                    </div>                    
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -302,38 +302,49 @@
         }, 100);
 
         function delete_address(e) {
-            $(e).prop('disabled', true);
-            var ad_id = $(e).attr('ad_id');
-            var formData = new FormData();
-            formData.append('ad_id', ad_id);
-            var response = sendDataPost('pos/manage/addresses/{{pe_id}}/delete', 'data', formData);
-            response.then(function (response) {
-                if (response.success) {
-                    loadNoti({
-                        icon: 'cs-info-hexagon',
-                        title: 'Success!',
-                        msg: response.msg,
-                        color: 'primary',
-                        time: 500,
-                        showProgressbar: true
-                    });
-                    loadView();
-                } else {
-                    $(e).prop('disabled', false);
-                    loadNoti({
-                        title: 'Error!',
-                        msg: response.msg,
-                        color: 'danger'
+            Swal.fire({
+                icon: 'info',
+                title: '¿Deseas borrar la dirección?',
+                showDenyButton: true,
+                showCancelButton: false,
+                confirmButtonText: 'No',
+                denyButtonText: `Si`,
+                }).then((result) => {
+                if (result.isDenied) {
+                    $(e).prop('disabled', true);
+                    var ad_id = $(e).attr('ad_id');
+                    var formData = new FormData();
+                    formData.append('ad_id', ad_id);
+                    var response = sendDataPost('pos/manage/addresses/{{pe_id}}/delete', 'data', formData);
+                    response.then(function (response) {
+                        if (response.success) {
+                            loadNoti({
+                                icon: 'cs-info-hexagon',
+                                title: 'Success!',
+                                msg: response.msg,
+                                color: 'primary',
+                                time: 500,
+                                showProgressbar: true
+                            });
+                            loadView();
+                        } else {
+                            $(e).prop('disabled', false);
+                            loadNoti({
+                                title: 'Error!',
+                                msg: response.msg,
+                                color: 'danger'
+                            });
+                        }
+                    }).catch(function (response) {
+                        $(e).prop('disabled', false);
+                        loadNoti({
+                            title: 'Error!',
+                            msg: response.msg,
+                            color: 'danger'
+                        });
                     });
                 }
-            }).catch(function (response) {
-                $(e).prop('disabled', false);
-                loadNoti({
-                    title: 'Error!',
-                    msg: response.msg,
-                    color: 'danger'
-                });
-            });
+            })            
         }
         window.delete_address = delete_address;
 
