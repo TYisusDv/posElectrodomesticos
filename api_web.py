@@ -2085,7 +2085,7 @@ def api_web(path):
                                         if salepayment['sp_pay'] < salepayment['sp_subtotal']:
                                             sp_limitdates.append(salepayment['sp_limitdate'])                                                                                
                                     
-                                    sp_limitdate = min(sp_limitdates, default=datetime.min).date()
+                                    sp_limitdate = min(sp_limitdates)
 
                                     if sp_limitdate:
                                         difference_date = sp_limitdate - v_date
