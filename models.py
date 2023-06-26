@@ -988,7 +988,7 @@ class sp_salepayments_model():
         unique_number = None
         cur = mysql.connection.cursor()
         while not unique_number:
-            randomNumber = str(random.randint(100000, 999999))
+            randomNumber = str(random.randint(1000000, 9999999))
             query = "SELECT sp_id FROM sp_salepayments WHERE sp_id = %s"
             cur.execute(query, (randomNumber,))
             result = cur.fetchone()
