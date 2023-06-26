@@ -731,13 +731,11 @@ def api_web(path):
                                 for i in range(ts_amountpayments - 1): 
                                     sp_limitdate = sp_limitdate + timedelta(days=ts_days)
 
-                                    sp_id = sp_salepayments_model().gen_salepayment_id()
-                                    sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
+                                    sp_salepayments_model().insert_salepayment(sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
                                 
                                 sp_limitdate = sp_limitdate + timedelta(days=ts_days)                                
                                 sp_subtotal = total - (sp_subtotal * (ts_amountpayments - 1))
-                                sp_id = sp_salepayments_model().gen_salepayment_id()
-                                sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
+                                sp_salepayments_model().insert_salepayment(sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
 
                                 salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)       
 
@@ -756,7 +754,6 @@ def api_web(path):
                                 sp_regdate = sp_limitdate
                                 sp_limitdate = sp_limitdate + timedelta(days=ts_days)
 
-                                sp_id = sp_salepayments_model().gen_salepayment_id()
                                 new_pay = total + commission
                                 us_id = session['us_id']
                                 if ts_id == 100003:
@@ -766,7 +763,7 @@ def api_web(path):
                                     pm_id = None    
                                     us_id = None                                
 
-                                sp_salepayments_model().insert_salepayment(sp_id = sp_id, sp_subtotal = total, sp_commission = commission, sp_pay = new_pay, sp_limitdate = sp_limitdate, sp_regdate = sp_regdate, pm_id = pm_id, us_id = us_id, sa_id = sa_id)
+                                sp_salepayments_model().insert_salepayment(sp_subtotal = total, sp_commission = commission, sp_pay = new_pay, sp_limitdate = sp_limitdate, sp_regdate = sp_regdate, pm_id = pm_id, us_id = us_id, sa_id = sa_id)
 
                             response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!', 'sa_id': sa_id}))
                             response.delete_cookie('posinfo')
@@ -2077,13 +2074,14 @@ def api_web(path):
 
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sale['sa_id'])
                                                                    
-                                    sp_limitdate = None
+                                    sp_limitdates = []
                                     days_difference = 99
                                     for salepayment in salepayments:
                                         if salepayment['sp_pay'] < salepayment['sp_subtotal']:
-                                            sp_limitdate = salepayment['sp_limitdate']
-                                            break                                    
+                                            sp_limitdates.append(salepayment['sp_limitdate'])                                                                                
                                     
+                                    sp_limitdate = min(sp_limitdates, default=datetime.min)
+
                                     if sp_limitdate:
                                         difference_date = sp_limitdate - v_datetimenow
                                         days_difference = difference_date.days
@@ -2216,7 +2214,7 @@ def api_web(path):
                                                 'total': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">Q{payment["sp_subtotal"] + payment["sp_commission"]}</span>',
                                                 'sp_pay': f'Q{payment["sp_pay"]}',
                                                 'totalremaining': f'<span class="badge bg-{color} fw-bold" style="font-size: 12px;">Q{(payment["sp_subtotal"]) - payment["sp_pay"]}</span>',
-                                                'sp_limitdate': str(payment['sp_limitdate'].strftime('%d/%m/%Y %H:%M')) + f'<br>({days_difference} días)',
+                                                'sp_limitdate':  f'<span>{payment["sp_limitdate"].strftime("%d/%m/%Y %H:%M")}</span><br>({days_difference} días)',
                                                 'pm_name': paymentmethod,
                                                 'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user}</span>',
                                                 'sp_regdate': str(sp_regdate),

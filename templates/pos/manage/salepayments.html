@@ -255,8 +255,9 @@
             var payment_json = JSON.parse($(e).attr('payment'));
             var sp_id = table_tempelement(payment_json.sp_id).find('span').text();
             var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('Q', '');
-            var sp_limitdate = formatDate(table_tempelement(payment_json.sp_limitdate).text());
-
+            var sp_limitdate = formatDate(table_tempelement(payment_json.sp_limitdate).find('span').text());
+            
+            console.log(table_tempelement(payment_json.sp_limitdate).text())
             $('#manage-payments-form-edit input[name=sp_id]').val(sp_id);
             $('#manage-payments-form-edit input[name=sp_pay]').val(sp_pay);
             $('#manage-payments-form-edit input[name=sp_limitdate]').val(sp_limitdate);
