@@ -2238,7 +2238,7 @@ def api_web(path):
                                                 if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
                                                     btn_disabled = 'disabled'
 
-                                                response['actions'] = f'<button class="btn btn-primary" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                                response['actions'] = f'<button class="btn btn-primary mb-1" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-light" sp_id="{payment["sp_id"]}" onclick="split_payment(this);" {btn_disabled}><i data-acorn-icon="arrow-right" data-acorn-size="16"></i> Dividir</button>'
 
                                             table.append(response)
                                         
@@ -2275,7 +2275,7 @@ def api_web(path):
                                         
                                         commission = amount * (pm_paymentmethod['pm_per'] / 100)
 
-                                        salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
+                                        salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_limitdate_ASC', sa_id = sa_id)
                                         total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
                                         remainingpayment = sa_sale["sa_subtotal"] - total_pay
                                         if remainingpayment <= 0:
@@ -2330,6 +2330,41 @@ def api_web(path):
                                             return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})   
 
                                         sp_salepayments_model().update_salepayment(update='edit', sp_pay = sp_pay, us_id = sp_salepayment['us_id'], sp_id = sp_id, sp_limitdate = sp_limitdate)
+
+                                        return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
+                                    elif v_apiurlsplit[6] == 'split' and v_apiurlsplit[7] is None:
+                                        if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
+                                            return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                                    
+                                        sp_id = v_requestform.get('sp_id')
+                                        if not sp_id:
+                                            return json.dumps({'success': False, 'msg': '¡El ID está vacío! Por favor, corríjalo y vuelva a intentarlo.'}) 
+                                        
+                                        sp_salepayment = sp_salepayments_model().get_salepayment(get = 'sp_id', sp_id = sp_id)
+                                        if sp_salepayment is None:
+                                            return json.dumps({'success': False, 'msg': '¡La ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                        sp_amount = v_requestform.get('sp_amount')
+                                        if not sp_amount:
+                                            return json.dumps({'success': False, 'msg': '¡El abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})   
+                                        elif not api_isFloat(sp_amount) or float(sp_amount) < 0:
+                                            return json.dumps({'success': False, 'msg': '¡El abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        
+                                        sp_amount = float(sp_amount)
+
+                                        sp_limitdate = v_requestform.get('sp_limitdate')
+                                        if not sp_limitdate:
+                                            return json.dumps({'success': False, 'msg': '¡La fecha limite está vacía! Por favor, corríjala y vuelva a intentarlo.'})                                
+
+                                        if sp_amount > sp_salepayment['sp_subtotal']:
+                                            return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})
+                                        elif (sp_salepayment['sp_subtotal'] - sp_amount) < sp_salepayment['sp_pay']:
+                                            return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})   
+                                        
+                                        sp_salepayments_model().insert_salepayment(sp_subtotal = sp_amount, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
+
+                                        new_subtotal = sp_salepayment['sp_subtotal'] - sp_amount
+                                        sp_salepayments_model().update_salepayment(update='split', sp_subtotal = new_subtotal, sp_id = sp_id)
 
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                                     

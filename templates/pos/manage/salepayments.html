@@ -245,6 +245,37 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="manage-payments-modal-split" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="manage-payments-modal-splitLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-payments-modal-splitLabel">Dividir pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manage-payments-form-split" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID" name="sp_id" readonly>
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="¿De cuánto será el abono?" name="sp_amount">
+                    </div>                   
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="date" placeholder="Fecha limite" name="sp_limitdate">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
+                        Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <script>
     (function() {
         var pos_change = 0;
@@ -258,7 +289,6 @@
             var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('Q', '');
             var sp_limitdate = formatDate(table_tempelement(payment_json.sp_limitdate).find('span').text());
             
-            console.log(table_tempelement(payment_json.sp_limitdate).text())
             $('#manage-payments-form-edit input[name=sp_id]').val(sp_id);
             $('#manage-payments-form-edit input[name=sp_pay]').val(sp_pay);
             $('#manage-payments-form-edit input[name=sp_limitdate]').val(sp_limitdate);
@@ -266,6 +296,17 @@
             $('#manage-payments-modal-edit').modal('show');
         }
         window.edit_payment = edit_payment;
+
+        function split_payment(e){
+            var sp_id = $(e).attr('sp_id')
+            
+            $('#manage-payments-form-split input[name=sp_id]').val(sp_id);
+            $('#manage-payments-form-split input[name=sp_amount]').val('');
+            $('#manage-payments-form-split input[name=sp_limitdate]').val('');
+
+            $('#manage-payments-modal-split').modal('show');
+        }
+        window.split_payment = split_payment;
 
 
         function formatDate(dateString) {
@@ -396,6 +437,42 @@
             }).catch(function (response) {
                 $('#manage-payments-modal-edit').modal('hide');
                 $('#manage-payments-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#manage-payments-form-split').submit(function (e) {
+            e.preventDefault();
+
+            $('#manage-payments-form-split button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/manage/sale/{{sale.sa_id}}/payments/split', 'data', new FormData(this));
+            response.then(function (response) {
+                $('#manage-payments-modal-split').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#manage-payments-form-split button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#manage-payments-modal-split').modal('hide');
+                $('#manage-payments-form-split button[type="submit"]').prop('disabled', false);
                 loadNoti({
                     title: 'Error!',
                     msg: response.msg,

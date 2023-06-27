@@ -915,7 +915,7 @@ class sa_sales_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id ORDER BY sa_sales.sa_regdate ASC LIMIT %s, %s',(page_start, quantity,))
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id ORDER BY sa_sales.sa_regdate DESC LIMIT %s, %s',(page_start, quantity,))
         else:
             cur.execute('SELECT sa_sales.* FROM sa_sales')
         
@@ -1004,6 +1004,8 @@ class sp_salepayments_model():
 
         if get == 'sa_id':
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_id ASC', (sa_id,))  
+        elif get == 'where_sa_id,order_sp_limitdate_ASC':
+            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC', (sa_id,))  
         elif get == 'limitdate':
             cur.execute('SELECT sp.sa_id, MIN(sp.sp_limitdate) AS min_limitdate FROM sp_salepayments sp INNER JOIN sa_sales AS sa ON sa.sa_id = sp.sa_id WHERE sp.sp_pay < sp.sp_subtotal AND sp.sp_limitdate < NOW() AND sa.sa_status = 1 GROUP BY sp.sa_id ORDER BY min_limitdate ASC')  
         elif get == 'table-sa_id':
@@ -1038,13 +1040,15 @@ class sp_salepayments_model():
         cur.close()
         return True
     
-    def update_salepayment(self, update = None, sp_no = None, sp_commission = None, sp_pay = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
+    def update_salepayment(self, update = None, sp_no = None, sp_commission = None, sp_pay = None, sp_subtotal = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
         cur = mysql.connection.cursor()  
         
         if update == 'pay':
             cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_commission, sp_pay, pm_id, us_id, sp_id,))
         elif update == 'edit':
             cur.execute('UPDATE sp_salepayments SET sp_pay = %s, sp_limitdate = %s, us_id = %s WHERE sp_id = %s', (sp_pay, sp_limitdate, us_id, sp_id,))
+        elif update == 'split':
+            cur.execute('UPDATE sp_salepayments SET sp_subtotal = %s WHERE sp_id = %s', (sp_subtotal, sp_id,))
         else:
             cur.close()
             return False
