@@ -191,7 +191,16 @@
                                                 data-acorn-size="18"></i>
                                             <span class="label">Punto de venta</span>
                                         </a>
-                                    </li>                                                                                           
+                                    </li>  
+                                    {% if '/pos/statistics' in userinfo.us_permissions %}
+                                    <li>
+                                        <a href="/pos/statistics">
+                                            <i data-acorn-icon="trend-up" class="icon d-none"
+                                                data-acorn-size="18"></i>
+                                            <span class="label">Estadísticas</span>
+                                        </a>
+                                    </li> 
+                                    {% endif %}                                                                                         
                                 </ul>
                             </li>                                            
                             <li>

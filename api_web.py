@@ -46,6 +46,12 @@ def api_web(path):
                         typessales = ts_typessales_model().get_typessales()
                         paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
                         return json.dumps({'success': True, 'html': render_template('/pos/pos.html', locations = locations, typessales = typessales, paymentmethods = paymentmethods)})
+                    elif v_apiurlsplit[2] == 'statistics' and v_apiurlsplit[3] is None:
+                        sd_saledetails = sd_saledetails_model().get_saledetails(get = 'all')
+                        total_sold =  sum((saledetail['sd_price'] * saledetail['sd_quantity'])  for saledetail in sd_saledetails)
+                        total_generated =  sum((saledetail['sd_cost'] * saledetail['sd_quantity'])  for saledetail in sd_saledetails)                        
+                        total_generated = total_sold - total_generated
+                        return json.dumps({'success': True, 'html': render_template('/pos/statistics.html', total_sold = total_sold, total_generated = total_generated)})
                     
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
@@ -668,6 +674,7 @@ def api_web(path):
                                         'pr_name': pr_product['pr_name'],
                                         'pr_model': pr_product['pr_model'],
                                         'pr_price': pr_product['pr_price'],
+                                        'pr_cost': pr_product['pr_cost'],
                                         'br_name': pr_product['br_name'],
                                         'quantity': 1,
                                         'total': pr_product['pr_price'],
@@ -727,7 +734,7 @@ def api_web(path):
                             sa_sales_model().insert_sale(sa_id = sa_id, sa_subtotal = info['subtotal'], sa_discount = info['discount'], sa_amountpayments = ts_amountpayments, sa_days = ts_days, lo_id = lo_id, ts_id = ts_id, cu_id = cu_id, us_id = session['us_id'])
 
                             for product in info['products']:
-                                sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
+                                sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_cost = product['pr_cost'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
 
                             if ts_id == 100002: 
                                 sp_subtotal = math.floor(total / ts_amountpayments)

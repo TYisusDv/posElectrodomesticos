@@ -965,6 +965,8 @@ class sd_saledetails_model():
 
         if get == 'sa_id':
             cur.execute('SELECT sd_saledetails.*, pr_products.pr_name FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id WHERE sd_saledetails.sa_id = %s ORDER BY sd_saledetails.sd_id ASC', (sa_id,))  
+        elif get == 'all':
+            cur.execute('SELECT sd_saledetails.*, pr_products.pr_name FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id INNER JOIN sa_sales ON sa_sales.sa_id = sd_saledetails.sa_id WHERE sa_sales.sa_status = 1 ORDER BY sd_saledetails.sd_id ASC')  
         else:
             cur.close()
             return []
@@ -973,9 +975,9 @@ class sd_saledetails_model():
         cur.close()
         return data
     
-    def insert_saledetail(self, sd_price = None, sd_quantity = None, pr_id = None, sa_id = None):
+    def insert_saledetail(self, sd_price = None, sd_cost = None, sd_quantity = None, pr_id = None, sa_id = None):
         cur = mysql.connection.cursor()          
-        cur.execute('INSERT INTO sd_saledetails(sd_price, sd_quantity, pr_id, sa_id) VALUES(%s, %s, %s, %s)', (sd_price, sd_quantity, pr_id, sa_id,))
+        cur.execute('INSERT INTO sd_saledetails(sd_price, sd_cost, sd_quantity, pr_id, sa_id) VALUES(%s, %s, %s, %s, %s)', (sd_price, sd_cost, sd_quantity, pr_id, sa_id,))
         mysql.connection.commit()
         cur.close()
         return True
