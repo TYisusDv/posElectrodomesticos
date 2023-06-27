@@ -18,6 +18,7 @@
       <p><strong>Tel:</strong> 5134-9923</p>
       <p><strong>Vendedor:</strong> {{sa_sale.us_pe_fullname}}</p>
       <p><strong>Fecha:</strong> {{sa_sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</p>
+      <p><strong>Sucursal:</strong> {{sa_sale.lo_name}}</p>
     </div>
     <table>
       <thead>
@@ -45,7 +46,7 @@
       <p><strong>Total:</strong> Q{{'{:.2f}'.format(sa_sale.sa_subtotal - sa_sale.sa_discount).rstrip('0').rstrip('.')}}</p>
       <p style="display: none;" id="change-p"><strong>Cambio:</strong> Q<span id="change">0</span></p>
     </div>
-    <table>
+    <table style="margin-bottom: 10px;">
       <thead>
         <tr>
           <th>No. Recibo</th>
@@ -56,7 +57,7 @@
       </thead>
       <tbody>
         {% for salepayment in sp_salepayments %}        
-        {% if salepayment.sp_subtotal <= salepayment.sp_pay or salepayment.sp_no|string == request.args.get('no')|urlencode %}
+        {% if salepayment.sp_subtotal <= salepayment.sp_pay or (salepayment.sp_no|string == request.args.get('no')|urlencode and salepayment.sp_no != None) %}
         <tr>
           <td>{{salepayment.sp_no}}</td>
           <td>Q{{'{:.2f}'.format(salepayment.sp_subtotal).rstrip('0').rstrip('.')}}</td>
@@ -67,7 +68,11 @@
         {% endfor %}
       </tbody>
     </table>
-    <div class="info" style="margin-top: 30px; display: flex !important; justify-content: center;">
+    <div class="total" style="margin-bottom: 30px;">
+      <p><strong>Abonado:</strong> Q{{'{:.2f}'.format(total_pay).rstrip('0').rstrip('.')}}</p>
+      <p><strong>Debe:</strong> Q{{remainingpayment}}</p>
+    </div>
+    <div class="info" style="display: flex !important; justify-content: center;">
         <div id="qrcode"></div>
     </div>
     <div class="info" style="font-size: 12px;">

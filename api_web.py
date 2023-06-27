@@ -2080,12 +2080,14 @@ def api_web(path):
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sale['sa_id'])
                                                                    
                                     sp_limitdates = []
-                                    days_difference = 99
+                                    days_difference = 0
                                     for salepayment in salepayments:
                                         if salepayment['sp_pay'] < salepayment['sp_subtotal']:
                                             sp_limitdates.append(salepayment['sp_limitdate'])                                                                                
                                     
-                                    sp_limitdate = min(sp_limitdates)
+                                    sp_limitdate = None
+                                    if sp_limitdates:
+                                        sp_limitdate = min(sp_limitdates)
 
                                     if sp_limitdate:
                                         difference_date = sp_limitdate - v_date
@@ -2150,10 +2152,6 @@ def api_web(path):
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
                                     remainingpayment = sa_sale["sa_subtotal"] - total_pay
 
-                                    if remainingpayment <= 0:
-                                        return json.dumps({'success': False, 'msg': 'No se puede cancelar, ya que fue pagado en su totalidad.'})
-                                            
-                                    
                                     sa_sales_model().update_sale(update='sa_status', sa_status=0, sa_id=sa_id)
                                     return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'})                        
                         elif v_apiurlsplit[3] == 'sale':
@@ -2355,7 +2353,10 @@ def api_web_pos_app_ticket(sa_id):
         sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
         sp_salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
         if sa_sale['ts_id'] == 100002:            
-            return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
+            total_pay = sum(salepayment['sp_pay'] for salepayment in sp_salepayments)
+            remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
+            
+            return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, remainingpayment = remainingpayment, total_pay = total_pay)
         
         return render_template('/pos/ticket.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
     return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
