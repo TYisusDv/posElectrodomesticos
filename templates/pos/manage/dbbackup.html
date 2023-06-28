@@ -1,0 +1,58 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">DB Backup</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Mi Hogar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/dbbackup">DB Backup</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Información</h2>
+    <div class="d-flex align-items-center mt-2">        
+        <div class="spinner-border me-3 text-primary" role="status" aria-hidden="true"></div>
+        <strong id="dbbackup-msg"><button class="btn btn-primary btn-icon" onclick="dbbackup_start();">Comenzar <i data-acorn-icon="chevron-right"></i></button></strong>
+    </div>
+</section>
+<script>
+    function dbbackup_start(){
+        $('#dbbackup-msg').html('Copia de seguridad iniciada...');        
+        
+        setTimeout(function(){
+            $('#dbbackup-msg').html('Obteniendo base de datos...');
+        }, 1000);
+
+        setTimeout(function(){
+            dbbackup_dowload();
+        }, 1500);
+    }
+
+    function dbbackup_dowload(){
+        var formData = new FormData();
+        var response = sendDataPost('pos/manage/dbbackup', 'data', formData);
+        response.then(function (response) {
+            if (response.success) {
+                $('#dbbackup-msg').html('Finalizado.');
+                window.location.href = response.url;
+            } else {
+                $('#dbbackup-msg').html(response.msg);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            }
+        }).catch(function (response) {
+            $('#dbbackup-msg').html(response.msg);
+            loadNoti({
+                title: 'Error!',
+                msg: response.msg,
+                color: 'danger'
+            });
+        });
+    }
+</script>

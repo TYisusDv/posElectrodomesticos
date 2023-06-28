@@ -200,6 +200,11 @@ def api_web(path):
                                     remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
                                     
                                     return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment, paymentmethods = paymentmethods)})
+                        elif v_apiurlsplit[3] == 'dbbackup' and v_apiurlsplit[4] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/dbbackup'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/dbbackup.html')})
                         
                 #ERROR 404
                 if v_apiverifysession == 1: 
@@ -2103,9 +2108,11 @@ def api_web(path):
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
                                     remainingpayment = sale["sa_subtotal"] - total_pay
                                     if not sale["sa_status"]:
-                                        alert = f'<span class="badge bg-danger fw-bold" style="font-size: 12px;">Cancelada</span>'
+                                        alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Cancelada</span>'
+                                    elif sale["ts_id"] == 100001:
+                                        alert = f'<span class="badge bg-white text-black fw-bold" style="font-size: 12px;">Pagado</span>'
                                     elif remainingpayment <= 0:
-                                        alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Pagado</span>'
+                                        alert = f'<span class="badge bg-white text-black fw-bold" style="font-size: 12px;">Pagado</span>'
                                     elif days_difference < 0:
                                         alert = f'<span class="badge bg-danger fw-bold" style="font-size: 12px;">Alerta ({days_difference})</span>'
                                     elif days_difference < 6:
@@ -2374,7 +2381,18 @@ def api_web(path):
                                         sp_salepayments_model().update_salepayment(update='split', sp_subtotal = new_subtotal, sp_id = sp_id)
 
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
-                                    
+                        elif v_apiurlsplit[3] == 'dbbackup' and v_apiurlsplit[4] is None:
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/dbbackup'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+                            
+                            v_apidbbackup = api_dbbackup()
+                            if not v_apidbbackup:
+                                return json.dumps({'success': False, 'msg': 'No se pudo completar la copia de seguridad y la descarga.'}) 
+                            
+                            v_uuid = str(uuid.uuid4())
+                            session[v_uuid] = 'mihogar-backup.sql'
+                            return json.dumps({'success': True, 'url': f'/api/web/download/{v_uuid}'})  
+                                 
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
     except Exception as e:
         api_savelog('log/api-web-error.log', f'[E{sys.exc_info()[-1].tb_lineno}] {e}')
@@ -2402,6 +2420,20 @@ def api_web_pos_app_ticket(sa_id):
         
         return render_template('/pos/ticket.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
     return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
+
+@app.route('/api/web/download/<download_uuid>', methods = ['GET'])
+def api_web_download(download_uuid):
+    try:
+        if download_uuid not in session:
+            return json.dumps({'success': False, 'msg': 'Descarga no encontrada.'}), 404
+        
+        fileName = session[download_uuid]
+
+        backup_path = os.path.join('downloads', fileName)    
+                        
+        return send_file(backup_path, as_attachment=True)
+    except:
+        return json.dumps({'success': False, 'msg': 'Archivo no encontrado.'}), 404
 
 @app.route('/auth/logout', methods = ['GET'])
 def api_web_authlogout():  

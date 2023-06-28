@@ -5,7 +5,7 @@
             <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
                 <ul class="breadcrumb pt-0">
                     <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
-                    <li class="breadcrumb-item"><a href="/pos/manage/{{sale.sa_id}}/payments">Pagos</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/sale/{{sale.sa_id}}/payments">Pagos</a></li>
                 </ul>
             </nav>
         </div>
@@ -361,7 +361,7 @@
         }
 
         var table_interval = setInterval(function () {
-            if(path == '/pos/manage/{{sale.sa_id}}/payments'){
+            if(path == '/pos/manage/sale/{{sale.sa_id}}/payments'){
                 if (table_page !== table_page_previous) {
                     table_setdata('#manage-payments-table', 'pos/manage/sale/{{sale.sa_id}}/payments/table', $('#manage-payments-search').val());
                     table_page_previous = table_page;

@@ -165,6 +165,24 @@ def api_getdevice(user_agent):
 
     return device_name
 
+def api_dbbackup():
+    backup_filename = 'mihogar-backup.sql'
+    
+    try:
+        cmd = f"mariadb-dump -u {app.config['MYSQL_USER']} -p {app.config['MYSQL_DB']} > downloads/{backup_filename}"
+        process = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        process.stdin.write(db_password.encode('utf-8'))
+        _, error = process.communicate()
+        process.stdin.close()
+
+        if process.returncode == 0:
+            return True
+        else:
+            api_savelog("log/api-dbbackup-error.txt", error.decode('utf-8'))
+            return False
+    except Exception as e:
+        return False
+
 def api_getimagedata(path_file):
     with open(path_file, 'rb') as archivo:
         datas = archivo.read()
