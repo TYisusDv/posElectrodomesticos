@@ -68,12 +68,14 @@
                         <tr>
                             <th scope="col">ID</th>
                             <th scope="col">Tipo</th>
-                            <th scope="col">Referencia</th>           
-                            <th scope="col">Contacto</th>
+                            <th scope="col">DPI</th> 
+                            <th scope="col">Nombre</th>           
+                            <th scope="col">Telefono</th>
                             <th scope="col">Dirección</th>
-                            <th scope="col">Código postal</th>
-                            <th scope="col">Ciudad</th>
-                            <th scope="col">Estado</th>                                            
+                            <th scope="col">Parentesco</th>
+                            <th scope="col">Municipio</th>
+                            <th scope="col">Estado</th>     
+                            <th scope="col">Dirección laboral</th>                                            
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -114,15 +116,24 @@
                 <div class="modal-body"> 
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="category"></i>
-                        <input class="form-control" placeholder="Tipo" name="ad_type">
-                    </div> 
+                        <select class="form-control" name="at_id">
+                            <option value="0" class="bg-dark">Selecciona el tipo...</option>
+                            {% for addresstype in addresstypes %}
+                            <option value="{{addresstype.at_id}}" class="bg-dark">{{addresstype.at_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>  
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="refresh-horizontal"></i>
-                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="DPI" name="ad_dpi">
+                    </div>           
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre" name="ad_fullname">
                     </div> 
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="content"></i>
-                        <input class="form-control" placeholder="Contacto" name="ad_contact">
+                        <input class="form-control" placeholder="Telefono" name="ad_phone">
                     </div>  
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
@@ -130,16 +141,20 @@
                     </div>
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="code"></i>
-                        <input class="form-control" placeholder="Código postal" name="ad_postalcode">
+                        <input class="form-control" placeholder="Parentesco" name="ad_relationship">
                     </div>   
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="pin"></i>
-                        <input type="text" id="manage-addresses-ci_name-add" name="ci_name" placeholder="Ciudad" class="form-control" autocomplete="off">
+                        <input type="text" id="manage-addresses-ci_name-add" name="ci_name" placeholder="Municipio" class="form-control" autocomplete="off">
                     </div>  
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-add" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
                     </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="destination"></i>
+                        <input class="form-control" placeholder="Dirección laboral" name="ad_workaddress">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
@@ -165,15 +180,23 @@
                     </div> 
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="category"></i>
-                        <input class="form-control" placeholder="Tipo" name="ad_type">
-                    </div>    
+                        <select class="form-control" name="at_id">
+                            {% for addresstype in addresstypes %}
+                            <option value="{{addresstype.at_id}}" class="bg-dark">{{addresstype.at_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>  
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="refresh-horizontal"></i>
-                        <input class="form-control" placeholder="Referencia" name="ad_reference">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="DPI" name="ad_dpi">
+                    </div>        
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="user"></i>
+                        <input class="form-control" placeholder="Nombre" name="ad_fullname">
                     </div>   
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="content"></i>
-                        <input class="form-control" placeholder="Contacto" name="ad_contact">
+                        <input class="form-control" placeholder="Telefono" name="ad_phone">
                     </div>              
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="destination"></i>
@@ -181,16 +204,20 @@
                     </div>
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="code"></i>
-                        <input class="form-control" placeholder="Código postal" name="ad_postalcode">
+                        <input class="form-control" placeholder="Parentesco" name="ad_relationship">
                     </div>   
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="pin"></i>
-                        <input type="text" id="manage-addresses-ci_name-edit" name="ci_name" placeholder="Ciudad" class="form-control" autocomplete="off">
+                        <input type="text" id="manage-addresses-ci_name-edit" name="ci_name" placeholder="Municipio" class="form-control" autocomplete="off">
                     </div>  
                     <div class="mb-3 filled form-group tooltip-end-top autocomplete-container">
                         <i data-acorn-icon="compass"></i>
                         <input type="text" id="manage-addresses-st_name-edit" name="st_name" placeholder="Estado" class="form-control" autocomplete="off">
-                    </div>                    
+                    </div> 
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="destination"></i>
+                        <input class="form-control" placeholder="Dirección laboral" name="ad_workaddress">
+                    </div>                   
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -213,7 +240,7 @@
                         {% endfor %}
                     ],
                 },
-                placeHolder: "Ciudad",
+                placeHolder: "Municipio",
                 searchEngine: "strict",
                 highlight: !0,
             });
@@ -239,7 +266,7 @@
                         {% endfor %}
                     ],
                 },
-                placeHolder: "Ciudad",
+                placeHolder: "Municipio",
                 searchEngine: "strict",
                 highlight: !0,
             });
@@ -262,21 +289,27 @@
             var address_json = JSON.parse($(e).attr('address'));
             var id = table_tempelement(address_json.id).find('span').text();
             var type = table_tempelement(address_json.type).text();
+            var dpi = table_tempelement(address_json.dpi).find('span').text();
             var address = table_tempelement(address_json.address).text();
-            var postalcode = table_tempelement(address_json.postalcode).find('span').text();
+            var relationship = table_tempelement(address_json.relationship).find('span').text();
             var city = table_tempelement(address_json.city).text();
             var state = table_tempelement(address_json.state).text();
-            var reference = table_tempelement(address_json.reference).text();
-            var contact = table_tempelement(address_json.contact).text();
+            var fullname = table_tempelement(address_json.fullname).text();
+            var phone = table_tempelement(address_json.phone).text();
+            var workaddress = table_tempelement(address_json.workaddress).text();
 
             $('#manage-addresses-form-edit input[name=ad_id]').val(id);
-            $('#manage-addresses-form-edit input[name=ad_type]').val(type);
+            $('#manage-addresses-form-edit select[name="at_id"] option').filter(function () {
+                return $(this).text() === type;
+            }).prop('selected', true);
+            $('#manage-addresses-form-edit input[name=ad_dpi]').val(dpi);
             $('#manage-addresses-form-edit input[name=ad_address]').val(address);
-            $('#manage-addresses-form-edit input[name=ad_postalcode]').val(postalcode);
+            $('#manage-addresses-form-edit input[name=ad_relationship]').val(relationship);
             $('#manage-addresses-form-edit input[name=ci_name]').val(city);
             $('#manage-addresses-form-edit input[name=st_name]').val(state);
-            $('#manage-addresses-form-edit input[name=ad_reference]').val(reference);
-            $('#manage-addresses-form-edit input[name=ad_contact]').val(contact);
+            $('#manage-addresses-form-edit input[name=ad_fullname]').val(fullname);
+            $('#manage-addresses-form-edit input[name=ad_phone]').val(phone);
+            $('#manage-addresses-form-edit input[name=ad_workaddress]').val(workaddress);
 
             $('#manage-addresses-modal-edit').modal('show');
         }

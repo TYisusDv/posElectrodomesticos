@@ -469,21 +469,22 @@ class cu_customers_model():
         cur.close()        
         return data
 
-    def insert_customer(self, cu_id = None, fullname = None, email = None, phone = None):
+    def insert_customer(self, cu_id = None, fullname = None, email = None, phone = None, cu_dpi = None):
         cur = mysql.connection.cursor()  
         pe_id = str(uuid.uuid4())
         pe_persons_model().insert_person(pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)
-        cur.execute('INSERT INTO cu_customers(cu_id, pe_id) VALUES(%s, %s)', (cu_id, pe_id,))
+        cur.execute('INSERT INTO cu_customers(cu_id, cu_dpi, pe_id) VALUES(%s, %s, %s)', (cu_id, cu_dpi, pe_id,))
         mysql.connection.commit()
         cur.close()
         return True
 
-    def update_customer(self, update = None, cu_id = None, pe_fullname = None, pe_email = None, pe_phone = None, status = None):
+    def update_customer(self, update = None, cu_id = None, pe_fullname = None, pe_email = None, pe_phone = None, cu_dpi = None, status = None):
         cur = mysql.connection.cursor()
         
         if update == 'all':        
             pe_id = self.get_customer(cu_id)['pe_id']
             pe_persons_model().update_person(update = 'all', pe_id = pe_id, pe_fullname = pe_fullname, pe_email = pe_email, pe_phone = pe_phone)
+            cur.execute('UPDATE cu_customers SET cu_dpi = %s WHERE cu_id = %s', (cu_dpi, cu_id,))
         elif update == 'status':        
             cur.execute('UPDATE cu_customers SET cu_status = %s WHERE cu_id = %s', (status, cu_id,))
         else:
@@ -648,18 +649,18 @@ class pr_products_model():
         cur.close()        
         return data
 
-    def insert_product(self, pr_id = None, pr_barcode = None, pr_name = None, pr_model = None, pr_description = None, pr_cost = None, pr_price = None, ca_id = None, br_id = None, pv_id = None):
+    def insert_product(self, pr_id = None, pr_barcode = None, pr_name = None, pr_model = None, pr_description = None, pr_cost = None, pr_price = None, pr_pricetopayments = None, ca_id = None, br_id = None, pv_id = None):
         cur = mysql.connection.cursor()       
-        cur.execute('INSERT INTO pr_products(pr_id, pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, ca_id, br_id, pv_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (pr_id, pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, ca_id, br_id, pv_id,))
+        cur.execute('INSERT INTO pr_products(pr_id, pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, pr_pricetopayments, ca_id, br_id, pv_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (pr_id, pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, pr_pricetopayments, ca_id, br_id, pv_id,))
         mysql.connection.commit()
         cur.close()
         return True
 
-    def update_product(self, update = None, pr_id = None, pr_barcode = None, pr_name = None, pr_model = None, pr_description = None, pr_cost = None, pr_price = None, ca_id = None, br_id = None, pv_id = None, pr_status = None):
+    def update_product(self, update = None, pr_id = None, pr_barcode = None, pr_name = None, pr_model = None, pr_description = None, pr_cost = None, pr_price = None, pr_pricetopayments = None, ca_id = None, br_id = None, pv_id = None, pr_status = None):
         cur = mysql.connection.cursor()  
         
         if update == 'all':        
-           cur.execute('UPDATE pr_products SET pr_barcode = %s, pr_name = %s, pr_model = %s, pr_description = %s, pr_cost = %s, pr_price = %s, ca_id = %s, br_id = %s, pv_id = %s WHERE pr_id = %s', (pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, ca_id, br_id, pv_id, pr_id,))
+           cur.execute('UPDATE pr_products SET pr_barcode = %s, pr_name = %s, pr_model = %s, pr_description = %s, pr_cost = %s, pr_price = %s, pr_pricetopayments = %s, ca_id = %s, br_id = %s, pv_id = %s WHERE pr_id = %s', (pr_barcode, pr_name, pr_model, pr_description, pr_cost, pr_price, pr_pricetopayments, ca_id, br_id, pv_id, pr_id,))
         elif update == 'status':        
            cur.execute('UPDATE pr_products SET pr_status = %s  WHERE pr_id = %s', (pr_status, pr_id,))
         else:
@@ -825,7 +826,7 @@ class ad_addresses_model():
         
         if get == 'tableperson':
             like = f'%{search}%'
-            cur.execute('SELECT ad_addresses.*, ci_cities.ci_name, st_states.st_name FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_postalcode LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_regdate DESC LIMIT %s, %s',(pe_id, like, like, like, like, like, page_start, quantity,))
+            cur.execute('SELECT ad_addresses.*, ci_cities.ci_name, st_states.st_name, at_addresstypes.at_name FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id INNER JOIN at_addresstypes ON at_addresstypes.at_id = ad_addresses.at_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_relationship LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_regdate DESC LIMIT %s, %s',(pe_id, like, like, like, like, like, page_start, quantity,))
         elif get == 'person':
             cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s',(pe_id,))
         elif get == 'personstatus':
@@ -842,7 +843,7 @@ class ad_addresses_model():
 
         if get == 'tableperson':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_postalcode LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_id ASC',(pe_id, like, like, like, like, like,))
+            cur.execute('SELECT COUNT(*) AS total FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_relationship LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_id ASC',(pe_id, like, like, like, like, like,))
         else:
             cur.execute('SELECT COUNT(*) AS total FROM ad_addresses')
         
@@ -850,19 +851,19 @@ class ad_addresses_model():
         cur.close()        
         return data
 
-    def insert_address(self, ad_type = None, ad_address = None, ad_postalcode = None, ad_reference = None, ad_contact = None, ci_id = None, pe_id = None):
+    def insert_address(self, at_id = None, ad_address = None, ad_relationship = None, ad_dpi = None, ad_fullname = None, ad_phone = None, ad_workaddress = None, ci_id = None, pe_id = None):
         cur = mysql.connection.cursor()  
         ad_id = str(uuid.uuid4())
-        cur.execute('INSERT INTO ad_addresses(ad_id, ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, pe_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', (ad_id, ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, pe_id,))
+        cur.execute('INSERT INTO ad_addresses(ad_id, at_id, ad_address, ad_relationship, ad_dpi, ad_fullname, ad_phone, ad_workaddress, ci_id, pe_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (ad_id, at_id, ad_address, ad_relationship, ad_dpi, ad_fullname, ad_phone, ad_workaddress, ci_id, pe_id,))
         mysql.connection.commit()
         cur.close()
         return True
     
-    def update_address(self, update = None, ad_type = None, ad_address = None, ad_postalcode = None, ad_reference = None, ad_contact = None, ci_id = None, ad_status=None, ad_id = None):
+    def update_address(self, update = None, at_id = None, ad_address = None, ad_relationship = None, ad_dpi = None, ad_fullname = None, ad_phone = None, ad_workaddress = None, ci_id = None, ad_status=None, ad_id = None):
         cur = mysql.connection.cursor()
         
         if update == 'all':        
-            cur.execute('UPDATE ad_addresses SET ad_type = %s, ad_address = %s, ad_postalcode = %s, ad_reference = %s, ad_contact = %s, ad_regdate = NOW(), ci_id = %s WHERE ad_id = %s', (ad_type, ad_address, ad_postalcode, ad_reference, ad_contact, ci_id, ad_id,))
+            cur.execute('UPDATE ad_addresses SET at_id = %s, ad_address = %s, ad_relationship = %s, ad_dpi = %s, ad_fullname = %s, ad_phone = %s, ad_workaddress = %s, ad_regdate = NOW(), ci_id = %s WHERE ad_id = %s', (at_id, ad_address, ad_relationship, ad_dpi, ad_fullname, ad_phone, ad_workaddress, ci_id, ad_id,))
         elif update == 'status':        
             cur.execute('UPDATE ad_addresses SET ad_status = %s WHERE ad_id = %s', (ad_status, ad_id,))
         else:
@@ -1008,6 +1009,8 @@ class sp_salepayments_model():
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_id ASC', (sa_id,))  
         elif get == 'where_sa_id,order_sp_limitdate_ASC':
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC', (sa_id,))  
+        elif get == 'where_sa_id,order_sp_no_ASC':
+            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_no ASC', (sa_id,))  
         elif get == 'limitdate':
             cur.execute('SELECT sp.sa_id, MIN(sp.sp_limitdate) AS min_limitdate FROM sp_salepayments sp INNER JOIN sa_sales AS sa ON sa.sa_id = sp.sa_id WHERE sp.sp_pay < sp.sp_subtotal AND sp.sp_limitdate < NOW() AND sa.sa_status = 1 GROUP BY sp.sa_id ORDER BY min_limitdate ASC')  
         elif get == 'table-sa_id':
@@ -1058,4 +1061,22 @@ class sp_salepayments_model():
         mysql.connection.commit()
         cur.close()
         return True
+
+class at_addresstypes_model():
+    def __init__(self):
+        pass
+    
+    def get_addresstype(self, at_id = None):
+        cur = mysql.connection.cursor()        
+        cur.execute('SELECT at_addresstypes.* FROM at_addresstypes WHERE at_addresstypes.at_id = %s', (at_id,))            
+        data = cur.fetchone()
+        cur.close()
+        return data
+
+    def get_addresstypes(self):
+        cur = mysql.connection.cursor()        
+        cur.execute('SELECT at_addresstypes.* FROM at_addresstypes')            
+        data = cur.fetchall()
+        cur.close()
+        return data
     

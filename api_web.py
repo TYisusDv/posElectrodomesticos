@@ -170,10 +170,11 @@ def api_web(path):
                             if pe_persons_model().get_person(pe_id=pe_id):
                                 addresses = ad_addresses_model().get_addresses(get='personstatus', pe_id = pe_id, ad_status = 1)
                                 cities = ci_cities_model().get_cities(get='status', ci_status=1)
-                                states = st_states_model().get_states(get='status', st_status=1)                    
+                                states = st_states_model().get_states(get='status', st_status=1)
+                                addresstypes = at_addresstypes_model().get_addresstypes()                    
                                 total_count = len(addresses)
                                 
-                                return json.dumps({'success': True, 'html': render_template('/pos/manage/addresses.html', pe_id = pe_id, total_count = total_count, cities = cities, states = states)})
+                                return json.dumps({'success': True, 'html': render_template('/pos/manage/addresses.html', pe_id = pe_id, total_count = total_count, cities = cities, states = states, addresstypes = addresstypes)})
                         elif v_apiurlsplit[3] == 'sales' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sales'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -425,15 +426,15 @@ def api_web(path):
                                 info['total'] = total
 
                                 ts_total = 0
-                                if info['typesale']['ts_id'] == 100001:
+                                if info['typesale']['ts_id'] == 1001:
                                     ts_details = '1 solo pago'                                    
-                                elif info['typesale']['ts_id'] == 100002:
+                                elif info['typesale']['ts_id'] == 1002:
                                     ts_commission = info['typesale']['ts_firstpayment'] * (info['commission_per'] / 100)
                                     ts_total = (info['typesale']['ts_firstpayment'] + ts_commission)
 
                                     ts_details = f'{info["typesale"]["ts_amountpayments"]} pago(s) cada {info["typesale"]["ts_days"]} dia(s)'
                                     info['commission'] = ts_commission
-                                elif info['typesale']['ts_id'] == 100003:
+                                elif info['typesale']['ts_id'] == 1003:
                                     ts_details = f'Se pagará en {info["typesale"]["ts_days"]} dia(s)'
                                 else:
                                     ts_details = ''
@@ -498,6 +499,12 @@ def api_web(path):
                                     return json.dumps({'success': False, 'msg': '¡La cantidad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
                                 elif not api_isFloat(quantity):
                                     return json.dumps({'success': False, 'msg': '¡La cantidad no es válida!  Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                pr_price = v_requestform.get('pr_price')
+                                if not pr_price:
+                                    return json.dumps({'success': False, 'msg': '¡El precio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(pr_price):
+                                    return json.dumps({'success': False, 'msg': '¡El precio no es válido!  Por favor, corríjalo y vuelva a intentarlo.'})
 
                                 token = request.cookies.get('posinfo')
                                 serializer = URLSafeSerializer(app.secret_key)
@@ -515,11 +522,12 @@ def api_web(path):
 
                                 if existing_product is not None:
                                     existing_product['quantity'] = float(quantity)
+                                    existing_product['pr_price'] = float(pr_price)
                                     if existing_product['quantity'] <= 0:
                                         info['products'].remove(existing_product)
                                     else:
                                         existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
-                                        existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img=f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
+                                        existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img=f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
                                 
                                 token = serializer.dumps(info)
                                 response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))
@@ -575,7 +583,7 @@ def api_web(path):
                                 ts_days = None
                                 ts_firstpayment = None
                                 
-                                if ts_id == '100002':
+                                if ts_id == '1002':
                                     ts_amountpayments = v_requestform.get('ts_amountpayments')
                                     if not ts_amountpayments:
                                         ts_amountpayments = 1
@@ -596,7 +604,7 @@ def api_web(path):
 
                                     ts_firstpayment = float(ts_firstpayment)
 
-                                if ts_id == '100002' or ts_id == '100003':
+                                if ts_id == '1002' or ts_id == '1003':
                                     ts_days = v_requestform.get('ts_days')
                                     if not ts_days:
                                         ts_days = 0
@@ -670,7 +678,7 @@ def api_web(path):
                                 if existing_product is not None:
                                     existing_product['quantity'] += 1
                                     existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
-                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
+                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
                                 else:
                                     new_product = {
                                         'pr_id': pr_product['pr_id'],
@@ -679,11 +687,13 @@ def api_web(path):
                                         'pr_name': pr_product['pr_name'],
                                         'pr_model': pr_product['pr_model'],
                                         'pr_price': pr_product['pr_price'],
+                                        'pr_price_2': pr_product['pr_price'],
                                         'pr_cost': pr_product['pr_cost'],
+                                        'pr_pricetopayments': pr_product['pr_pricetopayments'],
                                         'br_name': pr_product['br_name'],
                                         'quantity': 1,
                                         'total': pr_product['pr_price'],
-                                        'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], quantity='{:.2f}'.format(1).rstrip('0').rstrip('.'), total='{:.2f}'.format(pr_product['pr_price']).rstrip('0').rstrip('.'))
+                                        'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], pr_price_2=pr_product['pr_price'], pr_cost=pr_product['pr_cost'], pr_pricetopayments=pr_product['pr_pricetopayments'], quantity='{:.2f}'.format(1).rstrip('0').rstrip('.'), total='{:.2f}'.format(pr_product['pr_price']).rstrip('0').rstrip('.'))
                                     }
                                     info['products'].append(new_product)
 
@@ -741,7 +751,12 @@ def api_web(path):
                             for product in info['products']:
                                 sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_cost = product['pr_cost'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
 
-                            if ts_id == 100002: 
+                            if ts_id == 1002: 
+                                if ts_firstpayment > 0:
+                                    sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
+                                    total = total - ts_firstpayment
+                                    sp_salepayments_model().insert_salepayment(sp_no = sp_no, sp_subtotal = ts_firstpayment, sp_commission = commission, sp_pay = ts_firstpayment, sp_limitdate = sp_limitdate, sp_regdate = sp_limitdate, pm_id = pm_id, us_id = session['us_id'], sa_id = sa_id)
+
                                 sp_subtotal = math.floor(total / ts_amountpayments)
                                 for i in range(ts_amountpayments - 1): 
                                     sp_limitdate = sp_limitdate + timedelta(days=ts_days)
@@ -751,7 +766,8 @@ def api_web(path):
                                 sp_limitdate = sp_limitdate + timedelta(days=ts_days)                                
                                 sp_subtotal = total - (sp_subtotal * (ts_amountpayments - 1))
                                 sp_salepayments_model().insert_salepayment(sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
-
+                                
+                                '''
                                 salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)       
 
                                 for salepayment in salepayments:
@@ -766,13 +782,14 @@ def api_web(path):
                                         sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
 
                                         commission = 0
+                                '''
                             else:
                                 sp_regdate = sp_limitdate
                                 sp_limitdate = sp_limitdate + timedelta(days=ts_days)
 
                                 new_pay = total + commission
                                 us_id = session['us_id']
-                                if ts_id == 100003:
+                                if ts_id == 1003:
                                     sp_regdate = None
                                     new_pay = 0
                                     commission = 0
@@ -971,8 +988,9 @@ def api_web(path):
                                     response = {
                                         'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{customer["cu_id"]}</span>',
                                         'fullname': customer['pe_fullname'],
-                                        'email': customer['pe_email'],
-                                        'phone': customer['pe_phone'],                        
+                                        'phone': customer['pe_phone'],
+                                        'dpi': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{customer["cu_dpi"]}</span>',
+                                        'email': customer['pe_email'],                                                             
                                     }
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" cu_id="{customer["cu_id"]}" onclick="check_status_customer(this)" {status}></div>'
@@ -1006,10 +1024,14 @@ def api_web(path):
                                 pe_phone = v_requestform.get('pe_phone')
                                 if not pe_phone:
                                     return json.dumps({'success': False, 'msg': '¡El número telefónico está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
+                                cu_dpi = v_requestform.get('cu_dpi')
+                                if not cu_dpi:
+                                    return json.dumps({'success': False, 'msg': '¡El DPI está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
 
                                 cu_id = cu_customers_model().gen_customer_id()
 
-                                cu_customers_model().insert_customer(cu_id=cu_id, fullname=pe_fullname, email=pe_email, phone=pe_phone)
+                                cu_customers_model().insert_customer(cu_id=cu_id, fullname=pe_fullname, email=pe_email, phone=pe_phone, cu_dpi=cu_dpi)
                                 return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 cu_id = v_requestform.get('cu_id')
@@ -1044,7 +1066,11 @@ def api_web(path):
                                 if not pe_phone:
                                     return json.dumps({'success': False, 'msg': '¡El número telefónico está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
 
-                                cu_customers_model().update_customer(update='all', cu_id=cu_id, pe_fullname=pe_fullname, pe_email=pe_email, pe_phone=pe_phone)
+                                cu_dpi = v_requestform.get('cu_dpi')
+                                if not cu_dpi:
+                                    return json.dumps({'success': False, 'msg': '¡El DPI está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                cu_customers_model().update_customer(update='all', cu_id=cu_id, pe_fullname=pe_fullname, pe_email=pe_email, pe_phone=pe_phone, cu_dpi=cu_dpi)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
                                 cu_id = v_requestform.get('cu_id')
@@ -1265,6 +1291,7 @@ def api_web(path):
                                         'cost': product['pr_cost'],
                                         'provider': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{product["pe_fullname"]}</span>',
                                         'price': product['pr_price'],
+                                        'pricetopayments': product['pr_pricetopayments'],
                                     }
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pr_id="{product["pr_id"]}" onclick="check_status_product(this)" {status}></div>'
@@ -1326,6 +1353,12 @@ def api_web(path):
                                 elif not pv_providers_model().get_provider(pv_id):
                                     return json.dumps({'success': False, 'msg': '¡El proveedor no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 
+                                pr_pricetopayments = v_requestform.get('pr_pricetopayments')
+                                if not pr_pricetopayments:
+                                    return json.dumps({'success': False, 'msg': '¡El precio de abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(pr_pricetopayments):
+                                    return json.dumps({'success': False, 'msg': '¡El precio de abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                
                                 pr_price = v_requestform.get('pr_price')
                                 if not pr_price:
                                     return json.dumps({'success': False, 'msg': '¡El precio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
@@ -1362,7 +1395,7 @@ def api_web(path):
                                     imagen_bytes = base64.b64decode(pr_img.split(',')[1])
                                     f.write(imagen_bytes)
 
-                                pr_products_model().insert_product(pr_id = pr_id, pr_barcode = pr_barcode, pr_name = pr_name, pr_model = pr_model, pr_description = pr_description, pr_cost = pr_cost, pr_price = pr_price, ca_id = ca_id, br_id = br_id, pv_id = pv_id)
+                                pr_products_model().insert_product(pr_id = pr_id, pr_barcode = pr_barcode, pr_name = pr_name, pr_model = pr_model, pr_description = pr_description, pr_cost = pr_cost, pr_price = pr_price, pr_pricetopayments = pr_pricetopayments, ca_id = ca_id, br_id = br_id, pv_id = pv_id)
                                 return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 pr_id = v_requestform.get('pr_id')
@@ -1424,6 +1457,12 @@ def api_web(path):
                                     return json.dumps({'success': False, 'msg': '¡El precio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif not api_isFloat(pr_price):
                                     return json.dumps({'success': False, 'msg': '¡El precio no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                pr_pricetopayments = v_requestform.get('pr_pricetopayments')
+                                if not pr_pricetopayments:
+                                    return json.dumps({'success': False, 'msg': '¡El precio de abono está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(pr_pricetopayments):
+                                    return json.dumps({'success': False, 'msg': '¡El precio de abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 
                                 pr_img = v_requestform.get('pr_img')
                                 if not pr_img:
@@ -1453,7 +1492,7 @@ def api_web(path):
                                     imagen_bytes = base64.b64decode(pr_img.split(',')[1])
                                     f.write(imagen_bytes)
 
-                                pr_products_model().update_product(update='all', pr_id = pr_id, pr_barcode = pr_barcode, pr_name = pr_name, pr_model = pr_model, pr_description = pr_description, pr_cost = pr_cost, pr_price = pr_price, ca_id = ca_id, br_id = br_id, pv_id = pv_id)
+                                pr_products_model().update_product(update='all', pr_id = pr_id, pr_barcode = pr_barcode, pr_name = pr_name, pr_model = pr_model, pr_description = pr_description, pr_cost = pr_cost, pr_price = pr_price, pr_pricetopayments = pr_pricetopayments, ca_id = ca_id, br_id = br_id, pv_id = pv_id)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
                                 pr_id = v_requestform.get('pr_id')
@@ -1783,9 +1822,9 @@ def api_web(path):
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 ci_id = v_requestform.get('ci_id')
                                 if not ci_id:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif ci_cities_model().get_city(ci_id=ci_id) is None:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 
                                 ci_name = v_requestform.get('ci_name')
                                 if not ci_name:
@@ -1812,9 +1851,9 @@ def api_web(path):
                             elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
                                 ci_id = v_requestform.get('ci_id')
                                 if not ci_id:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif ci_cities_model().get_city(ci_id=ci_id) is None:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
 
                                 ci_status = v_requestform.get('ci_status')
                                 if not ci_status:
@@ -1865,9 +1904,9 @@ def api_web(path):
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 st_id = v_requestform.get('st_id')
                                 if not st_id:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif st_states_model().get_state(st_id=st_id) is None:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 
                                 st_name = v_requestform.get('st_name')
                                 if not st_name:
@@ -1878,9 +1917,9 @@ def api_web(path):
                             elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
                                 st_id = v_requestform.get('st_id')
                                 if not st_id:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif st_states_model().get_state(st_id=st_id) is None:
-                                    return json.dumps({'success': False, 'msg': '¡La ciudad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    return json.dumps({'success': False, 'msg': '¡El municipio no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
 
                                 st_status = v_requestform.get('st_status')
                                 if not st_status:
@@ -1912,19 +1951,17 @@ def api_web(path):
                                     table = []
                                     addresses = ad_addresses_model().get_addresses(get='tableperson', pe_id=pe_id, page_start=page_start, quantity = quantity, search = search)
                                     for address in addresses:
-                                        atype = address['ad_type'] if address['ad_type'] is not None else 'N/A'
-                                        reference = address['ad_reference'] if address['ad_type'] is not None else 'N/A'
-                                        contact = address['ad_contact'] if address['ad_type'] is not None else 'N/A'
-
                                         response = {
-                                            'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_id"]}</span>',
-                                            'type': atype,
-                                            'reference': reference,
-                                            'contact': contact,
+                                            'id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px; width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{address["ad_id"]}</span>',
+                                            'type': address['at_name'],
+                                            'dpi': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_dpi"]}</span>',
+                                            'fullname': address['ad_fullname'],
+                                            'phone': address['ad_phone'],
                                             'address': address['ad_address'],
-                                            'postalcode': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_postalcode"]}</span>',
+                                            'relationship': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{address["ad_relationship"]}</span>',
                                             'city': address['ci_name'],
-                                            'state': address['st_name'],                                                                                        
+                                            'state': address['st_name'],  
+                                            'workaddress': address['ad_workaddress'],                                                                                      
                                         }
                                         
                                         response['actions'] = f'<button class="btn btn-primary" address="{escape(json.dumps(response))}" onclick="edit_address(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-danger" ad_id="{address["ad_id"]}" onclick="delete_address(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Eliminar</button>'
@@ -1936,29 +1973,43 @@ def api_web(path):
 
                                     return json.dumps({'success': True, 'html': render_template('/widget/table.html', table = table), "total_pages": total_pages}) 
                                 elif v_apiurlsplit[5] == 'add' and v_apiurlsplit[6] is None:  
-                                    ad_type = v_requestform.get('ad_type')
-                                    if not ad_type:
-                                        ad_type = None
-                                                                     
+                                    at_id = v_requestform.get('at_id')
+                                    if not at_id:
+                                        return json.dumps({'success': False, 'msg': '¡El tipo de dirección está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif not at_addresstypes_model().get_addresstype(at_id = at_id):
+                                        return json.dumps({'success': False, 'msg': '¡El tipo de dirección no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+
                                     ad_address = v_requestform.get('ad_address')
                                     if not ad_address:
                                         return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
 
-                                    ad_postalcode = v_requestform.get('ad_postalcode')
-                                    if not ad_postalcode:
-                                        return json.dumps({'success': False, 'msg': '¡El código postal está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    ad_relationship = v_requestform.get('ad_relationship')
+                                    if not ad_relationship:
+                                        return json.dumps({'success': False, 'msg': '¡El Parentesco está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
+                                    ad_relationship = ad_relationship.strip().capitalize() 
+
                                     st_name = v_requestform.get('st_name')
                                     if not st_name:
                                         return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
                                     
-                                    ad_reference = v_requestform.get('ad_reference')
-                                    if not ad_reference:
-                                        ad_reference = None
+                                    ad_dpi = v_requestform.get('ad_dpi')
+                                    if not ad_dpi:
+                                        return json.dumps({'success': False, 'msg': '¡El DPI está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                    ad_fullname = v_requestform.get('ad_fullname')
+                                    if not ad_fullname:
+                                        return json.dumps({'success': False, 'msg': '¡El nombre está vacío! Por favor, corríjala y vuelva a intentarlo.'})
                                     
-                                    ad_contact = v_requestform.get('ad_contact')
-                                    if not ad_contact:
-                                        ad_contact = None
+                                    ad_fullname = ad_fullname.strip().title() 
+                                    
+                                    ad_phone = v_requestform.get('ad_phone')
+                                    if not ad_phone:
+                                        return json.dumps({'success': False, 'msg': '¡El telefono está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    ad_workaddress = v_requestform.get('ad_workaddress')
+                                    if not ad_workaddress:
+                                        return json.dumps({'success': False, 'msg': '¡La dirección laboral está vacía! Por favor, corríjala y vuelva a intentarlo.'})
 
                                     st_name = st_name.strip().capitalize() 
                                     
@@ -1972,7 +2023,7 @@ def api_web(path):
                                     
                                     ci_name = v_requestform.get('ci_name')
                                     if not ci_name:
-                                        return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                        return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
                                     ci_name = ci_name.strip().capitalize() 
                                     
@@ -1984,9 +2035,10 @@ def api_web(path):
                                         else:
                                             ci_cities_model().insert_city(ci_name=ci_name, st_id=st_id)
 
-                                    ad_address = ad_address.strip().capitalize()
+                                    ad_address = ad_address.strip().capitalize()  
+                                    ad_workaddress = ad_workaddress.strip().capitalize()
 
-                                    ad_addresses_model().insert_address(ad_type = ad_type, ad_address = ad_address, ad_postalcode = ad_postalcode, ad_reference = ad_reference, ad_contact = ad_contact, ci_id = ci_id, pe_id = pe_id)
+                                    ad_addresses_model().insert_address(at_id = at_id, ad_address = ad_address, ad_relationship = ad_relationship, ad_dpi = ad_dpi, ad_fullname = ad_fullname, ad_phone = ad_phone, ad_workaddress = ad_workaddress, ci_id = ci_id, pe_id = pe_id)
                                     return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                                 elif v_apiurlsplit[5] == 'edit' and v_apiurlsplit[6] is None:
                                     ad_id = v_requestform.get('ad_id')
@@ -1995,29 +2047,43 @@ def api_web(path):
                                     if not ad_addresses_model().get_address(ad_id = ad_id, pe_id = pe_id):
                                         return json.dumps({'success': False, 'msg': '¡El ID no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
-                                    ad_type = v_requestform.get('ad_type')
-                                    if not ad_type:
-                                        ad_type = None
-                                        
+                                    at_id = v_requestform.get('at_id')
+                                    if not at_id:
+                                        return json.dumps({'success': False, 'msg': '¡El tipo de dirección está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    elif not at_addresstypes_model().get_addresstype(at_id = at_id):
+                                        return json.dumps({'success': False, 'msg': '¡El tipo de dirección no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                                             
                                     ad_address = v_requestform.get('ad_address')
                                     if not ad_address:
                                         return json.dumps({'success': False, 'msg': '¡La dirección está vacía! Por favor, corríjala y vuelva a intentarlo.'})
 
-                                    ad_postalcode = v_requestform.get('ad_postalcode')
-                                    if not ad_postalcode:
-                                        return json.dumps({'success': False, 'msg': '¡El código postal está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                    ad_relationship = v_requestform.get('ad_relationship')
+                                    if not ad_relationship:
+                                        return json.dumps({'success': False, 'msg': '¡El Parentesco está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
-                                    ad_reference = v_requestform.get('ad_reference')
-                                    if not ad_reference:
-                                        ad_reference = None
+                                    ad_relationship = ad_relationship.strip().capitalize() 
                                     
-                                    ad_contact = v_requestform.get('ad_contact')
-                                    if not ad_contact:
-                                        ad_contact = None
+                                    ad_dpi = v_requestform.get('ad_dpi')
+                                    if not ad_dpi:
+                                        return json.dumps({'success': False, 'msg': '¡El DPI está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    ad_fullname = v_requestform.get('ad_fullname')
+                                    if not ad_fullname:
+                                        return json.dumps({'success': False, 'msg': '¡El nombre está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    ad_fullname = ad_fullname.strip().title() 
+                                    
+                                    ad_phone = v_requestform.get('ad_phone')
+                                    if not ad_phone:
+                                        return json.dumps({'success': False, 'msg': '¡El telefono está vacío! Por favor, corríjala y vuelva a intentarlo.'})
 
                                     st_name = v_requestform.get('st_name')
                                     if not st_name:
                                         return json.dumps({'success': False, 'msg': '¡El estado está vacío! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                    ad_workaddress = v_requestform.get('ad_workaddress')
+                                    if not ad_workaddress:
+                                        return json.dumps({'success': False, 'msg': '¡La dirección laboral está vacía! Por favor, corríjala y vuelva a intentarlo.'})
                                     
                                     st_name = st_name.strip().capitalize() 
                                     
@@ -2031,7 +2097,7 @@ def api_web(path):
                                     
                                     ci_name = v_requestform.get('ci_name')
                                     if not ci_name:
-                                        return json.dumps({'success': False, 'msg': '¡La ciudad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                        return json.dumps({'success': False, 'msg': '¡El municipio está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
                                     
                                     ci_name = ci_name.strip().capitalize() 
                                     
@@ -2044,8 +2110,9 @@ def api_web(path):
                                             ci_cities_model().insert_city(ci_name=ci_name, st_id=st_id)
 
                                     ad_address = ad_address.strip().capitalize()
+                                    ad_workaddress = ad_workaddress.strip().capitalize()
 
-                                    ad_addresses_model().update_address(update = 'all', ad_type = ad_type, ad_address = ad_address, ad_postalcode = ad_postalcode, ad_reference = ad_reference, ad_contact = ad_contact, ci_id = ci_id, ad_id = ad_id)
+                                    ad_addresses_model().update_address(update = 'all', at_id = at_id, ad_address = ad_address, ad_relationship = ad_relationship, ad_dpi = ad_dpi, ad_fullname = ad_fullname, ad_phone = ad_phone, ad_workaddress = ad_workaddress, ci_id = ci_id, ad_id = ad_id)
                                     return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
                                 elif v_apiurlsplit[5] == 'delete' and v_apiurlsplit[6] is None:
                                     ad_id = v_requestform.get('ad_id')
@@ -2085,7 +2152,7 @@ def api_web(path):
                                     sales = sa_sales_model().get_sales(get='table', page_start=page_start, quantity = quantity, search = search)
 
                                 for sale in sales:
-                                    customer = f'({sale["cu_id"]}) {sale["cu_pe_fullname"]}'
+                                    customer = f'({sale["cu_id"]})<br>{sale["cu_pe_fullname"]}'
                                     if not sale["cu_id"]:
                                         customer = 'N/A' 
 
@@ -2109,7 +2176,7 @@ def api_web(path):
                                     remainingpayment = sale["sa_subtotal"] - total_pay
                                     if not sale["sa_status"]:
                                         alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Cancelada</span>'
-                                    elif sale["ts_id"] == 100001:
+                                    elif sale["ts_id"] == 1001:
                                         alert = f'<span class="badge bg-white text-black fw-bold" style="font-size: 12px;">Pagado</span>'
                                     elif remainingpayment <= 0:
                                         alert = f'<span class="badge bg-white text-black fw-bold" style="font-size: 12px;">Pagado</span>'
@@ -2132,7 +2199,7 @@ def api_web(path):
                                         'customer': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{customer}</span>',
                                         'sa_amountpayments': sale['sa_amountpayments'],
                                         'sa_days': sale['sa_days'],
-                                        'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">({sale["us_id"]}) {sale["us_pe_fullname"]}</span>',
+                                        'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">({sale["us_id"]})<br>{sale["us_pe_fullname"]}</span>',
                                     }
 
                                     actions = ''
@@ -2140,7 +2207,7 @@ def api_web(path):
                                         actions = f'<a class="btn btn-primary mb-1" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a>'
                                         
                                         actions = actions + f' <button class="btn btn-danger mb-1" sa_id="{sale["sa_id"]}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
-                                        actions = actions + f'<a class="btn btn-primary mb-1" href="/api/web/pos/app/ticket/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
+                                        actions = actions + f'<a class="btn btn-dark text-white mb-1" href="/api/web/pos/app/ticket/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
                                     
                                     response['actions'] = actions
 
@@ -2220,7 +2287,7 @@ def api_web(path):
                                             if not payment['pm_id']:
                                                 paymentmethod = 'N/A'
 
-                                            user = f'({payment["us_id"]}) {payment["pe_fullname"]}'
+                                            user = f'({payment["us_id"]})<br>{payment["pe_fullname"]}'
                                             if not payment['us_id']:
                                                 user = 'N/A'
                                             
@@ -2246,14 +2313,16 @@ def api_web(path):
                                             }
                                             
                                             if remainingpayment <= 0:
-                                                response['actions'] = f''
+                                                actions = ''
                                             else:
                                                 btn_disabled = ''
                                                 if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
                                                     btn_disabled = 'disabled'
 
-                                                response['actions'] = f'<button class="btn btn-primary mb-1" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-light" sp_id="{payment["sp_id"]}" onclick="split_payment(this);" {btn_disabled}><i data-acorn-icon="arrow-right" data-acorn-size="16"></i> Dividir</button>'
-
+                                                actions = f'<button class="btn btn-primary mb-1" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-light mb-1" sp_id="{payment["sp_id"]}" onclick="split_payment(this);" {btn_disabled}><i data-acorn-icon="arrow-right" data-acorn-size="16"></i> Dividir</button>'
+                                            
+                                            actions = actions + f' <a class="btn btn-dark text-white mb-1" href="/api/web/pos/app/ticket/{sa_id}?no={payment["sp_no"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
+                                            response['actions'] = actions
                                             table.append(response)
                                         
                                         payments_total = sp_salepayments_model().get_salepayments_count(get='table-sa_id', sa_id = sa_id, search=search)
@@ -2411,8 +2480,8 @@ def api_web_pos_app_ticket(sa_id):
     sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
     if sa_sale:
         sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
-        sp_salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
-        if sa_sale['ts_id'] == 100002:            
+        sp_salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_no_ASC', sa_id = sa_id)
+        if sa_sale['ts_id'] == 1002:            
             total_pay = sum(salepayment['sp_pay'] for salepayment in sp_salepayments)
             remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
             

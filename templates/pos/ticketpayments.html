@@ -56,16 +56,27 @@
         </tr>
       </thead>
       <tbody>
-        {% for salepayment in sp_salepayments %}        
-        {% if salepayment.sp_subtotal <= salepayment.sp_pay or (salepayment.sp_no|string == request.args.get('no')|urlencode and salepayment.sp_no != None) %}
-        <tr>
-          <td>{{salepayment.sp_no}}</td>
-          <td>Q{{'{:.2f}'.format(salepayment.sp_subtotal).rstrip('0').rstrip('.')}}</td>
-          <td>Q{{'{:.2f}'.format(salepayment.sp_pay).rstrip('0').rstrip('.')}}</td>
-          <td>{{salepayment.sp_limitdate.strftime('%d/%m/%Y')}}</td>
-        </tr>
+        {% if request.args.get('no') != None %}
+          {% for salepayment in sp_salepayments %}     
+            {% if request.args.get('no')|urlencode == salepayment['sp_no']|string %}   
+              <tr>
+                <td>{% if salepayment.sp_no == None %}N/A{% else %}{{salepayment.sp_no}}{% endif %}</td>
+                <td>Q{{'{:.2f}'.format(salepayment.sp_subtotal).rstrip('0').rstrip('.')}}</td>
+                <td>Q{{'{:.2f}'.format(salepayment.sp_pay).rstrip('0').rstrip('.')}}</td>
+                <td>{{salepayment.sp_limitdate.strftime('%d/%m/%Y')}}</td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          {% for salepayment in sp_salepayments %}        
+            <tr>
+              <td>{% if salepayment.sp_no == None %}N/A{% else %}{{salepayment.sp_no}}{% endif %}</td>
+              <td>Q{{'{:.2f}'.format(salepayment.sp_subtotal).rstrip('0').rstrip('.')}}</td>
+              <td>Q{{'{:.2f}'.format(salepayment.sp_pay).rstrip('0').rstrip('.')}}</td>
+              <td>{{salepayment.sp_limitdate.strftime('%d/%m/%Y')}}</td>
+            </tr>
+          {% endfor %}
         {% endif %}
-        {% endfor %}
       </tbody>
     </table>
     <div class="total" style="margin-bottom: 30px;">

@@ -63,8 +63,8 @@ class Scripts {
         attributes: {
           placement: "horizontal",
           layout: "boxed",
-          color: "dark-theme1",
-          navcolor: "dark",
+          color: "light-sky",
+          navcolor: "default",
         },
         showSettings: !0,
         storagePrefix: "acorn-service-provider-",

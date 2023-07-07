@@ -121,6 +121,7 @@
                             <th scope="col">Costo</th>
                             <th scope="col">Proveedor</th>
                             <th scope="col">Precio</th>
+                            <th scope="col">Precio a abonos</th>
                             <th scope="col">Estatus</th>
                             <th scope="col">Fecha de registro</th>
                             <th scope="col">Acciones</th>
@@ -213,7 +214,11 @@
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="dollar"></i>
                         <input class="form-control" placeholder="Precio" name="pr_price">
-                    </div>                   
+                    </div>   
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Precio a abonos" name="pr_pricetopayments">
+                    </div>                  
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
@@ -288,7 +293,11 @@
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="dollar"></i>
                         <input class="form-control" placeholder="Precio" name="pr_price">
-                    </div>           
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Precio a abonos" name="pr_pricetopayments">
+                    </div>         
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -377,6 +386,7 @@
             var cost = table_tempelement(product_json.cost).text();
             var provider = table_tempelement(product_json.provider).find('span').text();
             var price = table_tempelement(product_json.price).text();
+            var pricetopayments = table_tempelement(product_json.pricetopayments).text();
 
             $('#manage-products-pr_img-edit').attr('src', img);
             $('#manage-products-form-edit input[name=pr_id]').val(id);
@@ -391,6 +401,7 @@
                 return $(this).text() === provider;
             }).prop('selected', true);
             $('#manage-products-form-edit input[name=pr_price]').val(price);
+            $('#manage-products-form-edit input[name=pr_pricetopayments]').val(pricetopayments);            
 
             $('#manage-products-modal-edit').modal('show');
         }

@@ -99,7 +99,7 @@
                                         <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
                                         {% endfor %}
                                     </select>
-                                </div>                    
+                                </div>                                                  
                                 <div class="mb-3 filled form-group tooltip-end-top">
                                     <i data-acorn-icon="diagram-2"></i>
                                     <select class="form-control" name="ts_id">
@@ -218,6 +218,14 @@
                         <i data-acorn-icon="grid-1"></i>
                         <input class="form-control" placeholder="Cantidad" name="quantity">
                     </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <select class="form-control" name="pr_price">
+                            <option value="0" class="bg-dark" name="price1" selected>Precio original $</option>
+                            <option value="0" class="bg-dark" name="price2">Precio costo $</option>
+                            <option value="0" class="bg-dark" name="price3">Precio a abonos $</option>
+                        </select>
+                    </div> 
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -309,15 +317,15 @@
         });
 
         function pos_sale_edit_options(selectedValue){
-            if(selectedValue == 100001){
+            if(selectedValue == 1001){
                 $('#pos-ts_amountpayments-edit-div').addClass('d-none');
                 $('#pos-ts_days-edit-div').addClass('d-none');
                 $('#pos-ts_firstpayment-edit-div').addClass('d-none');
-            } else if(selectedValue == 100002){
+            } else if(selectedValue == 1002){
                 $('#pos-ts_amountpayments-edit-div').removeClass('d-none');
                 $('#pos-ts_days-edit-div').removeClass('d-none');
                 $('#pos-ts_firstpayment-edit-div').removeClass('d-none');
-            } else if(selectedValue == 100003){
+            } else if(selectedValue == 1003){
                 $('#pos-ts_amountpayments-edit-div').addClass('d-none');
                 $('#pos-ts_days-edit-div').removeClass('d-none');
                 $('#pos-ts_firstpayment-edit-div').addClass('d-none');
@@ -499,13 +507,13 @@
                     var fin = response.info.fin;        
                     
                     pos_sale_edit_options(ts_id);
-                    if(ts_id == 100002){
+                    if(ts_id == 1002){
                         pos_total = ts_total;
                         $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> Q${ts_firstpayment.toFixed(2)}`);                   
                         $('#pos-info-div span[name=commission]').html(`Q${commission.toFixed(2)}`);
                         $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">(Q${discount.toFixed(2)})</span> -$0`);
                         $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">(Q${total.toFixed(2)})</span> Q${ts_total.toFixed(2)}`);
-                    } else if(ts_id == 100003){
+                    } else if(ts_id == 1003){
                         pos_total = 0;
                         $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> $0`);                   
                         $('#pos-info-div span[name=commission]').html(`$0`);
@@ -629,9 +637,21 @@
         function edit_product(e){ 
             var pr_id = $(e).attr('pr_id');
             var quantity = $(e).attr('quantity')
+            var pr_price = $(e).attr('pr_price')
+            var pr_price_2 = $(e).attr('pr_price_2')
+            var pr_pricetopayments = $(e).attr('pr_pricetopayments')
+            var pr_cost = $(e).attr('pr_cost')
 
             $('#pos-products-form-edit input[name=pr_id]').val(pr_id);
             $('#pos-products-form-edit input[name=quantity]').val(quantity);
+            $('#pos-products-form-edit option[name=price1]').val(pr_price_2);
+            $('#pos-products-form-edit option[name=price1]').html(`Precio original Q${pr_price_2}`);
+            $('#pos-products-form-edit option[name=price2]').val(pr_cost);
+            $('#pos-products-form-edit option[name=price2]').html(`Precio costo Q${pr_cost}`);
+            $('#pos-products-form-edit option[name=price3]').val(pr_pricetopayments);
+            $('#pos-products-form-edit option[name=price3]').html(`Precio a abonos Q${pr_pricetopayments}`);
+            $('#pos-products-form-edit select[name=pr_price]').val(pr_price);
+
             $('#pos-products-edit-modal').modal('show');
         }
         window.edit_product = edit_product;

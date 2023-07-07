@@ -44,7 +44,7 @@ mysql = MySQL(app)
 
 web_settings = {
     'name': 'Mi Hogar',
-    'version': '1.0.1',
+    'version': '1.0.2',
     'icon': '/static/img/icon.jpg',
     'logo': 'DevsFlex',
     'developer': 'DevsFlex',

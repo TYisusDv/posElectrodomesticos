@@ -36,7 +36,7 @@
                     <a href="javascript:;" class="d-flex user position-relative" data-bs-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                         <img class="profile" alt="profile" src="{{web_settings.icon}}">
-                        <div class="name" id="index-account-fullname">{{userinfo.pe_fullname}} ({{userinfo.mem_name}})</div>
+                        <div class="name" id="index-account-fullname">{{userinfo.pe_fullname}}</div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end user-menu wide" style="width: 300px;">
                         <div class="row mb-3 ms-0 me-0">
@@ -286,7 +286,7 @@
                                         <a href="/pos/manage/cities">
                                             <i data-acorn-icon="pin" class="icon d-none"
                                                 data-acorn-size="18"></i>
-                                            <span class="label">Ciudades</span>
+                                            <span class="label">Municipios</span>
                                         </a>
                                     </li>
                                     {% endif %}
@@ -761,7 +761,7 @@
     <script src="/static/js/cs/dropzone.templates.js"></script>
     <script src="/static/js/cs/autocomplete.custom.js"></script>
     <script src="/static/js/common.js"></script>
-    <script src="/static/js/scripts.js"></script>
+    <script src="/static/js/scripts.js?v={{web_settings.version}}"></script>
     <script src="/static/js/vendor/bootstrap-notify.min.js"></script>
     <script>
         const api_logged = 1;
@@ -783,7 +783,7 @@
             var response = sendDataPost('pos/account/info', 'data', formData);
             response.then(function (response) {
                 if (response.success) {          
-                    $('#index-account-fullname').html(`${response.account.fullname} (${response.account.membership})`);
+                    $('#index-account-fullname').html(`${response.account.fullname}`);
                     
                     if(index_notification_alert){
                         index_notification_alert = false;                        

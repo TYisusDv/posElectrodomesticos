@@ -112,8 +112,9 @@
                         <tr>
                             <th scope="col">ID</th>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Correo electrónico</th>
                             <th scope="col">Teléfono</th>
+                            <th scope="col">DPI</th>
+                            <th scope="col">Correo electrónico</th>                            
                             <th scope="col">Estatus</th>
                             <th scope="col">Fecha de registro</th>
                             <th scope="col">Acciones</th>
@@ -159,13 +160,17 @@
                         <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
                     </div>
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="email"></i>
-                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
-                    </div>
-                    <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="phone"></i>
                         <input class="form-control" placeholder="Número telefónico" name="pe_phone">
-                    </div>              
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="DPI" name="cu_dpi">
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>                                
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
@@ -194,13 +199,17 @@
                         <input class="form-control" placeholder="Nombre completo" name="pe_fullname">
                     </div>
                     <div class="mb-3 filled form-group tooltip-end-top">
-                        <i data-acorn-icon="email"></i>
-                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
-                    </div>
-                    <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="phone"></i>
                         <input class="form-control" placeholder="Número telefónico" name="pe_phone">
-                    </div>    
+                    </div>  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="DPI" name="cu_dpi">
+                    </div>   
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="email"></i>
+                        <input class="form-control" placeholder="Correo electrónico" name="pe_email">
+                    </div>                    
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -222,11 +231,13 @@
             var fullname = table_tempelement(customer_json.fullname).text();
             var email = table_tempelement(customer_json.email).text();
             var phone = table_tempelement(customer_json.phone).text();
+            var dpi = table_tempelement(customer_json.dpi).find('span').text();
 
             $('#manage-customers-form-edit input[name=cu_id]').val(id);
             $('#manage-customers-form-edit input[name=pe_fullname]').val(fullname);
-            $('#manage-customers-form-edit input[name=pe_email]').val(email);
             $('#manage-customers-form-edit input[name=pe_phone]').val(phone);
+            $('#manage-customers-form-edit input[name=cu_dpi]').val(dpi);
+            $('#manage-customers-form-edit input[name=pe_email]').val(email);
 
             $('#manage-customers-modal-edit').modal('show');
         }
