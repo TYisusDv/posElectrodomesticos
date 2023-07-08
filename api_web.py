@@ -42,6 +42,8 @@ def api_web(path):
                 if 111529 in v_apipermissions and v_userinfo['us_status'] == 1:
                     #POS
                     if v_apiurlsplit[2] is None:
+                        return json.dumps({'success': True, 'html': render_template('/pos/home.html')})
+                    elif v_apiurlsplit[2] == 'app' and v_apiurlsplit[3] is None:
                         locations = lo_locations_model().get_locations(get='status', lo_status=1)
                         typessales = ts_typessales_model().get_typessales()
                         paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
