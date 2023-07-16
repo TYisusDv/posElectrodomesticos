@@ -33,18 +33,18 @@
       <tbody>
         {% for saledetail in sd_saledetails %}
         <tr>
-          <td>{{'{:.2f}'.format(saledetail.sd_quantity).rstrip('0').rstrip('.')}}</td>
+          <td>{{ (saledetail.sd_quantity) | format_currency }}</td>
           <td>{{saledetail.pr_name}}</td>
-          <td>Q{{'{:.2f}'.format(saledetail.sd_price).rstrip('0').rstrip('.')}}</td>
-          <td>Q{{'{:.2f}'.format(saledetail.sd_price * saledetail.sd_quantity).rstrip('0').rstrip('.')}}</td>
+          <td>Q{{ (saledetail.sd_price) | format_currency }}</td>
+          <td>Q{{ (saledetail.sd_price * saledetail.sd_quantity) | format_currency }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     <div class="total">
-      <p><strong>Subtotal:</strong> Q{{'{:.2f}'.format(sa_sale.sa_subtotal).rstrip('0').rstrip('.')}}</p>
-      <p><strong>Descuento:</strong> Q{{'{:.2f}'.format(sa_sale.sa_discount).rstrip('0').rstrip('.')}}</p>
-      <p><strong>Total:</strong> Q{{'{:.2f}'.format(sa_sale.sa_subtotal - sa_sale.sa_discount).rstrip('0').rstrip('.')}}</p>
+      <p><strong>Subtotal:</strong> Q{{ (sa_sale.sa_subtotal) | format_currency }}</p>
+      <p><strong>Descuento:</strong> Q{{ (sa_sale.sa_discount) | format_currency }}</p>
+      <p><strong>Total:</strong> Q{{ (sa_sale.sa_subtotal - sa_sale.sa_discount) | format_currency }}</p>
       <p style="display: none;" id="change-p"><strong>Cambio:</strong> Q<span id="change">0</span></p>
     </div>
     <div class="info" style="margin-top: 30px; display: flex !important; justify-content: center;">

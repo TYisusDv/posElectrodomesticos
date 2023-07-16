@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Factura de Venta</title>
+  <link rel="stylesheet" type="text/css" href="https://mihogarelectrodomesticos.com/static/css/invoice.css?v=1.0.34">
+  <script src="https://mihogarelectrodomesticos.com/static/js/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="invoice"> 
+    <div class="title">
+      <h1 class="strong">MI HOGAR ELECTRODOMÉSTICOS</h1>
+      <p>4 Calle 4-60 zona 2 san lorenzo el cubo</p>      
+    </div> 
+    <div class="section-1">
+      <div class="s1">
+        <img src="https://mihogarelectrodomesticos.com/static/img/icon.jpg" alt="Mi Hogar">
+      </div>
+      <div class="s2">
+        <p><strong>Nit:</strong> 98511688</p>
+        <p><strong>Tel:</strong> 5134-9923</p>
+        <p><strong>Vendedor:</strong> {{sa_sale.us_pe_fullname}}</p>
+        <p><strong>Sucursal:</strong> {{sa_sale.lo_name}}</p>
+      </div>
+      <div class="s3">
+        <div class="sale">          
+          <p><strong>Venta:</strong></p>
+          <div class="qr">
+            <div id="saleid"> 
+            </div>
+          </div>          
+          <p class="mt-10 bt-2" style="padding-top: 10px;"><strong>Fecha:</strong><br>{{sa_sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</p>
+          <p class="mt-10 bt-2" style="padding-top: 10px;"><strong>Tipo de venta:</strong><br>{{sa_sale.ts_name}}</p>        
+          <p class="mt-10 bt-2" style="padding-top: 10px;"><strong>Factura:</strong></p>
+            <div class="qr" style="font-size: 30px;">
+              {{sa_sale.sa_no}}
+            </div>     
+        </div>       
+      </div>
+    </div>
+    <div class="section-2">
+      <div class="s1">
+        <p><strong>Nombre:</strong> {{sa_sale.cu_pe_fullname}}</p>
+        <p><strong>Direccion:</strong> {{address.ad_address}}</p>
+      </div>
+      <div class="s2">
+        <p><strong>DPI:</strong> {{sa_sale.cu_dpi}}</p>
+        <p><strong>Tel:</strong> {{sa_sale.cu_pe_phone}}</p>
+      </div>
+    </div>
+    <div class="section-2">
+      <div class="table">
+        <div class="row header strong">
+          <div class="cell" style="width: 20%;">ID</div>
+          <div class="cell" style="width: 50%;">Producto</div>
+          <div class="cell" style="width: 10%;">Cantidad</div>
+          <div class="cell" style="width: 10%;">Precio</div>
+          <div class="cell" style="width: 10%;">Subtotal</div>
+        </div>
+        {% for saledetail in sd_saledetails %}
+        <div class="row">
+          <div class="cell" style="width: 20%;">{{saledetail.pr_id}}</div>
+          <div class="cell" style="width: 50%;">{{saledetail.pr_name}}</div>
+          <div class="cell" style="width: 10%;">{{ (saledetail.sd_quantity) | format_currency }}</div>
+          <div class="cell" style="width: 10%;">Q{{ (saledetail.sd_price) | format_currency }}</div>
+          <div class="cell" style="width: 10%;">Q{{ (saledetail.sd_price * saledetail.sd_quantity) | format_currency }}</div>
+        </div>         
+        {% endfor %}
+      </div>
+    </div>
+    <div class="section-3">
+      <div class="table" style="width: 25%;">
+        <div class="row header strong">
+          <div class="cell" style="width: 50%;">Informacion</div>
+          <div class="cell" style="width: 50%;">Totales</div>
+        </div> 
+        <div class="row">
+          <div class="cell" style="width: 50%;">Subtotal</div>
+          <div class="cell" style="width: 50%;">Q{{ (sa_sale.sa_subtotal) | format_currency }}</div>
+        </div>  
+        <div class="row">
+          <div class="cell" style="width: 50%;">Descuento</div>
+          <div class="cell" style="width: 50%;">-Q{{ (sa_sale.sa_discount) | format_currency }}</div>
+        </div>  
+        <div class="row">
+          <div class="cell" style="width: 50%;">Total</div>
+          <div class="cell" style="width: 50%;">Q{{ (sa_sale.sa_subtotal - sa_sale.sa_discount) | format_currency }}</div>
+        </div>  
+      </div>
+    </div>
+  </div>  
+  <script>   
+    function imprimirFact() {
+        window.print();        
+    }    
+    var qrcode = new QRCode(document.getElementById("saleid"), {
+      width: 130,
+      height: 130
+    });
+
+    var textoQR = "{{sa_sale.sa_id}}";
+    qrcode.makeCode(textoQR);
+  </script>
+</body>
+</html>

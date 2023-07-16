@@ -821,7 +821,7 @@ class ad_addresses_model():
         cur.close()
         return data
     
-    def get_addresses(self, get = None, pe_id = None, ad_status = None, page_start = 1, quantity = 10, search = None):
+    def get_addresses(self, get = None, pe_id = None, ad_status = None, ad_dpi = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
         
         if get == 'tableperson':
@@ -829,6 +829,8 @@ class ad_addresses_model():
             cur.execute('SELECT ad_addresses.*, ci_cities.ci_name, st_states.st_name, at_addresstypes.at_name FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id INNER JOIN at_addresstypes ON at_addresstypes.at_id = ad_addresses.at_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_status = 1 AND (ad_addresses.ad_id LIKE %s OR ad_addresses.ad_address LIKE %s OR ad_addresses.ad_relationship LIKE %s OR ci_cities.ci_name LIKE %s OR st_states.st_name LIKE %s) ORDER BY ad_addresses.ad_regdate DESC LIMIT %s, %s',(pe_id, like, like, like, like, like, page_start, quantity,))
         elif get == 'person':
             cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s',(pe_id,))
+        elif get == 'person,ad_dpi':
+            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_dpi = %s',(pe_id, ad_dpi,))
         elif get == 'personstatus':
             cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s AND ad_status = %s',(pe_id, ad_status,))
         else:
@@ -900,7 +902,7 @@ class sa_sales_model():
         cur = mysql.connection.cursor()
 
         if get == 'sa_id':
-            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s', (sa_id,))  
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_customers.cu_dpi, cu_customers.pe_id AS cu_pe_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, cu_pe_persons.pe_phone AS cu_pe_phone, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s', (sa_id,))  
         elif get == 'sa_id>sa_status':
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s AND sa_sales.sa_status = %s', (sa_id, sa_status,))  
         else:

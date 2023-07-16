@@ -6,7 +6,8 @@ from datetime import datetime, timedelta, date
 from passlib.hash import bcrypt
 from itsdangerous import URLSafeSerializer
 from apscheduler.schedulers.background import BackgroundScheduler
-import json, uuid, requests, re, math, time, sys, hashlib, random, shutil, os, base64, subprocess, psutil, glob, arrow, socket
+from markupsafe import Markup
+import json, uuid, requests, re, math, time, sys, hashlib, random, shutil, os, base64, subprocess, psutil, glob, arrow, socket, pdfkit, locale
 
 csrf = CSRFProtect()
 

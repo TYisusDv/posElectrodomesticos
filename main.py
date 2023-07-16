@@ -27,6 +27,12 @@ def web_main(path):
         api_savelog('log/web-error.log', f'[E{sys.exc_info()[-1].tb_lineno}] {e}')
         return json.dumps({'success': False, 'msg': 'An error has occurred! Reported to all admins.'}), 500
 
+@app.template_filter('format_currency')
+def format_currency(value):
+    locale.setlocale(locale.LC_ALL, '')
+    formatted_value = '{:,.2f}'.format(value)
+    return Markup(formatted_value)
+
 def task_onemin():
     with app.app_context():
         sess_usersessions_model().update_session(update='offline')        

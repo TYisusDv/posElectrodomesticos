@@ -200,7 +200,7 @@ def api_web(path):
                                     paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
-                                    remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
+                                    remainingpayment = sa_sale["sa_subtotal"] - total_pay
                                     
                                     return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment, paymentmethods = paymentmethods)})
                         elif v_apiurlsplit[3] == 'dbbackup' and v_apiurlsplit[4] is None: 
@@ -529,7 +529,7 @@ def api_web(path):
                                         info['products'].remove(existing_product)
                                     else:
                                         existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
-                                        existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img=f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
+                                        existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img=f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity=existing_product['quantity'], total=existing_product['total'])
                                 
                                 token = serializer.dumps(info)
                                 response = make_response(json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}))
@@ -680,7 +680,7 @@ def api_web(path):
                                 if existing_product is not None:
                                     existing_product['quantity'] += 1
                                     existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
-                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity='{:.2f}'.format(existing_product['quantity']).rstrip('0').rstrip('.'), total='{:.2f}'.format(existing_product['total']).rstrip('0').rstrip('.'))
+                                    existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity=existing_product['quantity'], total=existing_product['total'])
                                 else:
                                     new_product = {
                                         'pr_id': pr_product['pr_id'],
@@ -695,7 +695,7 @@ def api_web(path):
                                         'br_name': pr_product['br_name'],
                                         'quantity': 1,
                                         'total': pr_product['pr_price'],
-                                        'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], pr_price_2=pr_product['pr_price'], pr_cost=pr_product['pr_cost'], pr_pricetopayments=pr_product['pr_pricetopayments'], quantity='{:.2f}'.format(1).rstrip('0').rstrip('.'), total='{:.2f}'.format(pr_product['pr_price']).rstrip('0').rstrip('.'))
+                                        'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], pr_price_2=pr_product['pr_price'], pr_cost=pr_product['pr_cost'], pr_pricetopayments=pr_product['pr_pricetopayments'], quantity=1, total=pr_product['pr_price'])
                                     }
                                     info['products'].append(new_product)
 
@@ -2194,7 +2194,7 @@ def api_web(path):
 
                                     response = {
                                         'alert': alert,
-                                        'remainingpayment': 'Q{:.2f}'.format(remainingpayment).rstrip('0').rstrip('.'),
+                                        'remainingpayment': remainingpayment,
                                         'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
                                         'sa_regdate': str(sale['sa_regdate'].strftime('%d/%m/%Y %H:%M')),
                                         'ts_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["ts_name"]}</span>',
@@ -2212,7 +2212,8 @@ def api_web(path):
                                         actions = f'<a class="btn btn-primary mb-1" href="/pos/manage/sale/{sale["sa_id"]}/payments"><i data-acorn-icon="dollar" data-acorn-size="16"></i> Pago(s)</a>'
                                         
                                         actions = actions + f' <button class="btn btn-danger mb-1" sa_id="{sale["sa_id"]}" onclick="cancel_sale(this);"><i data-acorn-icon="close" data-acorn-size="16"></i> Cancelar</button>'
-                                        actions = actions + f'<a class="btn btn-dark text-white mb-1" href="/api/web/pos/app/ticket/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
+                                        actions = actions + f' <a class="btn btn-dark text-white mb-1" href="/api/web/pos/app/ticket/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
+                                        actions = actions + f' <a class="btn btn-light text-black mb-1" href="/api/web/pos/app/invoice/{sale["sa_id"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Factura</a>'
                                     
                                     response['actions'] = actions
 
@@ -2488,11 +2489,44 @@ def api_web_pos_app_ticket(sa_id):
         sp_salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_no_ASC', sa_id = sa_id)
         if sa_sale['ts_id'] == 1002:            
             total_pay = sum(salepayment['sp_pay'] for salepayment in sp_salepayments)
-            remainingpayment = '{:.2f}'.format(sa_sale["sa_subtotal"] - total_pay).rstrip('0').rstrip('.')
+            remainingpayment = sa_sale["sa_subtotal"] - total_pay
             
             return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, remainingpayment = remainingpayment, total_pay = total_pay)
         
         return render_template('/pos/ticket.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
+    return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
+
+@app.route('/api/web/pos/app/invoice/<sa_id>', methods = ['GET'])
+def api_web_pos_app_invoice(sa_id):
+    sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
+    if sa_sale:
+        sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
+        sp_salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_no_ASC', sa_id = sa_id)
+        address = ad_addresses_model().get_addresses(get = 'person,ad_dpi', pe_id = sa_sale['cu_pe_id'], ad_dpi = sa_sale['cu_dpi'])
+        if address:
+            address = address[0]
+        
+         # Opciones de PDFKit
+        options = {
+            'encoding': 'UTF-8',
+            'page-size': 'Letter',
+            'orientation': 'Landscape',
+            'margin-top': '0mm',
+            'margin-right': '0mm',
+            'margin-bottom': '0mm',
+            'margin-left': '0mm',
+            "enable-local-file-access": ""
+        }
+
+        # Generar el PDF como una cadena de bytes
+        pdf_bytes = pdfkit.from_string(render_template('/pos/invoicepayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, address = address), False, options=options)
+
+        # Crear la respuesta con el archivo PDF
+        response = make_response(pdf_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=factura-{sa_id}.pdf'
+
+        return response
     return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
 
 @app.route('/api/web/download/<download_uuid>', methods = ['GET'])

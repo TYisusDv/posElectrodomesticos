@@ -62,7 +62,7 @@ class Scripts {
       new Settings({
         attributes: {
           placement: "horizontal",
-          layout: "boxed",
+          layout: "fluid",
           color: "light-sky",
           navcolor: "default",
         },
