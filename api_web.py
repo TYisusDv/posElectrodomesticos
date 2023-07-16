@@ -753,12 +753,15 @@ def api_web(path):
                             for product in info['products']:
                                 sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_cost = product['pr_cost'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
 
-                            if ts_id == 1002: 
+                            if ts_id == 1002:
+                                ts_ab_del = 0
                                 if ts_firstpayment > 0:
+                                    ts_ab_del = 1
                                     sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
                                     total = total - ts_firstpayment
                                     sp_salepayments_model().insert_salepayment(sp_no = sp_no, sp_subtotal = ts_firstpayment, sp_commission = commission, sp_pay = ts_firstpayment, sp_limitdate = sp_limitdate, sp_regdate = sp_limitdate, pm_id = pm_id, us_id = session['us_id'], sa_id = sa_id)
 
+                                ts_amountpayments = ts_amountpayments - ts_ab_del
                                 sp_subtotal = math.floor(total / ts_amountpayments)
                                 for i in range(ts_amountpayments - 1): 
                                     sp_limitdate = sp_limitdate + timedelta(days=ts_days)

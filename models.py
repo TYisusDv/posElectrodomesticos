@@ -622,10 +622,10 @@ class pr_products_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(like, like, page_start, quantity,))
+            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(like, like, like, like, page_start, quantity,))
         elif get == 'tablestatus':
             like = f'%{search}%'
-            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s) ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(pr_status, like, like, page_start, quantity,))
+            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s) ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(pr_status, like, like, like, like, page_start, quantity,))
         else:
             cur.execute('SELECT pr_products.* FROM pr_products')
         
@@ -638,10 +638,10 @@ class pr_products_model():
 
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s', (like, like,))
+            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s', (like, like, like, like,))
         elif get == 'tablestatus':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_name LIKE %s)', (pr_status, like, like,))
+            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s)', (pr_status, like, like, like, like,))
         else:
             cur.execute('SELECT COUNT(*) AS total FROM pr_products')
         
