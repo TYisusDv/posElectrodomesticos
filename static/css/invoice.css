@@ -23,8 +23,32 @@ body {
   font-family: "Como-SemiBold", "Nunito Sans", sans-serif;
 }
 
+.d-flex {
+  display: flex;
+}
+
+.df-column{
+  flex-direction: column;
+}
+
 .mt-10 {
   margin-top: 10px;
+}
+
+.ml-10 {
+  margin-left: 10px;
+}
+
+.mr-10 {
+  margin-right: 10px;
+}
+
+.mr-15 {
+  margin-right: 15px;
+}
+
+.mr-20 {
+  margin-right: 20px;
 }
 
 .bt-2 {
@@ -58,7 +82,7 @@ strong, .strong{
 
 .section-1, .section-2, .section-3 {
   display: flex;
-  padding: 15px 30px 30px 30px;
+  padding: 15px 30px 10px 30px;
 }
 
 .section-1 .s1, .section-1 .s2, .section-1 .s3 {
@@ -67,6 +91,7 @@ strong, .strong{
 
 .section-1 .s1 {
   display: flex;
+  flex: 1;
 }
 
 .section-1 .s1 img {
@@ -79,6 +104,7 @@ strong, .strong{
   justify-content: flex-start;
   align-items: center;
   flex-direction: column;
+  flex: 1;
 }
 
 .section-1 .s2 p {
@@ -87,21 +113,17 @@ strong, .strong{
 
 .section-1 .s3 {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: row-reverse;
+  flex: 1;
+  align-items: center;
 }
 
-.section-1 .s3 .sale {
-  padding: 10px;
-  border: 2px solid black;
-  border-radius: 10px;
-}
-
-.section-1 .s3 .sale .qr{
+.section-1 .s3 .qr {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
 }
 
-.section-1 .s3 .sale p {  
+.section-1 .s3 p {  
   font-size: 20px;
 }
 

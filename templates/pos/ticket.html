@@ -19,6 +19,11 @@
       <p><strong>Vendedor:</strong> {{sa_sale.us_pe_fullname}}</p>
       <p><strong>Fecha:</strong> {{sa_sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</p>
       <p><strong>Sucursal:</strong> {{sa_sale.lo_name}}</p>
+      <br>
+      <p><strong>ID Cliente:</strong> {{sa_sale.cu_id}}</p>
+      <p><strong>Nombre del cliente:</strong> {{sa_sale.cu_pe_fullname}}</p>
+      <p><strong>Telefono del cliente:</strong> {{sa_sale.cu_pe_phone}}</p>
+      <br>
       <p><strong>Recibo:</strong> #{% if sp_salepayments %}{{ sp_salepayments[0].sp_no }}{% endif %}</p>
     </div>
     <table>

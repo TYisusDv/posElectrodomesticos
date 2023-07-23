@@ -9,6 +9,14 @@
                 </ul>
             </nav>
         </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary mb-1" data-bs-toggle="modal"
+                data-bs-target="#statistics-modal-date">
+                    <i data-acorn-icon="calendar" class="icon" data-acorn-size="16"></i> Fecha
+                </button>
+            </div>            
+        </div>
     </div>
 </div>
 <section class="scroll-section mb-5">
@@ -20,38 +28,16 @@
                     <div class="col-auto pe-3">
                         <div
                             class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
-                            <i data-acorn-icon="dollar" class="text-white"></i>
+                            <i data-acorn-icon="calendar" class="text-white"></i>
                         </div>
                     </div>
                     <div class="col">
                         <div class="row gx-2 d-flex align-content-center">
                             <div class="col-12 col-xl d-flex">
-                                <div class="d-flex align-items-center lh-1-25">Total vendido</div>
+                                <div class="d-flex align-items-center lh-1-25">Fecha</div>
                             </div>
                             <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">Q{{total_sold}}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
-            <div class="card sh-11 hover-scale-up cursor-pointer">
-                <div class="h-100 row g-0 card-body align-items-center py-3">
-                    <div class="col-auto pe-3">
-                        <div
-                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
-                            <i data-acorn-icon="trend-up" class="text-white"></i>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="row gx-2 d-flex align-content-center">
-                            <div class="col-12 col-xl d-flex">
-                                <div class="d-flex align-items-center lh-1-25">Total generado</div>
-                            </div>
-                            <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">Q{{total_generated}}</div>
+                                <div class="cta-2 text-primary">{{date_1.strftime('%d/%m/%Y')}} - {{date_2.strftime('%d/%m/%Y')}}</div>
                             </div>
                         </div>
                     </div>
@@ -60,3 +46,179 @@
         </div>          
     </div>
 </section>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <h2 class="small-title">Ventas</h2>
+        <div class="row g-2">
+            <div class="col-12 col-sm-6 mb-2">
+                <div class="card sh-11 hover-scale-up cursor-pointer">
+                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                        <div class="col-auto pe-3">
+                            <div
+                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                <i data-acorn-icon="dollar" class="text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row gx-2 d-flex align-content-center">
+                                <div class="col-12 col-xl d-flex">
+                                    <div class="d-flex align-items-center lh-1-25">Total vendido</div>
+                                </div>
+                                <div class="col-12 col-xl-auto">
+                                    <div class="cta-2 text-primary">Q{{total_sales|format_currency}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 mb-2">
+                <div class="card sh-11 hover-scale-up cursor-pointer">
+                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                        <div class="col-auto pe-3">
+                            <div
+                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                <i data-acorn-icon="trend-up" class="text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row gx-2 d-flex align-content-center">
+                                <div class="col-12 col-xl d-flex">
+                                    <div class="d-flex align-items-center lh-1-25">Total generado</div>
+                                </div>
+                                <div class="col-12 col-xl-auto">
+                                    <div class="cta-2 text-primary">Q</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <section class="scroll-section" id="hoverableRows">                    
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <div class="table-responsive mb-5">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Sucursal</th>
+                                            <th scope="col">Fecha de registro</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col">Cliente</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sale in sales %}
+                                        <tr>
+                                            <td><span class='badge bg-primary'>{{sale.lo_name}}</span></td>
+                                            <td>{{sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                            <td>Q{{(sale.sa_subtotal - sale.sa_discount)|format_currency}}</td>
+                                            <td><span class='badge bg-primary'>{{sale.cu_id}}</span><br>{{sale.cu_pe_fullname}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <h2 class="small-title">Abonos</h2>
+        <div class="row g-2">
+            <div class="col-12 col-sm-6 mb-2">
+                <div class="card sh-11 hover-scale-up cursor-pointer">
+                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                        <div class="col-auto pe-3">
+                            <div
+                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                <i data-acorn-icon="dollar" class="text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row gx-2 d-flex align-content-center">
+                                <div class="col-12 col-xl d-flex">
+                                    <div class="d-flex align-items-center lh-1-25">Total abonado</div>
+                                </div>
+                                <div class="col-12 col-xl-auto">
+                                    <div class="cta-2 text-primary">Q{{total_salepayments|format_currency}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <section class="scroll-section" id="hoverableRows">                    
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <div class="table-responsive mb-5">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Recibo</th>
+                                            <th scope="col">Fecha de registro</th>
+                                            <th scope="col">Abono</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for salepayment in salepayments %}
+                                        <tr>
+                                            <td><span class='badge bg-primary'>{{salepayment.sp_no}}</span></td>
+                                            <td>{{salepayment.sp_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                            <td>Q{{salepayment.sp_pay|format_currency}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="statistics-modal-date" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="statistics-modal-dateLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statistics-modal-dateLabel">De que fecha a que fecha?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="statistics-modal-date-set" autocomplete="off">
+                <div class="modal-body">                  
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="date" placeholder="Fecha 1" name="date1">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="date" placeholder="Fecha 2" name="date2">
+                    </div>  
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="search" data-acorn-size="16"></i>
+                        Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        $('#statistics-modal-date-set').submit(function (e) {
+            e.preventDefault();
+            const date1 = $('#statistics-modal-date-set input[name="date1"]').val();
+            const date2 = $('#statistics-modal-date-set input[name="date2"]').val();
+            path = `/pos/statistics/${date1}/${date2}`;
+            history.pushState(null, null, path);
+            loadView();
+            $('#statistics-modal-date').modal('hide');
+        });
+    })();
+</script>

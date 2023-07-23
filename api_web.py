@@ -20,7 +20,6 @@ def api_web(path):
         v_datetimenow = datetime.now()
         v_date = v_datetimenow.date()
 
-
         v_userinfo = None
         v_usersession = None
         v_apipermissions = [665590]
@@ -48,12 +47,33 @@ def api_web(path):
                         typessales = ts_typessales_model().get_typessales()
                         paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
                         return json.dumps({'success': True, 'html': render_template('/pos/pos.html', locations = locations, typessales = typessales, paymentmethods = paymentmethods)})
-                    elif v_apiurlsplit[2] == 'statistics' and v_apiurlsplit[3] is None:
-                        sd_saledetails = sd_saledetails_model().get_saledetails(get = 'all')
-                        total_sold =  sum((saledetail['sd_price'] * saledetail['sd_quantity'])  for saledetail in sd_saledetails)
-                        total_generated =  sum((saledetail['sd_cost'] * saledetail['sd_quantity'])  for saledetail in sd_saledetails)                        
-                        total_generated = total_sold - total_generated
-                        return json.dumps({'success': True, 'html': render_template('/pos/statistics.html', total_sold = total_sold, total_generated = total_generated)})
+                    elif v_apiurlsplit[2] == 'statistics' and v_apiurlsplit[5] is None:
+                        date_1 = v_apiurlsplit[3]
+                        date_2 = v_apiurlsplit[4]
+
+                        if date_1 is None: 
+                            date_1 = v_date
+                        
+                        if date_2 is None: 
+                            date_2 = date_1
+
+                        try:
+                            date_1 = datetime.strptime(date_1, '%Y-%m-%d').date()
+                        except:
+                            date_1 = v_date
+
+                        try:
+                            date_2 = datetime.strptime(date_2, '%Y-%m-%d').date()
+                        except:
+                            date_2 = date_1
+                        
+                        sales = sa_sales_model().get_sales(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
+                        total_sales = sum(sale['sa_subtotal'] - sale['sa_discount'] for sale in sales)
+
+                        salepayments = sp_salepayments_model().get_salepayments(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
+                        total_salepayments = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                       
+                        return json.dumps({'success': True, 'html': render_template('/pos/statistics.html', date_1 = date_1, date_2 = date_2, sales = sales, total_sales = total_sales, salepayments = salepayments, total_salepayments = total_salepayments)})
                     
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
@@ -2509,8 +2529,8 @@ def api_web_pos_app_invoice(sa_id):
          # Opciones de PDFKit
         options = {
             'encoding': 'UTF-8',
-            'page-size': 'Letter',
-            'orientation': 'Landscape',
+            'page-size': 'Letter',      
+            'page-height': '14cm',      
             'margin-top': '0mm',
             'margin-right': '0mm',
             'margin-bottom': '0mm',

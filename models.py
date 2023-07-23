@@ -830,7 +830,7 @@ class ad_addresses_model():
         elif get == 'person':
             cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s',(pe_id,))
         elif get == 'person,ad_dpi':
-            cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_dpi = %s',(pe_id, ad_dpi,))
+            cur.execute('SELECT ad_addresses.*, ci_cities.ci_name, st_states.st_name FROM ad_addresses INNER JOIN ci_cities ON ci_cities.ci_id = ad_addresses.ci_id INNER JOIN st_states ON st_states.st_id = ci_cities.st_id WHERE ad_addresses.pe_id = %s AND ad_addresses.ad_dpi = %s',(pe_id, ad_dpi,))
         elif get == 'personstatus':
             cur.execute('SELECT ad_addresses.* FROM ad_addresses WHERE ad_addresses.pe_id = %s AND ad_status = %s',(pe_id, ad_status,))
         else:
@@ -904,7 +904,7 @@ class sa_sales_model():
         if get == 'sa_id':
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_customers.cu_dpi, cu_customers.pe_id AS cu_pe_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, cu_pe_persons.pe_phone AS cu_pe_phone, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s', (sa_id,))  
         elif get == 'sa_id>sa_status':
-            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s AND sa_sales.sa_status = %s', (sa_id, sa_status,))  
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname, cu_pe_persons.pe_phone AS cu_pe_phone FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s AND sa_sales.sa_status = %s', (sa_id, sa_status,))  
         else:
             cur.close()
             return None
@@ -913,12 +913,14 @@ class sa_sales_model():
         cur.close()        
         return data
         
-    def get_sales(self, get = None, page_start = 1, quantity = 10, search = None):
+    def get_sales(self, get = None, date_1 = None, date_2 = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
         
         if get == 'table':
             like = f'%{search}%'
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id ORDER BY sa_sales.sa_regdate DESC LIMIT %s, %s',(page_start, quantity,))
+        elif get == 'table,statistics':
+            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE DATE(sa_sales.sa_regdate) >= %s AND DATE(sa_sales.sa_regdate) <= %s ORDER BY sa_sales.sa_regdate DESC',(date_1, date_2,))
         else:
             cur.execute('SELECT sa_sales.* FROM sa_sales')
         
@@ -1004,7 +1006,7 @@ class sp_salepayments_model():
         cur.close()
         return data
 
-    def get_salepayments(self, get = None, sa_id = None, page_start = 1, quantity = 10, search = None):
+    def get_salepayments(self, get = None, sa_id = None, date_1 = None, date_2 = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
 
         if get == 'sa_id':
@@ -1012,12 +1014,14 @@ class sp_salepayments_model():
         elif get == 'where_sa_id,order_sp_limitdate_ASC':
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC', (sa_id,))  
         elif get == 'where_sa_id,order_sp_no_ASC':
-            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_no ASC', (sa_id,))  
+            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no ASC, sp_limitdate ASC', (sa_id,))  
         elif get == 'limitdate':
             cur.execute('SELECT sp.sa_id, MIN(sp.sp_limitdate) AS min_limitdate FROM sp_salepayments sp INNER JOIN sa_sales AS sa ON sa.sa_id = sp.sa_id WHERE sp.sp_pay < sp.sp_subtotal AND sp.sp_limitdate < NOW() AND sa.sa_status = 1 GROUP BY sp.sa_id ORDER BY min_limitdate ASC')  
         elif get == 'table-sa_id':
             like = f'%{search}%'
             cur.execute('SELECT sp_salepayments.*, pm_paymentmethods.pm_name, pe_persons.pe_fullname FROM sp_salepayments LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id LEFT JOIN us_users ON us_users.us_id = sp_salepayments.us_id LEFT JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC LIMIT %s, %s',(sa_id, page_start, quantity,))
+        elif get == 'table,statistics':
+            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE DATE(sp_salepayments.sp_regdate) >= %s AND DATE(sp_salepayments.sp_regdate) <= %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no DESC, sp_limitdate DESC', (date_1, date_2,))  
         else:
             cur.close()
             return []
