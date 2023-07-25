@@ -162,7 +162,11 @@
     (function() {
         var pos_manage_sales_table_link = 'pos/manage/sales/table';
         $(document).ready(function () {
-            table_setdata('#manage-sales-table', pos_manage_sales_table_link);
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get("search");        
+            $("#manage-sales-search").val(searchParam);
+
+            table_setdata('#manage-sales-table', pos_manage_sales_table_link, $('#manage-sales-search').val());
         });
 
         function edit_sale(e){

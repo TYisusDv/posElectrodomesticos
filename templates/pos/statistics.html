@@ -102,19 +102,25 @@
                                 <table class="table table-hover table-striped">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Sucursal</th>
+                                            <th scope="col">Factura</th>                                           
                                             <th scope="col">Fecha de registro</th>
+                                            <th scope="col">Tipo de venta</th>
                                             <th scope="col">Total</th>
                                             <th scope="col">Cliente</th>
+                                            <th scope="col">Empleado</th>
+                                            <th scope="col">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for sale in sales %}
                                         <tr>
-                                            <td><span class='badge bg-primary'>{{sale.lo_name}}</span></td>
+                                            <td><span class='badge bg-primary'>{{sale.sa_no}}</span></td>                                            
                                             <td>{{sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                            <td>{% if sale.sa_status == 0 %}<span class='badge bg-danger'>Cancelado</span>{% else %}<span class='badge bg-primary'>{{sale.ts_name}}</span>{% endif %}</td>     
                                             <td>Q{{(sale.sa_subtotal - sale.sa_discount)|format_currency}}</td>
                                             <td><span class='badge bg-primary'>{{sale.cu_id}}</span><br>{{sale.cu_pe_fullname}}</td>
+                                            <td><span class='badge bg-primary'>{{sale.us_pe_fullname}}</span></td>
+                                            <td><a class="btn btn-light btn-icon" href="/pos/manage/sales?search={{sale.sa_id}}"><i data-acorn-icon="search" data-acorn-size="16"></i> Mas detalles</a></td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -127,7 +133,7 @@
         </div>
     </div>
     <div class="col-12 col-md-6">
-        <h2 class="small-title">Abonos</h2>
+        <h2 class="small-title">Pagos</h2>
         <div class="row g-2">
             <div class="col-12 col-sm-6 mb-2">
                 <div class="card sh-11 hover-scale-up cursor-pointer">
@@ -141,7 +147,7 @@
                         <div class="col">
                             <div class="row gx-2 d-flex align-content-center">
                                 <div class="col-12 col-xl d-flex">
-                                    <div class="d-flex align-items-center lh-1-25">Total abonado</div>
+                                    <div class="d-flex align-items-center lh-1-25">Total pagado</div>
                                 </div>
                                 <div class="col-12 col-xl-auto">
                                     <div class="cta-2 text-primary">Q{{total_salepayments|format_currency}}</div>
@@ -161,7 +167,10 @@
                                         <tr>
                                             <th scope="col">Recibo</th>
                                             <th scope="col">Fecha de registro</th>
-                                            <th scope="col">Abono</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col">Cliente</th>
+                                            <th scope="col">Empleado</th>
+                                            <th scope="col">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -170,6 +179,9 @@
                                             <td><span class='badge bg-primary'>{{salepayment.sp_no}}</span></td>
                                             <td>{{salepayment.sp_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
                                             <td>Q{{salepayment.sp_pay|format_currency}}</td>
+                                            <td><span class='badge bg-primary'>{{salepayment.cu_id}}</span><br>{{salepayment.cu_pe_fullname}}</td>
+                                            <td><span class='badge bg-primary'>{{salepayment.us_pe_fullname}}</span></td>
+                                            <td><a class="btn btn-light btn-icon" href="/pos/manage/sales?search={{salepayment.sa_id}}"><i data-acorn-icon="search" data-acorn-size="16"></i> Mas detalles</a></td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

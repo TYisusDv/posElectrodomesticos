@@ -68,10 +68,10 @@ def api_web(path):
                             date_2 = date_1
                         
                         sales = sa_sales_model().get_sales(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
-                        total_sales = sum(sale['sa_subtotal'] - sale['sa_discount'] for sale in sales)
+                        total_sales = sum(sale['sa_subtotal'] - sale['sa_discount'] for sale in sales if sale['sa_status'] == 1)
 
                         salepayments = sp_salepayments_model().get_salepayments(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
-                        total_salepayments = sum(salepayment['sp_pay'] for salepayment in salepayments)
+                        total_salepayments = sum(salepayment['sp_pay'] for salepayment in salepayments if salepayment['sa_status'] == 1)
                        
                         return json.dumps({'success': True, 'html': render_template('/pos/statistics.html', date_1 = date_1, date_2 = date_2, sales = sales, total_sales = total_sales, salepayments = salepayments, total_salepayments = total_salepayments)})
                     
