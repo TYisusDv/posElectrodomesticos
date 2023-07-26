@@ -1055,7 +1055,7 @@ class sp_salepayments_model():
         cur = mysql.connection.cursor()  
         
         if update == 'pay':
-            cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_commission, sp_pay, pm_id, us_id, sp_id,))
+            cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_subtotal = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_subtotal, sp_commission, sp_pay, pm_id, us_id, sp_id,))
         elif update == 'edit':
             cur.execute('UPDATE sp_salepayments SET sp_pay = %s, sp_limitdate = %s, us_id = %s WHERE sp_id = %s', (sp_pay, sp_limitdate, us_id, sp_id,))
         elif update == 'split':

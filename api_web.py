@@ -2393,24 +2393,46 @@ def api_web(path):
                                             return json.dumps({'success': False, 'msg': '¡Pasa de la totalidad de deuda!'})     
 
                                         sp_no = 0
-                                        for salepayment in salepayments:
-                                            if salepayment['sp_pay'] < salepayment['sp_subtotal'] and amount > 0:
-                                                new_pay = salepayment['sp_pay'] + amount
-                                                if new_pay > salepayment['sp_subtotal']:
-                                                    new_pay = salepayment['sp_subtotal']
-                                                    amount =  (salepayment['sp_pay'] + amount) - salepayment['sp_subtotal']
-                                                else:
-                                                    amount = amount - new_pay
-                                                
-                                                sp_no = salepayment['sp_no']                                                
-                                                if not salepayment['sp_no']:
-                                                    sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
+                                        dif_pay = 0
+                                        rep = False
+                                        ult = 1
+                                        while True:                                            
+                                            for index, salepayment in enumerate(salepayments):
+                                                if not rep:
+                                                    if salepayment['sp_pay'] < salepayment['sp_subtotal'] and amount > 0:
+                                                        new_pay = salepayment['sp_pay'] + amount
+                                                        if new_pay >= salepayment['sp_subtotal']:
+                                                            dif_pay = amount - (salepayment['sp_subtotal'] - salepayment['sp_pay'])
+                                                            sp_no = salepayment['sp_no']
+                                                            if not sp_no:
+                                                                sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
+                                                            
+                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_subtotal = new_pay, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+                                                            amount = 0
+                                                        else:
+                                                            sp_no = salepayment['sp_no']
+                                                            if not sp_no:
+                                                                sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
+                                                            
+                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_subtotal = salepayment['sp_subtotal'], sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+                                                            amount = amount - new_pay
                                                     
-                                                sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+                                                if (index == len(salepayments) - ult) and dif_pay > 0:
+                                                    sp_subtotal = salepayment['sp_subtotal'] - dif_pay
+                                                    if sp_subtotal > 0:
+                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_subtotal = sp_subtotal, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])
+                                                        dif_pay = 0
+                                                    else:
+                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_subtotal = 0, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])  
+                                                        ult += 1   
+                                                        rep = True
+                                                        dif_pay = abs(salepayment['sp_subtotal'] - dif_pay)
+                                            
+                                            if dif_pay <= 0:
+                                                break
 
-                                                commission = 0
-                                        
-                                        return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!', 'sp_no': sp_no})
+
+                                        return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!', 'sp_no': sp_no, 'dif_pay': dif_pay})
                                     elif v_apiurlsplit[6] == 'edit' and v_apiurlsplit[7] is None:
                                         if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
                                             return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
