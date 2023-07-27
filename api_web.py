@@ -2214,6 +2214,7 @@ def api_web(path):
 
                                     response = {
                                         'alert': alert,
+                                        'sa_no': sale['sa_no'],
                                         'remainingpayment': remainingpayment,
                                         'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
                                         'sa_regdate': str(sale['sa_regdate'].strftime('%d/%m/%Y %H:%M')),

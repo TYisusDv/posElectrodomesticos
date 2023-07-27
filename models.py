@@ -918,7 +918,7 @@ class sa_sales_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id LIKE %s ORDER BY sa_sales.sa_regdate DESC LIMIT %s, %s',(like, page_start, quantity,))
+            cur.execute('SELECT DISTINCT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id INNER JOIN sp_salepayments ON sp_salepayments.sa_id = sa_sales.sa_id WHERE ((BINARY sa_sales.sa_id = BINARY %s OR BINARY sa_sales.sa_no = BINARY %s OR BINARY sp_salepayments.sp_no = BINARY %s) OR %s IS NULL OR %s = "") ORDER BY sa_sales.sa_regdate DESC LIMIT %s, %s',(search, search, search, search, search, page_start, quantity,))
         elif get == 'table,statistics':
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE DATE(sa_sales.sa_regdate) >= %s AND DATE(sa_sales.sa_regdate) <= %s ORDER BY sa_sales.sa_regdate DESC',(date_1, date_2,))
         else:
@@ -933,7 +933,7 @@ class sa_sales_model():
 
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM sa_sales')
+            cur.execute('SELECT COUNT(*) AS total FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE ((BINARY sa_sales.sa_id = BINARY %s OR BINARY sa_sales.sa_no = BINARY %s) OR %s IS NULL OR %s = "")',(search, search, search, search,))
         else:
             cur.execute('SELECT COUNT(*) AS total FROM sa_sales')
         

@@ -137,6 +137,10 @@
                                     <i data-acorn-icon="sale-tag"></i>
                                     <input class="form-control" placeholder="Porcentaje de descuento" name="discount_per" value="0">
                                 </div> 
+                                <div class="mb-3 filled form-group tooltip-end-top">
+                                    <i data-acorn-icon="dollar"></i>
+                                    <input class="form-control" placeholder="Descuento" name="discount_total" value="0">
+                                </div> 
                                 <div class="filled form-group tooltip-end-top">
                                     <button class="btn btn-primary w-100" type="submit" id="pos-sale-btn"><i data-acorn-icon="save" data-acorn-size="18"></i></button>
                                 </div>
@@ -266,6 +270,7 @@
 <script>
     (function () {
         var pos_total = 0;
+        var pos_subtotal = 0;
         var pos_page_customers = 1;
         var pos_total_page_customers = 1;
         var pos_isLoading_customers = false;
@@ -313,7 +318,25 @@
 
             typingTimer = setTimeout(function () {
                 $("#pos-sale-btn").click();
-            }, 500);
+            }, 1000);
+        });
+
+        $("#pos-sale-form-edit input[name='discount_total']").on('input', function () {
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function () {
+                var discount_total = $("#pos-sale-form-edit input[name='discount_total']").val();
+
+                try {
+                    var total_per = (parseFloat(discount_total) * 100) / pos_subtotal;
+                    console.log(discount_total)
+                    console.log(pos_subtotal)
+                    $("#pos-sale-form-edit input[name='discount_per']").val(total_per);  
+                } catch (error) {  
+                    $("#pos-sale-form-edit input[name='discount_per']").val("0");               
+                }
+                $("#pos-sale-btn").click();
+            }, 1000);
         });
 
         function pos_sale_edit_options(selectedValue){
@@ -371,7 +394,7 @@
 
             typingTimer = setTimeout(function () {
                 pos_customers_table(1);
-            }, 500);
+            }, 1000);
         });
 
         $('#pos-products-search').on('input', function () {
@@ -379,7 +402,7 @@
 
             typingTimer = setTimeout(function () {
                 pos_products_table(1);
-            }, 500);
+            }, 1000);
         });
 
         $('#pos-finalize-form input[name=pay]').on('input', function () {
@@ -396,7 +419,7 @@
                 } else {
                     $('#pos-finalize-form button[type="submit"]').prop('disabled', false);
                 }
-            }, 500);
+            }, 1000);
         });
 
         function pos_customers_table(page) {
@@ -504,7 +527,9 @@
                     var total = response.info.total;
                     var discount_per = response.info.discount_per;
                     var discount = response.info.discount;    
-                    var fin = response.info.fin;        
+                    var fin = response.info.fin;     
+                    
+                    pos_subtotal = subtotal;
                     
                     pos_sale_edit_options(ts_id);
                     if(ts_id == 1002){
@@ -548,7 +573,8 @@
                     $("#pos-sale-form-edit input[name=ts_days]").val(ts_days);
                     $("#pos-sale-form-edit input[name=ts_firstpayment]").val(ts_firstpayment);
                     $("#pos-sale-form-edit select[name=pm_id]").val(pm_id);
-                    $('#pos-sale-form-edit input[name=discount_per]').val(discount_per);                    
+                    $('#pos-sale-form-edit input[name=discount_per]').val(discount_per);    
+                    $('#pos-sale-form-edit input[name=discount_total]').val(discount);                    
                     
                     $('#pos-finalize-btn').prop('disabled', true);
                     if(fin){
