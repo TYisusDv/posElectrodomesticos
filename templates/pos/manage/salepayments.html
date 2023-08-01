@@ -105,7 +105,7 @@
                                 <div class="d-flex align-items-center lh-1-25">Fecha de registro</div>
                             </div>
                             <div class="col-12 col-xl-auto">
-                                <div class="cta-2 text-primary">{{sale.sa_regdate.strftime('%d/%m/%Y')}}</div>
+                                <div class="cta-2 text-primary">{% if sale.sa_regdate == None %}N/A{% else %}{{sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}{% endif %}</div>
                             </div>
                         </div>
                     </div>

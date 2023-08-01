@@ -220,7 +220,7 @@ def api_web(path):
                                     paymentmethods = pm_paymentmethods_model().get_paymentmethods(get='status', pm_status=1)
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
-                                    remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                    remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
                                     
                                     return json.dumps({'success': True, 'html': render_template('/pos/manage/salepayments.html', sale = sa_sale, remainingpayment = remainingpayment, paymentmethods = paymentmethods)})
                         elif v_apiurlsplit[3] == 'dbbackup' and v_apiurlsplit[4] is None: 
@@ -450,7 +450,7 @@ def api_web(path):
                                 ts_total = 0
                                 if info['typesale']['ts_id'] == 1001:
                                     ts_details = '1 solo pago'                                    
-                                elif info['typesale']['ts_id'] == 1002:
+                                elif info['typesale']['ts_id'] == 1002 or info['typesale']['ts_id'] == 1004:
                                     ts_commission = info['typesale']['ts_firstpayment'] * (info['commission_per'] / 100)
                                     ts_total = (info['typesale']['ts_firstpayment'] + ts_commission)
 
@@ -588,6 +588,8 @@ def api_web(path):
                                 discount_per = v_requestform.get('discount_per')
                                 if not discount_per:
                                     discount_per = 0
+                                elif discount_per.lower() == 'nan':
+                                    return json.dumps({'success': False, 'msg': '¡El descuento no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif not api_isFloat(discount_per):
                                     return json.dumps({'success': False, 'msg': '¡El descuento no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                 elif float(discount_per) > 100 or float(discount_per) < 0:
@@ -605,7 +607,7 @@ def api_web(path):
                                 ts_days = None
                                 ts_firstpayment = None
                                 
-                                if ts_id == '1002':
+                                if ts_id == '1002' or ts_id == '1004':
                                     ts_amountpayments = v_requestform.get('ts_amountpayments')
                                     if not ts_amountpayments:
                                         ts_amountpayments = 1
@@ -626,7 +628,7 @@ def api_web(path):
 
                                     ts_firstpayment = float(ts_firstpayment)
 
-                                if ts_id == '1002' or ts_id == '1003':
+                                if ts_id == '1002' or ts_id == '1003' or ts_id == '1004':
                                     ts_days = v_requestform.get('ts_days')
                                     if not ts_days:
                                         ts_days = 0
@@ -637,6 +639,7 @@ def api_web(path):
                                     
                                     ts_days = int(ts_days)
                                 
+
                                 if int(lo_id) <= 0:
                                     lo_name = ''
                                 else:
@@ -768,12 +771,19 @@ def api_web(path):
 
                             total = float(info['subtotal']) - float(info['discount'])
 
-                            sa_sales_model().insert_sale(sa_id = sa_id, sa_subtotal = info['subtotal'], sa_discount = info['discount'], sa_amountpayments = ts_amountpayments, sa_days = ts_days, lo_id = lo_id, ts_id = ts_id, cu_id = cu_id, us_id = session['us_id'])
+                            sa_regdate = v_datetimenow
+                            if ts_id == 1003 or ts_id == 1004:
+                                sa_no = None
+                                sa_regdate = None
+                            else:
+                                sa_no = sa_sales_model().get_sale(get = 'max_sa_no')['max_sa_no'] + 1
+                           
+                            sa_sales_model().insert_sale(sa_id = sa_id, sa_no = sa_no, sa_subtotal = info['subtotal'], sa_discount = info['discount'], sa_amountpayments = ts_amountpayments, sa_days = ts_days, sa_regdate = sa_regdate, lo_id = lo_id, ts_id = ts_id, cu_id = cu_id, us_id = session['us_id'])
 
                             for product in info['products']:
                                 sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_cost = product['pr_cost'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
 
-                            if ts_id == 1002:
+                            if ts_id == 1002 or ts_id == 1004:
                                 ts_ab_del = 0
                                 if ts_firstpayment > 0:
                                     ts_ab_del = 1
@@ -784,44 +794,30 @@ def api_web(path):
                                 ts_amountpayments = ts_amountpayments - ts_ab_del
                                 sp_subtotal = math.floor(total / ts_amountpayments)
                                 for i in range(ts_amountpayments - 1): 
-                                    sp_limitdate = sp_limitdate + timedelta(days=ts_days)
+                                    sp_limitdate = api_get_next_month_day(sp_limitdate, ts_days)
 
                                     sp_salepayments_model().insert_salepayment(sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
                                 
-                                sp_limitdate = sp_limitdate + timedelta(days=ts_days)                                
+                                sp_limitdate = api_get_next_month_day(sp_limitdate, ts_days)
                                 sp_subtotal = total - (sp_subtotal * (ts_amountpayments - 1))
                                 sp_salepayments_model().insert_salepayment(sp_subtotal = sp_subtotal, sp_commission = 0, sp_pay = 0, sp_limitdate = sp_limitdate, sp_regdate = None, pm_id = None, us_id = None, sa_id = sa_id)
-                                
-                                '''
-                                salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)       
 
-                                for salepayment in salepayments:
-                                    if salepayment['sp_pay'] < salepayment['sp_subtotal'] and ts_firstpayment > 0:
-                                        new_pay = salepayment['sp_pay'] + ts_firstpayment
-                                        if new_pay > salepayment['sp_subtotal']:
-                                            new_pay = salepayment['sp_subtotal']
-
-                                        ts_firstpayment = ts_firstpayment - new_pay
-
-                                        sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
-                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
-
-                                        commission = 0
-                                '''
                             else:
                                 sp_regdate = sp_limitdate
-                                sp_limitdate = sp_limitdate + timedelta(days=ts_days)
+                                sp_limitdate = api_get_next_month_day(sp_limitdate, ts_days)
 
                                 new_pay = total + commission
                                 us_id = session['us_id']
                                 if ts_id == 1003:
+                                    sp_no = None
                                     sp_regdate = None
                                     new_pay = 0
                                     commission = 0
                                     pm_id = None    
                                     us_id = None                                
+                                else:
+                                    sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
 
-                                sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
                                 sp_salepayments_model().insert_salepayment(sp_no = sp_no, sp_subtotal = total, sp_commission = commission, sp_pay = new_pay, sp_limitdate = sp_limitdate, sp_regdate = sp_regdate, pm_id = pm_id, us_id = us_id, sa_id = sa_id)
 
                             response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!', 'sa_id': sa_id, 'sp_no': sp_no}))
@@ -2152,7 +2148,7 @@ def api_web(path):
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sales'):
                                 return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
                             
-                            if (v_apiurlsplit[4] == 'table' and v_apiurlsplit[5] is None) or (v_apiurlsplit[4] == 'late' and v_apiurlsplit[5] == 'table' and v_apiurlsplit[6] is None):
+                            if (v_apiurlsplit[4] == 'table' and v_apiurlsplit[5] is None) or (v_apiurlsplit[4] == 'late' and v_apiurlsplit[5] == 'table' and v_apiurlsplit[6] is None) or (v_apiurlsplit[4] == 'cancel' and v_apiurlsplit[5] == 'table' and v_apiurlsplit[6] is None):
                                 page = v_requestform.get('page')
                                 if not page or not page.isnumeric():
                                     page = 1
@@ -2168,11 +2164,12 @@ def api_web(path):
                                 table = []
 
                                 if v_apiurlsplit[4] == 'late':
-                                    sales_ids = []
                                     sales = []
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'limitdate')
                                     for salepayment in salepayments:
                                         sales.append(sa_sales_model().get_sale(get = 'sa_id', sa_id = salepayment['sa_id']))
+                                elif v_apiurlsplit[4] == 'cancel':
+                                    sales = sa_sales_model().get_sales(get='table,status', sa_status = 0, page_start=page_start, quantity = quantity, search = search)
                                 else:
                                     sales = sa_sales_model().get_sales(get='table', page_start=page_start, quantity = quantity, search = search)
 
@@ -2198,7 +2195,7 @@ def api_web(path):
                                         days_difference = difference_date.days
                                     
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
-                                    remainingpayment = sale["sa_subtotal"] - total_pay
+                                    remainingpayment = (sale["sa_subtotal"] - sale["sa_discount"]) - total_pay
                                     if not sale["sa_status"]:
                                         alert = f'<span class="badge bg-dark fw-bold" style="font-size: 12px;">Cancelada</span>'
                                     elif sale["ts_id"] == 1001:
@@ -2211,13 +2208,17 @@ def api_web(path):
                                         alert = f'<span class="badge bg-warning fw-bold text-black" style="font-size: 12px;">Medio ({days_difference})</span>'
                                     else:
                                         alert = f'<span class="badge bg-success fw-bold" style="font-size: 12px;">Bajo ({days_difference})</span>'
+                                    
+                                    sa_regdate = "N/A"
+                                    if sale['sa_regdate']:
+                                        sa_regdate = str(sale['sa_regdate'].strftime('%d/%m/%Y %H:%M'))
 
                                     response = {
                                         'alert': alert,
                                         'sa_no': sale['sa_no'],
                                         'remainingpayment': remainingpayment,
                                         'lo_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["lo_name"]}</span>',
-                                        'sa_regdate': str(sale['sa_regdate'].strftime('%d/%m/%Y %H:%M')),
+                                        'sa_regdate': sa_regdate,
                                         'ts_name': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{sale["ts_name"]}</span>',
                                         'sa_subtotal': f'Q{sale["sa_subtotal"]}',
                                         'sa_discount': f'-Q{sale["sa_discount"]}',
@@ -2323,7 +2324,7 @@ def api_web(path):
                                                 sp_no = 'N/A'
 
                                             total_pay = sum(salepayment['sp_pay'] for salepayment in payments)
-                                            remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                            remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
 
                                             response = {
                                                 'sp_id': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{payment["sp_id"]}</span>',
@@ -2387,7 +2388,7 @@ def api_web(path):
 
                                         salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_limitdate_ASC', sa_id = sa_id)
                                         total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
-                                        remainingpayment = sa_sale["sa_subtotal"] - total_pay
+                                        remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
                                         if remainingpayment <= 0:
                                             return json.dumps({'success': False, 'msg': '¡Esta venta ya fue abonada en su totalidad!'})       
                                         elif amount > remainingpayment:
@@ -2431,8 +2432,18 @@ def api_web(path):
                                             
                                             if dif_pay <= 0:
                                                 break
+                                        
+                                        if sa_sale['ts_id'] == 1003 or sa_sale['ts_id'] == 1004:
+                                            sa_no = sa_sale['sa_no']
+                                            sa_regdate = sa_sale['sa_regdate']
+                                            if not sa_no:
+                                                sa_no = sa_sales_model().get_sale(get = 'max_sa_no')['max_sa_no'] + 1
+                                            
+                                            if not sa_regdate:
+                                                sa_regdate = v_datetimenow
 
-
+                                            sa_sales_model().update_sale(update='sa_no,sa_regdate', sa_no = sa_no, sa_regdate = sa_regdate, sa_id=sa_id)
+                                        
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!', 'sp_no': sp_no, 'dif_pay': dif_pay})
                                     elif v_apiurlsplit[6] == 'edit' and v_apiurlsplit[7] is None:
                                         if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
@@ -2530,9 +2541,9 @@ def api_web_pos_app_ticket(sa_id):
     if sa_sale:
         sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
         sp_salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_no_ASC', sa_id = sa_id)
-        if sa_sale['ts_id'] == 1002:            
+        if sa_sale['ts_id'] == 1002 or  sa_sale['ts_id'] == 1004:            
             total_pay = sum(salepayment['sp_pay'] for salepayment in sp_salepayments)
-            remainingpayment = sa_sale["sa_subtotal"] - total_pay
+            remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
             
             return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, remainingpayment = remainingpayment, total_pay = total_pay)
         

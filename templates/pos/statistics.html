@@ -167,6 +167,7 @@
                                         <tr>
                                             <th scope="col">Recibo</th>
                                             <th scope="col">Fecha de registro</th>
+                                            <th scope="col">Tipo de pago</th>
                                             <th scope="col">Total</th>
                                             <th scope="col">Cliente</th>
                                             <th scope="col">Empleado</th>
@@ -178,6 +179,7 @@
                                         <tr>
                                             <td><span class='badge bg-primary'>{{salepayment.sp_no}}</span></td>
                                             <td>{{salepayment.sp_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                            <td>{% if salepayment.sa_status == 0 %}<span class='badge bg-danger'>Cancelado</span>{% else %}<span class='badge bg-primary'>Pagó</span>{% endif %}</td>     
                                             <td>Q{{salepayment.sp_pay|format_currency}}</td>
                                             <td><span class='badge bg-primary'>{{salepayment.cu_id}}</span><br>{{salepayment.cu_pe_fullname}}</td>
                                             <td><span class='badge bg-primary'>{{salepayment.us_pe_fullname}}</span></td>

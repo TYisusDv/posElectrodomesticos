@@ -352,7 +352,11 @@
                 $('#pos-ts_amountpayments-edit-div').addClass('d-none');
                 $('#pos-ts_days-edit-div').removeClass('d-none');
                 $('#pos-ts_firstpayment-edit-div').addClass('d-none');
-            } else {
+            } else if(selectedValue == 1004){
+                $('#pos-ts_amountpayments-edit-div').removeClass('d-none');
+                $('#pos-ts_days-edit-div').removeClass('d-none');
+                $('#pos-ts_firstpayment-edit-div').removeClass('d-none');
+            }else {
                 $('#pos-ts_amountpayments-edit-div').addClass('d-none');
                 $('#pos-ts_days-edit-div').addClass('d-none');
                 $('#pos-ts_firstpayment-edit-div').addClass('d-none');
@@ -539,6 +543,12 @@
                         $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">(Q${discount.toFixed(2)})</span> -$0`);
                         $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">(Q${total.toFixed(2)})</span> Q${ts_total.toFixed(2)}`);
                     } else if(ts_id == 1003){
+                        pos_total = 0;
+                        $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> $0`);                   
+                        $('#pos-info-div span[name=commission]').html(`$0`);
+                        $('#pos-info-div span[name=discount]').html(`<span style="font-size: 13px">(Q${discount.toFixed(2)})</span> -$0`);
+                        $('#pos-info-div span[name=total]').html(`<span style="font-size: 13px" class="me-1 mt-1">(Q${total.toFixed(2)})</span> $0`);
+                    } else if(ts_id == 1004){
                         pos_total = 0;
                         $('#pos-info-div span[name=subtotal]').html(`<span style="font-size: 13px">(Q${subtotal.toFixed(2)})</span> $0`);                   
                         $('#pos-info-div span[name=commission]').html(`$0`);

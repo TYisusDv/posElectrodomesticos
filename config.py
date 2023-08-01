@@ -89,6 +89,12 @@ def api_urlsplit(path, n):
     except:
         return None
 
+def api_searchsplit(search, n):
+    try:
+        return search.split(" ")[n] if len(search.split(" ")) > n else None
+    except:
+        return None
+
 def api_emailvalid(email):
     expresion_regular = r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"
     return re.match(expresion_regular, email) is not None
@@ -190,3 +196,23 @@ def api_getimagedata(path_file):
         data_decode = base64.b64encode(datas).decode('utf-8')
         data = f"data:image/jpg;base64,{data_decode}"
     return data
+
+def api_get_next_month_day(current_date, ts_days):
+    new_date = current_date + timedelta(days=ts_days)
+    
+    if ts_days == 30:
+        my_date = current_date
+        my_date_day = my_date.day
+        my_date_month = my_date.month
+        my_date_year = my_date.year
+        next_month = (my_date.month % 12) + 1
+        
+        try:
+            if my_date_month >= 12:
+                new_date = my_date.replace(year=my_date_year + 1, month = next_month, day=my_date_day)  
+            else:
+                new_date = my_date.replace(month = next_month, day=my_date_day)  
+        except ValueError as e:
+            new_date = my_date + timedelta(days=ts_days)                
+
+    return new_date

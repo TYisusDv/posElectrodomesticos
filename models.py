@@ -905,6 +905,8 @@ class sa_sales_model():
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_customers.cu_dpi, cu_customers.pe_id AS cu_pe_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, cu_pe_persons.pe_phone AS cu_pe_phone, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s', (sa_id,))  
         elif get == 'sa_id>sa_status':
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname, cu_pe_persons.pe_phone AS cu_pe_phone FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE sa_sales.sa_id = %s AND sa_sales.sa_status = %s', (sa_id, sa_status,))  
+        elif get == 'max_sa_no':
+            cur.execute('SELECT COALESCE(MAX(sa_no), 0) AS max_sa_no FROM sa_sales')  
         else:
             cur.close()
             return None
@@ -913,12 +915,29 @@ class sa_sales_model():
         cur.close()        
         return data
         
-    def get_sales(self, get = None, date_1 = None, date_2 = None, page_start = 1, quantity = 10, search = None):
+    def get_sales(self, get = None, sa_status = 1, date_1 = None, date_2 = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
         
         if get == 'table':
+            search_split = [api_searchsplit(search, i) for i in range(10)]
+
             like = f'%{search}%'
-            cur.execute('SELECT DISTINCT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id INNER JOIN sp_salepayments ON sp_salepayments.sa_id = sa_sales.sa_id WHERE ((BINARY sa_sales.sa_id = BINARY %s OR BINARY sa_sales.sa_no = BINARY %s OR BINARY sp_salepayments.sp_no = BINARY %s) OR %s IS NULL OR %s = "") ORDER BY sa_sales.sa_regdate DESC LIMIT %s, %s',(search, search, search, search, search, page_start, quantity,))
+            like_0 = f'%{search_split[0]}%'
+            like_1 = f'%{search_split[1]}%'
+            like_2 = f'%{search_split[2]}%'
+            like_3 = f'%{search_split[3]}%'
+
+            cur.execute('SELECT DISTINCT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id INNER JOIN sp_salepayments ON sp_salepayments.sa_id = sa_sales.sa_id WHERE ((cu_pe_persons.pe_fullname LIKE %s OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR BINARY cu_customers.cu_id = BINARY %s OR BINARY sa_sales.sa_id = BINARY %s OR BINARY sa_sales.sa_no = BINARY %s OR BINARY sp_salepayments.sp_no = BINARY %s) OR %s IS NULL OR %s = "") ORDER BY CASE WHEN sa_sales.sa_no IS NOT NULL THEN 1 ELSE 0 END, sa_sales.sa_no DESC, sa_sales.sa_regdate DESC LIMIT %s, %s',(like, like_0, like_1, like_0, like_2, like_0, like_3, like_1, like_0, like_1, like_2, like_1, like_3, search, search, search, search, search, search, page_start, quantity,))
+        elif get == 'table,status':
+            search_split = [api_searchsplit(search, i) for i in range(10)]
+
+            like = f'%{search}%'
+            like_0 = f'%{search_split[0]}%'
+            like_1 = f'%{search_split[1]}%'
+            like_2 = f'%{search_split[2]}%'
+            like_3 = f'%{search_split[3]}%'
+
+            cur.execute('SELECT DISTINCT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id INNER JOIN sp_salepayments ON sp_salepayments.sa_id = sa_sales.sa_id WHERE (((cu_pe_persons.pe_fullname LIKE %s OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR (cu_pe_persons.pe_fullname LIKE %s AND cu_pe_persons.pe_fullname LIKE %s) OR BINARY cu_customers.cu_id = BINARY %s OR BINARY sa_sales.sa_id = BINARY %s OR BINARY sa_sales.sa_no = BINARY %s OR BINARY sp_salepayments.sp_no = BINARY %s) OR %s IS NULL OR %s = "") AND sa_sales.sa_status = %s) ORDER BY sa_sales.sa_no DESC, sa_sales.sa_regdate DESC LIMIT %s, %s',(like, like_0, like_1, like_0, like_2, like_0, like_3, like_1, like_0, like_1, like_2, like_1, like_3, search, search, search, search, search, search, sa_status, page_start, quantity,))
         elif get == 'table,statistics':
             cur.execute('SELECT sa_sales.*, lo_locations.lo_name, ts_typessales.ts_name, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sa_sales INNER JOIN lo_locations ON lo_locations.lo_id = sa_sales.lo_id INNER JOIN ts_typessales ON ts_typessales.ts_id = sa_sales.ts_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE DATE(sa_sales.sa_regdate) >= %s AND DATE(sa_sales.sa_regdate) <= %s ORDER BY sa_sales.sa_regdate DESC',(date_1, date_2,))
         else:
@@ -941,18 +960,20 @@ class sa_sales_model():
         cur.close()        
         return data
     
-    def insert_sale(self, sa_id = None, sa_subtotal = None, sa_discount = None, sa_amountpayments = None, sa_days = None, lo_id = None, ts_id = None, cu_id = None, us_id = None):
+    def insert_sale(self, sa_id = None, sa_no = None, sa_subtotal = None, sa_discount = None, sa_amountpayments = None, sa_days = None, sa_regdate = None, lo_id = None, ts_id = None, cu_id = None, us_id = None):
         cur = mysql.connection.cursor()          
-        cur.execute('INSERT INTO sa_sales(sa_id, sa_subtotal, sa_discount, sa_amountpayments, sa_days, lo_id, ts_id, cu_id, us_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (sa_id, sa_subtotal, sa_discount, sa_amountpayments, sa_days, lo_id, ts_id, cu_id, us_id,))
+        cur.execute('INSERT INTO sa_sales(sa_id, sa_no, sa_subtotal, sa_discount, sa_amountpayments, sa_days, sa_regdate, lo_id, ts_id, cu_id, us_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (sa_id, sa_no, sa_subtotal, sa_discount, sa_amountpayments, sa_days, sa_regdate, lo_id, ts_id, cu_id, us_id,))
         mysql.connection.commit()
         cur.close()
         return True
     
-    def update_sale(self, update = None, sa_status = None, sa_id = None):
+    def update_sale(self, update = None, sa_no = None, sa_regdate = None, sa_status = None, sa_id = None):
         cur = mysql.connection.cursor()
         
         if update == 'sa_status':        
             cur.execute('UPDATE sa_sales SET sa_status = %s WHERE sa_id = %s', (sa_status, sa_id,))
+        elif update == 'sa_no,sa_regdate':        
+            cur.execute('UPDATE sa_sales SET sa_no = %s, sa_regdate = %s WHERE sa_id = %s', (sa_no, sa_regdate, sa_id,))
         else:
             cur.close()
             return False
