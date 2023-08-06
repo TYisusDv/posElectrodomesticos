@@ -12,12 +12,12 @@
       <img src="/static/img/icon.jpg" alt="Mi Hogar">
     </div>
     <div class="info">
-      <p><strong>Mi hogar electrodomésticos</strong></p>
+      <p><strong>MI HOGAR ELECTRODOMÉSTICOS</strong></p>
       <p>4 Calle 4-60 zona 2 san lorenzo el cubo</p>
       <p><strong>Nit:</strong> 98511688</p>
       <p><strong>Tel:</strong> 5134-9923</p>
       <p><strong>Vendedor:</strong> {{sa_sale.us_pe_fullname}}</p>
-      <p><strong>Fecha:</strong> {% if sa_sale.sa_regdate == None %}N/A{% else %}{{sa_sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}{% endif %}</p>
+      <p><strong>Fecha:</strong> {{v_datetimenow.strftime('%d/%m/%Y %H:%M')}}</p>
       <p><strong>Sucursal:</strong> {{sa_sale.lo_name}}</p>
       <br>
       <p><strong>ID Cliente:</strong> {{sa_sale.cu_id}}</p>

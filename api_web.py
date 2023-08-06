@@ -2322,6 +2322,10 @@ def api_web(path):
                                             sp_no = payment['sp_no']
                                             if not payment['sp_no']:
                                                 sp_no = 'N/A'
+                                            
+                                            sp_note = payment['sp_note']
+                                            if not payment['sp_note']:
+                                                sp_note = 'N/A'
 
                                             total_pay = sum(salepayment['sp_pay'] for salepayment in payments)
                                             remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
@@ -2337,17 +2341,22 @@ def api_web(path):
                                                 'sp_limitdate':  f'<span>{payment["sp_limitdate"].strftime("%d/%m/%Y")}</span><br>({days_difference} días)',
                                                 'pm_name': paymentmethod,
                                                 'user': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user}</span>',
+                                                'sp_note': sp_note,
                                                 'sp_regdate': str(sp_regdate),
                                             }
                                             
                                             if remainingpayment <= 0:
                                                 actions = ''
                                             else:
-                                                btn_disabled = ''
+                                                btn_edit_disabled = ''
+                                                btn_split_disabled = ''
                                                 if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
-                                                    btn_disabled = 'disabled'
+                                                    btn_edit_disabled = 'disabled'
 
-                                                actions = f'<button class="btn btn-primary mb-1" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-light mb-1" sp_id="{payment["sp_id"]}" onclick="split_payment(this);" {btn_disabled}><i data-acorn-icon="arrow-right" data-acorn-size="16"></i> Dividir</button>'
+                                                if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/split'):
+                                                    btn_split_disabled = 'disabled'
+
+                                                actions = f'<button class="btn btn-primary mb-1" payment="{escape(json.dumps(response))}" onclick="edit_payment(this);" {btn_edit_disabled}><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button> <button class="btn btn-light mb-1" sp_id="{payment["sp_id"]}" onclick="split_payment(this);" {btn_split_disabled}><i data-acorn-icon="arrow-right" data-acorn-size="16"></i> Dividir</button>'
                                             
                                             actions = actions + f' <a class="btn btn-dark text-white mb-1" href="/api/web/pos/app/ticket/{sa_id}?no={payment["sp_no"]}" lv="1"><i data-acorn-icon="link" data-acorn-size="16"></i> Ticket</a>'
                                             response['actions'] = actions
@@ -2384,6 +2393,10 @@ def api_web(path):
                                         elif pm_paymentmethod['pm_status'] == 0:
                                             return json.dumps({'success': False, 'msg': '¡El método de pago esta prohibido! Por favor, corríjalo y vuelva a intentarlo.'})
                                         
+                                        sp_note = v_requestform.get('sp_note')
+                                        if not sp_note or len(sp_note) <= 0 or sp_note == "None" or sp_note == "N/A":
+                                            sp_note = None
+
                                         commission = amount * (pm_paymentmethod['pm_per'] / 100)
 
                                         salepayments = sp_salepayments_model().get_salepayments(get = 'where_sa_id,order_sp_limitdate_ASC', sa_id = sa_id)
@@ -2409,23 +2422,23 @@ def api_web(path):
                                                             if not sp_no:
                                                                 sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
                                                             
-                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_subtotal = new_pay, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_note = sp_note, sp_subtotal = new_pay, sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
                                                             amount = 0
                                                         else:
                                                             sp_no = salepayment['sp_no']
                                                             if not sp_no:
                                                                 sp_no = sp_salepayments_model().get_salepayment(get = 'max_sp_no')['max_sp_no'] + 1
                                                             
-                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_subtotal = salepayment['sp_subtotal'], sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
+                                                            sp_salepayments_model().update_salepayment(update='pay', sp_no = sp_no, sp_note = sp_note, sp_subtotal = salepayment['sp_subtotal'], sp_commission = commission, sp_pay = new_pay, pm_id = pm_id, us_id = session['us_id'], sp_id = salepayment['sp_id'])
                                                             amount = amount - new_pay
                                                     
                                                 if (index == len(salepayments) - ult) and dif_pay > 0:
                                                     sp_subtotal = salepayment['sp_subtotal'] - dif_pay
                                                     if sp_subtotal > 0:
-                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_subtotal = sp_subtotal, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])
+                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_note = sp_note, sp_subtotal = sp_subtotal, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])
                                                         dif_pay = 0
                                                     else:
-                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_subtotal = 0, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])  
+                                                        sp_salepayments_model().update_salepayment(update='pay', sp_no = salepayment['sp_no'], sp_note = sp_note, sp_subtotal = 0, sp_commission = salepayment['sp_commission'], sp_pay = salepayment['sp_pay'], pm_id = salepayment['pm_id'], us_id = None, sp_id = salepayment['sp_id'])  
                                                         ult += 1   
                                                         rep = True
                                                         dif_pay = abs(salepayment['sp_subtotal'] - dif_pay)
@@ -2463,6 +2476,10 @@ def api_web(path):
                                         elif not api_isFloat(sp_pay) or float(sp_pay) < 0:
                                             return json.dumps({'success': False, 'msg': '¡El abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
                                         
+                                        sp_note = v_requestform.get('sp_note')
+                                        if not sp_note or len(sp_note) <= 0 or sp_note == "None" or sp_note == "N/A":
+                                            sp_note = None
+                                        
                                         sp_pay = float(sp_pay)
 
                                         sp_limitdate = v_requestform.get('sp_limitdate')
@@ -2472,11 +2489,11 @@ def api_web(path):
                                         if sp_pay > sp_salepayment['sp_subtotal']:
                                             return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})   
 
-                                        sp_salepayments_model().update_salepayment(update='edit', sp_pay = sp_pay, us_id = sp_salepayment['us_id'], sp_id = sp_id, sp_limitdate = sp_limitdate)
+                                        sp_salepayments_model().update_salepayment(update='edit', sp_note = sp_note, sp_pay = sp_pay, us_id = sp_salepayment['us_id'], sp_id = sp_id, sp_limitdate = sp_limitdate)
 
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                                     elif v_apiurlsplit[6] == 'split' and v_apiurlsplit[7] is None:
-                                        if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments'):
+                                        if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/split'):
                                             return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
                                     
                                         sp_id = v_requestform.get('sp_id')
@@ -2537,6 +2554,7 @@ def api_web_token():
 
 @app.route('/api/web/pos/app/ticket/<sa_id>', methods = ['GET'])
 def api_web_pos_app_ticket(sa_id):
+    v_datetimenow = datetime.now()
     sa_sale = sa_sales_model().get_sale(get = 'sa_id', sa_id = sa_id)
     if sa_sale:
         sd_saledetails = sd_saledetails_model().get_saledetails(get = 'sa_id', sa_id = sa_id)
@@ -2545,9 +2563,9 @@ def api_web_pos_app_ticket(sa_id):
             total_pay = sum(salepayment['sp_pay'] for salepayment in sp_salepayments)
             remainingpayment = (sa_sale["sa_subtotal"] - sa_sale["sa_discount"]) - total_pay
             
-            return render_template('/pos/ticketpayments.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, remainingpayment = remainingpayment, total_pay = total_pay)
+            return render_template('/pos/ticketpayments.html', v_datetimenow = v_datetimenow, sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments, remainingpayment = remainingpayment, total_pay = total_pay)
         
-        return render_template('/pos/ticket.html', sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
+        return render_template('/pos/ticket.html', v_datetimenow = v_datetimenow, sa_sale = sa_sale, sd_saledetails = sd_saledetails, sp_salepayments = sp_salepayments)
     return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
 
 @app.route('/api/web/pos/app/invoice/<sa_id>', methods = ['GET'])
@@ -2582,6 +2600,52 @@ def api_web_pos_app_invoice(sa_id):
 
         return response
     return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
+
+@app.route('/api/web/pos/app/statistics/<date_1>/<date_2>', methods = ['GET'])
+def api_web_pos_app_statistics(date_1, date_2):
+    v_datetimenow = datetime.now()
+    v_date = v_datetimenow.date()
+
+    if date_1 is None: 
+        date_1 = v_date
+    
+    if date_2 is None: 
+        date_2 = date_1
+
+    try:
+        date_1 = datetime.strptime(date_1, '%Y-%m-%d').date()
+    except:
+        date_1 = v_date
+
+    try:
+        date_2 = datetime.strptime(date_2, '%Y-%m-%d').date()
+    except:
+        date_2 = date_1
+    
+    sales = sa_sales_model().get_sales(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
+    total_sales = sum(sale['sa_subtotal'] - sale['sa_discount'] for sale in sales if sale['sa_status'] == 1)
+
+    salepayments = sp_salepayments_model().get_salepayments(get = 'table,statistics', date_1 = date_1, date_2 = date_2)
+    total_salepayments = sum(salepayment['sp_pay'] for salepayment in salepayments if salepayment['sa_status'] == 1)
+    options = {
+        'encoding': 'UTF-8',
+        'page-height': '14cm',      
+        'margin-top': '0.5cm',
+        'margin-right': '0.5cm',
+        'margin-bottom': '0.5cm',
+        'margin-left': '0.5cm',
+        "enable-local-file-access": ""
+    }
+
+    # Generar el PDF como una cadena de bytes
+    pdf_bytes = pdfkit.from_string(render_template('/pos/apistatistics.html', v_datetimenow = v_datetimenow, sales = sales, total_sales = total_sales, salepayments = salepayments, total_salepayments = total_salepayments), False, options=options)
+
+    # Crear la respuesta con el archivo PDF
+    response = make_response(pdf_bytes)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=statistics.pdf'
+
+    return response
 
 @app.route('/api/web/download/<download_uuid>', methods = ['GET'])
 def api_web_download(download_uuid):

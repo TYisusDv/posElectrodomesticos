@@ -138,6 +138,7 @@
                             <th scope="col">Fecha limite</th>
                             <th scope="col">Metodo de pago</th>
                             <th scope="col">Empleado</th>
+                            <th scope="col">Nota/Referencia</th>
                             <th scope="col">Fecha de registro</th>
                             <th scope="col">Acciones</th>
                         </tr>
@@ -194,6 +195,10 @@
                             {% endfor %}
                         </select>
                     </div> 
+                    <div class="mb-4 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <textarea class="form-control" placeholder="Nota" name="sp_note"></textarea>
+                    </div>  
                     <div class="filled form-group tooltip-end-top">
                         <h1 class="text-primary font-heading display-6 d-flex justify-content-end">Cambio
                         </h1>
@@ -230,6 +235,10 @@
                         <i data-acorn-icon="calendar"></i>
                         <input class="form-control" type="date" placeholder="Fecha limite" name="sp_limitdate">
                     </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <textarea class="form-control" placeholder="Nota" name="sp_note"></textarea>
+                    </div>             
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save" data-acorn-size="16"></i>
@@ -281,10 +290,12 @@
             var payment_json = JSON.parse($(e).attr('payment'));
             var sp_id = table_tempelement(payment_json.sp_id).find('span').text();
             var sp_pay = table_tempelement(payment_json.sp_pay).text().replace('Q', '');
+            var sp_note = table_tempelement(payment_json.sp_note).text();
             var sp_limitdate = formatDate(table_tempelement(payment_json.sp_limitdate).find('span').text());
             
             $('#manage-payments-form-edit input[name=sp_id]').val(sp_id);
             $('#manage-payments-form-edit input[name=sp_pay]').val(sp_pay);
+            $('#manage-payments-form-edit textarea[name=sp_note]').val(sp_note);
             $('#manage-payments-form-edit input[name=sp_limitdate]').val(sp_limitdate);
 
             $('#manage-payments-modal-edit').modal('show');

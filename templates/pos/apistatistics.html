@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Factura de Venta</title>
+  <link rel="stylesheet" type="text/css" href="https://mihogarelectrodomesticos.com/static/css/invoice.css?v=1.0.34">
+  <script src="https://mihogarelectrodomesticos.com/static/js/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="invoice"> 
+    <div class="title">
+      <h1 class="strong">MI HOGAR ELECTRODOMÉSTICOS</h1>
+      <p>4 Calle 4-60 zona 2 san lorenzo el cubo</p>      
+    </div> 
+    <div class="section-1">  
+      <div class="s1">
+        <img src="https://mihogarelectrodomesticos.com/static/img/icon.jpg" alt="Mi Hogar">
+      </div>    
+      <div class="s2">
+        <p><strong>Nit:</strong> 98511688</p>
+        <p><strong>Tel:</strong> 5134-9923</p>
+        <br>
+        <p><strong>Fecha:</strong> {{v_datetimenow.strftime('%d/%m/%Y %H:%M')}}</p>
+      </div>  
+      <div class="s3">          
+        <div class="qr">
+          <div id="saleid"> 
+          </div>
+        </div>         
+      </div>        
+    </div>
+    <div class="section-2">
+      <div class="table">
+        <div class="row header strong">
+          <div class="cell" style="width: 10%;">Factura</div>
+          <div class="cell" style="width: 20%;">Fecha de registro</div>
+          <div class="cell" style="width: 10%;">Tipo de venta</div>
+          <div class="cell" style="width: 10%;">Total</div>
+          <div class="cell" style="width: 30%;">Cliente</div>
+          <div class="cell" style="width: 20%;">Empleado</div>
+        </div>
+        {% for sale in sales %}
+        <div class="row">
+          <div class="cell" style="width: 10%;">{{sale.sa_no}}</div>
+          <div class="cell" style="width: 20%;">{{sale.sa_regdate.strftime('%d/%m/%Y %H:%M')}}</div>
+          <div class="cell" style="width: 10%;">{% if sale.sa_status == 0 %}Cancelado{% else %}{{sale.ts_name}}{% endif %}</div>
+          <div class="cell" style="width: 10%;">Q{{(sale.sa_subtotal - sale.sa_discount)|format_currency}}</div>
+          <div class="cell" style="width: 30%;">{{sale.cu_id}}<br>{{sale.cu_pe_fullname}}</div>
+          <div class="cell" style="width: 20%;">{{sale.us_pe_fullname}}</div>
+        </div>
+        {% endfor %}        
+      </div>
+    </div>
+    <div class="section-3">
+      <div class="table" style="width: 25%;">
+        <div class="row header strong">
+          <div class="cell" style="width: 50%;">Informacion</div>
+          <div class="cell" style="width: 50%;">Totales</div>
+        </div> 
+        <div class="row">
+          <div class="cell" style="width: 50%;">Total</div>
+          <div class="cell" style="width: 50%;">Q{{total_sales | format_currency}}</div>
+        </div>  
+      </div>
+    </div>
+    <div style="page-break-before: always;"></div>
+
+    <div class="section-2">
+      <div class="table">
+        <div class="row header strong">
+          <div class="cell" style="width: 10%;">Recibo</div>
+          <div class="cell" style="width: 20%;">Fecha de registro</div>
+          <div class="cell" style="width: 10%;">Tipo de pago</div>
+          <div class="cell" style="width: 10%;">Total</div>
+          <div class="cell" style="width: 30%;">Cliente</div>
+          <div class="cell" style="width: 20%;">Empleado</div>
+        </div>
+        {% for salepayment in salepayments %}
+        <div class="row">
+          <div class="cell" style="width: 10%;">{{salepayment.sp_no}}</div>
+          <div class="cell" style="width: 20%;">{{salepayment.sp_regdate.strftime('%d/%m/%Y %H:%M')}}</div>
+          <div class="cell" style="width: 10%;">{% if salepayment.sa_status == 0 %}Cancelado{% else %}Pagó{% endif %}</div>
+          <div class="cell" style="width: 10%;">Q{{salepayment.sp_pay|format_currency}}</div>
+          <div class="cell" style="width: 30%;">{{salepayment.cu_id}}<br>{{salepayment.cu_pe_fullname}}</div>
+          <div class="cell" style="width: 20%;">{{salepayment.us_pe_fullname}}</div>
+        </div>
+        {% endfor %}        
+      </div>
+    </div>
+    <div class="section-3">
+      <div class="table" style="width: 25%;">
+        <div class="row header strong">
+          <div class="cell" style="width: 50%;">Informacion</div>
+          <div class="cell" style="width: 50%;">Totales</div>
+        </div> 
+        <div class="row">
+          <div class="cell" style="width: 50%;">Total</div>
+          <div class="cell" style="width: 50%;">Q{{total_salepayments | format_currency}}</div>
+        </div>  
+      </div>
+    </div>
+  </div>  
+
+</body>
+</html>

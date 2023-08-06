@@ -1035,7 +1035,7 @@ class sp_salepayments_model():
         elif get == 'where_sa_id,order_sp_limitdate_ASC':
             cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC', (sa_id,))  
         elif get == 'where_sa_id,order_sp_no_ASC':
-            cur.execute('SELECT sp_salepayments.* FROM sp_salepayments WHERE sp_salepayments.sa_id = %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no ASC, sp_limitdate ASC', (sa_id,))  
+            cur.execute('SELECT sp_salepayments.*, pe_persons.pe_fullname FROM sp_salepayments LEFT JOIN us_users ON us_users.us_id = sp_salepayments.us_id LEFT JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE sp_salepayments.sa_id = %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no ASC, sp_limitdate ASC', (sa_id,))  
         elif get == 'limitdate':
             cur.execute('SELECT sp.sa_id, MIN(sp.sp_limitdate) AS min_limitdate FROM sp_salepayments sp INNER JOIN sa_sales AS sa ON sa.sa_id = sp.sa_id WHERE sp.sp_pay < sp.sp_subtotal AND sp.sp_limitdate < NOW() AND sa.sa_status = 1 GROUP BY sp.sa_id ORDER BY min_limitdate ASC')  
         elif get == 'table-sa_id':
@@ -1072,13 +1072,13 @@ class sp_salepayments_model():
         cur.close()
         return True
     
-    def update_salepayment(self, update = None, sp_no = None, sp_commission = None, sp_pay = None, sp_subtotal = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
+    def update_salepayment(self, update = None, sp_no = None, sp_note = None, sp_commission = None, sp_pay = None, sp_subtotal = None, pm_id = None, us_id = None, sp_id = None, sp_limitdate = None):
         cur = mysql.connection.cursor()  
         
         if update == 'pay':
-            cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_subtotal = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_subtotal, sp_commission, sp_pay, pm_id, us_id, sp_id,))
+            cur.execute('UPDATE sp_salepayments SET sp_no = %s, sp_note = %s, sp_subtotal = %s, sp_commission = %s, sp_pay = %s, sp_regdate = NOW(), pm_id = %s, us_id = %s WHERE sp_id = %s', (sp_no, sp_note, sp_subtotal, sp_commission, sp_pay, pm_id, us_id, sp_id,))
         elif update == 'edit':
-            cur.execute('UPDATE sp_salepayments SET sp_pay = %s, sp_limitdate = %s, us_id = %s WHERE sp_id = %s', (sp_pay, sp_limitdate, us_id, sp_id,))
+            cur.execute('UPDATE sp_salepayments SET sp_note = %s, sp_pay = %s, sp_limitdate = %s, us_id = %s WHERE sp_id = %s', (sp_note, sp_pay, sp_limitdate, us_id, sp_id,))
         elif update == 'split':
             cur.execute('UPDATE sp_salepayments SET sp_subtotal = %s WHERE sp_id = %s', (sp_subtotal, sp_id,))
         else:
