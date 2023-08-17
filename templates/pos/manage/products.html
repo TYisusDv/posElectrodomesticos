@@ -301,6 +301,89 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="inventory-entry-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="inventory-entry-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inventory-entry-modalLabel">De que fecha a que fecha?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="inventory-entry-modal-form" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="barcode"></i>
+                        <input class="form-control" placeholder="ID Producto" name="pr_id" readonly>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Producto" name="pr_name" disabled>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="factory"></i>
+                        <select class="form-control" name="it_id">      
+                            <option value="0" class="bg-dark">Seleccione algun tipo de inventario...</option>                      
+                            {% for inventory_type in inventory_types %}
+                            <option value="{{inventory_type.it_id}}" class="bg-dark">{{inventory_type.it_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="grid-1"></i>
+                        <input class="form-control" type="number" placeholder="Cantidad" name="iv_quantity">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nota / Correlativo" name="iv_note">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="compass"></i>
+                        <select class="form-control" name="lo_id">      
+                            <option value="0" class="bg-dark">Seleccione alguna sucursal o bodega...</option>                      
+                            {% for location in locations %}
+                            <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="inv_trasl" style="display: none;">
+                        <div class="mb-3 filled form-group tooltip-end-top">
+                            <i data-acorn-icon="user"></i>
+                            <select class="form-control" name="us_id_2">      
+                                <option value="0" class="bg-dark">Seleccione el empleado quien recibira...</option>                      
+                                {% for user in users %}
+                                <option value="{{user.us_id}}" class="bg-dark">{{user.pe_fullname}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3 filled form-group tooltip-end-top">
+                            <i data-acorn-icon="car"></i>
+                            <select class="form-control" name="us_id_3">      
+                                <option value="0" class="bg-dark">Seleccione el transportista...</option>                      
+                                {% for user in users %}
+                                <option value="{{user.us_id}}" class="bg-dark">{{user.pe_fullname}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3 filled form-group tooltip-end-top">
+                            <i data-acorn-icon="compass"></i>
+                            <select class="form-control" name="lo_id_2">      
+                                <option value="0" class="bg-dark">Seleccione alguna sucursal o bodega donde llegará...</option>                      
+                                {% for location in locations %}
+                                <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="save"
+                            data-acorn-size="16"></i>
+                        Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <script>
     (function() {
         $(document).ready(function () {
@@ -365,6 +448,15 @@
                 searchEngine: "strict",
                 highlight: !0,
             });
+
+            $('#inventory-entry-modal-form select[name="it_id"]').change(function() {
+                var selectedValue = $(this).val();
+                if(parseInt(selectedValue) == 3){
+                    $("#inv_trasl").css("display", "block");
+                } else {
+                    $("#inv_trasl").css("display", "none");
+                }  
+            });
         });
 
         function edit_product(e){
@@ -400,6 +492,18 @@
             $('#manage-products-modal-edit').modal('show');
         }
         window.edit_product = edit_product;
+
+        function inv_product(e){
+            var product_json = JSON.parse($(e).attr('product'));           
+            var id = table_tempelement(product_json.id).find('span').text();            
+            var name = table_tempelement(product_json.name).text();           
+
+            $('#inventory-entry-modal-form input[name=pr_id]').val(id);
+            $('#inventory-entry-modal-form input[name=pr_name]').val(name);         
+
+            $('#inventory-entry-modal').modal('show');
+        }
+        window.inv_product = inv_product;
 
         $('#manage-products-search').on('input', function () {
             clearTimeout(typingTimer);
@@ -540,6 +644,44 @@
             }).catch(function (response) {
                 $('#manage-products-modal-edit').modal('hide');
                 $('#manage-products-form-edit button[type="submit"]').prop('disabled', false);
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });
+            });
+        });
+
+        $('#inventory-entry-modal-form').submit(function (e) {
+            e.preventDefault();
+
+            $('#inventory-entry-modal-form button[type="submit"]').prop('disabled', true);
+            var formData = new FormData(this);
+
+            var response = sendDataPost('pos/inventory/add', 'data', formData);
+            response.then(function (response) {
+                $('#inventory-entry-modal').modal('hide');
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                    loadView();
+                } else {
+                    $('#inventory-entry-modal-form button[type="submit"]').prop('disabled', false);
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+            }).catch(function (response) {
+                $('#inventory-entry-modal').modal('hide');
+                $('#inventory-entry-modal-form button[type="submit"]').prop('disabled', false);
                 loadNoti({
                     title: 'Error!',
                     msg: response.msg,

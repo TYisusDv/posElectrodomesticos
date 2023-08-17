@@ -1,0 +1,287 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Inventario</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Pos</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/inventory">Inventario</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-6 col-sm-6 d-flex align-items-start justify-content-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary mb-1" data-bs-toggle="modal"
+                    data-bs-target="#inventory-modal-date">
+                    <i data-acorn-icon="calendar" class="icon" data-acorn-size="16"></i> Fecha
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-4 col-sm-4 col-lg-4">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="calendar" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Fecha</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">{{date_1.strftime('%d/%m/%Y')}} -
+                                    {{date_2.strftime('%d/%m/%Y')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="row">
+    <div class="col-12">
+        <h2 class="small-title">Entradas</h2>
+        <div class="row g-2">
+            <div class="col-12">
+                <section class="scroll-section" id="hoverableRows">
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <div class="row">                                
+                                <div class="col-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Fecha de registro</th>
+                                                    <th scope="col">Cantidad</th>
+                                                    <th scope="col">Producto</th>
+                                                    <th scope="col">Ubicación</th>
+                                                    <th scope="col">Tipo</th>
+                                                    <th scope="col">Nota</th>
+                                                    <th scope="col">Empleado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for inv in inventoryEntries %}
+                                                <tr>
+                                                    <td><span class='badge bg-primary'>{{inv.iv_id}}</span></td>
+                                                    <td>{{inv.iv_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                                    <td>{{inv.iv_quantity}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.pr_id}}</span><br>{{inv.pr_name}}
+                                                    </td>
+                                                    <td>{{inv.lo_name}}</td>
+                                                    <td><span class='badge bg-primary'>{{inv.it_name}}</span></td>
+                                                    <td>{{inv.iv_note}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.us_id}}</span><br>{{inv.pe_fullname}}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <h2 class="small-title">Salidas</h2>
+        <div class="row g-2">
+            <div class="col-12">
+                <section class="scroll-section" id="hoverableRows">
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Fecha de registro</th>
+                                                    <th scope="col">Cantidad</th>
+                                                    <th scope="col">Producto</th>
+                                                    <th scope="col">Ubicación</th>
+                                                    <th scope="col">Tipo</th>
+                                                    <th scope="col">Nota</th>
+                                                    <th scope="col">Empleado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for inv in inventoryOuts %}
+                                                <tr>
+                                                    <td><span class='badge bg-primary'>{{inv.iv_id}}</span></td>
+                                                    <td>{{inv.iv_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                                    <td>{{inv.iv_quantity}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.pr_id}}</span><br>{{inv.pr_name}}
+                                                    </td>
+                                                    <td>{{inv.lo_name}}</td>
+                                                    <td><span class='badge bg-primary'>{{inv.it_name}}</span></td>
+                                                    <td>{{inv.iv_note}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.us_id}}</span><br>{{inv.pe_fullname}}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <h2 class="small-title">Traslados</h2>
+        <div class="row g-2">
+            <div class="col-12">
+                <section class="scroll-section" id="hoverableRows">
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <div class="row">                                
+                                <div class="col-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Fecha de registro</th>
+                                                    <th scope="col">Cantidad</th>
+                                                    <th scope="col">Producto</th>
+                                                    <th scope="col">Ubicación Salida</th>
+                                                    <th scope="col">Ubicación Entrada</th>
+                                                    <th scope="col">Tipo</th>
+                                                    <th scope="col">Nota / Correlativo</th>
+                                                    <th scope="col">Empleado Salida</th>
+                                                    <th scope="col">Empleado Entrada</th>
+                                                    <th scope="col">Transportista</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for inv in inventoryTransfers %}
+                                                <tr>
+                                                    <td><span class='badge bg-primary'>{{inv.iv_id}}</span></td>
+                                                    <td>{{inv.iv_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
+                                                    <td>{{inv.iv_quantity}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.pr_id}}</span><br>{{inv.pr_name}}
+                                                    </td>
+                                                    <td>{{inv.lo_name}}</td>
+                                                    <td>{{inv.lo_2_name}}</td>
+                                                    <td><span class='badge bg-primary'>{{inv.it_name}}</span></td>
+                                                    <td>{{inv.iv_note}}</td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.us_id}}</span><br>{{inv.pe_fullname}}
+                                                    </td>
+                                                    <td><span
+                                                            class='badge bg-primary'>{{inv.us_id_2}}</span><br>{{inv.pe_2_fullname}}
+                                                    </td>
+                                                    <td><span
+                                                        class='badge bg-primary'>{{inv.us_id_3}}</span><br>{{inv.pe_3_fullname}}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="inventory-modal-date" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="inventory-modal-dateLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inventory-modal-dateLabel">De que fecha a que fecha?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="inventory-modal-date-set" autocomplete="off">
+                <div class="modal-body">
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="date" placeholder="Fecha 1" name="date1">
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="calendar"></i>
+                        <input class="form-control" type="date" placeholder="Fecha 2" name="date2">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="search"
+                            data-acorn-size="16"></i>
+                        Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        $('#inventory-modal-date-set').submit(function (e) {
+            e.preventDefault();
+            const date1 = $('#inventory-modal-date-set input[name="date1"]').val();
+            const date2 = $('#inventory-modal-date-set input[name="date2"]').val();
+            path = `/pos/inventory/${date1}/${date2}`;
+            history.pushState(null, null, path);
+            loadView();
+            $('#inventory-modal-date').modal('hide');
+        });
+
+        jQuery("#select2Ajax").select2({
+            ajax: {
+                url: "https://node-api.coloredstrategies.com/products",
+                dataType: "json",
+                delay: 250,
+                data: function (e) {
+                    return { search: { value: e.term }, page: e.page };
+                },
+                processResults: function (e, l) {
+                    return { results: e.data };
+                },
+                cache: !0,
+            },
+            placeholder: "Search",
+            escapeMarkup: function (e) {
+                return e;
+            },
+            minimumInputLength: 1,
+            templateResult: function (e) {
+                if (e.loading) return e.text;
+                var l = '<div class="clearfix"><div>' + e.Name + "</div>";
+                return (
+                    e.Description &&
+                    (l += '<div class="text-muted">' + e.Description + "</div>"),
+                    l
+                );
+            },
+            templateSelection: function (e) {
+                return e.Name;
+            },
+        });    
+    }) ();
+</script>

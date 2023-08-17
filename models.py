@@ -38,7 +38,7 @@ class us_users_model():
             like = f'%{search}%'
             cur.execute('SELECT us_users.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone, mem_memberships.mem_name FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE us_users.us_id LIKE %s OR pe_persons.pe_fullname LIKE %s OR pe_persons.pe_email LIKE %s OR pe_persons.pe_phone LIKE %s OR us_users.us_regdate LIKE %s OR mem_memberships.mem_name LIKE %s ORDER BY us_users.mem_id ASC LIMIT %s, %s',(like, like, like, like, like, like, page_start, quantity,))
         else:
-            cur.execute('SELECT us_users.*, mem_memberships.mem_name FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id')
+            cur.execute('SELECT us_users.*, mem_memberships.mem_name, pe_persons.pe_fullname FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id')
         
         data = cur.fetchall()
         cur.close()        
@@ -1106,4 +1106,49 @@ class at_addresstypes_model():
         data = cur.fetchall()
         cur.close()
         return data
-    
+
+class it_inventory_types_model():
+    def __init__(self):
+        pass
+
+    def get(self, get = None, it_id = None):
+        data = None
+        
+        cur = mysql.connection.cursor()        
+        if get == 'all':
+            cur.execute('SELECT it_inventory_types.* FROM it_inventory_types')            
+            data = cur.fetchall()
+        elif get == 'it_id':
+            cur.execute('SELECT it_inventory_types.* FROM it_inventory_types WHERE it_inventory_types.it_id = %s', (it_id,))            
+            data = cur.fetchone()        
+        cur.close()
+        
+        return data
+
+class iv_inventory_model():
+    def __init__(self):
+        pass
+        
+    def get(self, get = None, date_1 = None, date_2 = None, search = None, it_id = None, pr_id = None, lo_id = None):
+        data = None
+        
+        cur = mysql.connection.cursor()        
+        if get == 'table':
+            cur.execute('SELECT iv_inventory.*, pr_products.pr_name, lo_locations.lo_name, lo_2_locations.lo_name AS lo_2_name, it_inventory_types.it_name, pe_persons.pe_fullname, pe_persons_2.pe_fullname AS pe_2_fullname, pe_persons_3.pe_fullname AS pe_3_fullname FROM iv_inventory INNER JOIN pr_products ON pr_products.pr_id = iv_inventory.pr_id INNER JOIN lo_locations ON lo_locations.lo_id = iv_inventory.lo_id LEFT JOIN lo_locations AS lo_2_locations ON lo_2_locations.lo_id = iv_inventory.lo_id_2 INNER JOIN it_inventory_types ON it_inventory_types.it_id = iv_inventory.it_id INNER JOIN us_users ON us_users.us_id = iv_inventory.us_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id LEFT JOIN us_users AS us_users_2 ON us_users_2.us_id = iv_inventory.us_id_2 LEFT JOIN pe_persons AS pe_persons_2 ON pe_persons_2.pe_id = us_users_2.pe_id LEFT JOIN us_users AS us_users_3 ON us_users_3.us_id = iv_inventory.us_id_3 LEFT JOIN pe_persons AS pe_persons_3 ON pe_persons_3.pe_id = us_users_3.pe_id WHERE iv_inventory.it_id = %s AND DATE(iv_inventory.iv_regdate) >= %s AND DATE(iv_inventory.iv_regdate) <= %s', (it_id, date_1, date_2,))            
+            data = cur.fetchall()       
+        elif get == 'sumProductEntry':
+            cur.execute('SELECT SUM(iv_quantity) AS quantity FROM iv_inventory WHERE (iv_inventory.it_id = 1 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id = %s) OR (iv_inventory.it_id = 3 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id_2 = %s)', (pr_id, lo_id, pr_id, lo_id,))            
+            data = cur.fetchone()    
+        elif get == 'sumProductOut':
+            cur.execute('SELECT SUM(iv_quantity) AS quantity FROM iv_inventory WHERE (iv_inventory.it_id = 2 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id = %s) OR (iv_inventory.it_id = 3 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id = %s)', (pr_id, lo_id, pr_id, lo_id,))            
+            data = cur.fetchone()        
+        cur.close()
+        
+        return data
+
+    def insert(self, iv_quantity = None, iv_note = None, it_id = None, pr_id = None, lo_id = None, lo_id_2 = None, us_id = None, us_id_2 = None, us_id_3 = None):
+        cur = mysql.connection.cursor()          
+        cur.execute('INSERT INTO iv_inventory(iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, us_id, us_id_2, us_id_3) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, us_id, us_id_2, us_id_3,))
+        mysql.connection.commit()
+        cur.close()
+        return True

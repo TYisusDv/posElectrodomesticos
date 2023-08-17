@@ -75,6 +75,35 @@ def api_web(path):
                        
                         return json.dumps({'success': True, 'html': render_template('/pos/statistics.html', date_1 = date_1, date_2 = date_2, sales = sales, total_sales = total_sales, salepayments = salepayments, total_salepayments = total_salepayments)})
                     
+                    elif v_apiurlsplit[2] == 'inventory' and v_apiurlsplit[5] is None:
+                        if not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/main'):
+                            return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+
+                        date_1 = v_apiurlsplit[3]
+                        date_2 = v_apiurlsplit[4]
+
+                        if date_1 is None: 
+                            date_1 = v_date
+                        
+                        if date_2 is None: 
+                            date_2 = date_1
+
+                        try:
+                            date_1 = datetime.strptime(date_1, '%Y-%m-%d').date()
+                        except:
+                            date_1 = v_date
+
+                        try:
+                            date_2 = datetime.strptime(date_2, '%Y-%m-%d').date()
+                        except:
+                            date_2 = date_1
+                        
+                        inventoryEntries = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 1)
+                        inventoryOuts = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 2)
+                        inventoryTransfers = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 3)
+                       
+                        return json.dumps({'success': True, 'html': render_template('/pos/inventory.html', date_1 = date_1, date_2 = date_2, inventoryEntries = inventoryEntries, inventoryOuts = inventoryOuts, inventoryTransfers = inventoryTransfers)})
+
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users' and v_apiurlsplit[4] is None: 
@@ -125,13 +154,16 @@ def api_web(path):
                             products = pr_products_model().get_products()
                             brands = br_brands_model().get_brands(get='status', br_status=1)  
                             categories = ca_categories_model().get_categories(get='status', ca_status=1)
-                            providers = pv_providers_model().get_providers(get='status', pv_status=1)    
+                            providers = pv_providers_model().get_providers(get='status', pv_status=1)
+                            inventory_types = it_inventory_types_model().get(get='all') 
+                            locations = lo_locations_model().get_locations(get='status', lo_status = 1)
+                            users = us_users_model().get_users()
 
                             hidden_count = sum(1 for product in products if product["pr_status"] == 0)
                             visible_count = sum(1 for product in products if product["pr_status"] == 1)
                             total_count = len(products)
                             
-                            return json.dumps({'success': True, 'html': render_template('/pos/manage/products.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, brands = brands, categories = categories, providers = providers)})
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/products.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, brands = brands, categories = categories, providers = providers, locations = locations, inventory_types = inventory_types, users = users)})
                         elif v_apiurlsplit[3] == 'providers' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/providers'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -825,6 +857,85 @@ def api_web(path):
 
                             return response
                     
+                    elif v_apiurlsplit[2] == 'inventory':
+                        if v_apiurlsplit[3] == 'add' and v_apiurlsplit[4] is None:
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/add'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
+
+                            pr_id = v_requestform.get('pr_id')
+                            if not pr_id:
+                                return json.dumps({'success': False, 'msg': '¡El producto está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                            elif not pr_products_model().get_product(pr_id=pr_id):
+                                return json.dumps({'success': False, 'msg': '¡El producto no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
+                            
+                            it_id = v_requestform.get('it_id')
+                            if not it_id:
+                                return json.dumps({'success': False, 'msg': '¡El tipo de inventario está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                            elif not it_inventory_types_model().get(get='it_id', it_id = it_id):
+                                return json.dumps({'success': False, 'msg': '¡El tipo de inventario no es válido! Por favor, corríjalo y vuelva a intentarlo.'})                            
+
+                            it_id = int(it_id)
+
+                            iv_quantity = v_requestform.get('iv_quantity')
+                            if not iv_quantity:
+                                return json.dumps({'success': False, 'msg': '¡La cantidad está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                            elif not iv_quantity.isnumeric():
+                                return json.dumps({'success': False, 'msg': '¡La cantidad no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                            
+                            iv_quantity = int(iv_quantity)
+
+                            lo_id = v_requestform.get('lo_id')
+                            if not lo_id:
+                                return json.dumps({'success': False, 'msg': '¡La ubicación está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                            elif lo_locations_model().get_location(lo_id) is None:
+                                return json.dumps({'success': False, 'msg': '¡La ubicación no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                            
+                            iv_note = v_requestform.get('iv_note')
+                            if not iv_note:
+                                iv_note = None           
+
+                            lo_id_2 = None
+                            us_id_2 = None
+                            us_id_3 = None
+
+                            if it_id == 2 or it_id == 3:
+                                quantity = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = lo_id)['quantity']
+                                if not quantity:
+                                    return json.dumps({'success': False, 'msg': '¡No tienes este producto en esa sucursal o bodega! Debes de tener al menos un producto.'})
+                                
+                                quantity = int(quantity)
+                                
+                                quantityOut = iv_inventory_model().get(get = 'sumProductOut', pr_id = pr_id, lo_id = lo_id)['quantity']
+                                if not quantityOut:
+                                    quantityOut = 0
+                                
+                                quantityOut = int(quantityOut)
+
+                                quantity = quantity - quantityOut
+                                if quantity < iv_quantity:
+                                    return json.dumps({'success': False, 'msg': f'¡No tienes este producto en esa sucursal o bodega! Debes abastecer a la salida, tienes {quantity} actualmente.'})
+                            
+                            if it_id == 3:
+                                us_id_2 = v_requestform.get('us_id_2')
+                                if not us_id_2:
+                                    return json.dumps({'success': False, 'msg': '¡El empleado está vacío! Por favor, corríjalo y vuelva a intentarlo.'}) 
+
+                                us_id_3 = v_requestform.get('us_id_3')
+                                if not us_id_3:
+                                    return json.dumps({'success': False, 'msg': '¡El transportista está vacío! Por favor, corríjalo y vuelva a intentarlo.'})    
+
+                                lo_id_2 = v_requestform.get('lo_id_2')
+                                if not lo_id_2:
+                                    return json.dumps({'success': False, 'msg': '¡La ubicación de llegada está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                elif lo_locations_model().get_location(lo_id_2) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ubicación de llegada no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+
+                                if lo_id == lo_id_2:
+                                    return json.dumps({'success': False, 'msg': '¡Las ubicaciones no deben de ser las mismas! Por favor, corríjala y vuelva a intentarlo.'})
+
+                            iv_inventory_model().insert(iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, session['us_id'], us_id_2, us_id_3)
+                            return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
+                            
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
                         if v_apiurlsplit[3] == 'users':
@@ -1317,7 +1428,7 @@ def api_web(path):
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pr_id="{product["pr_id"]}" onclick="check_status_product(this)" {status}></div>'
                                     response['regdate'] = str(product['pr_regdate'].strftime('%d/%m/%Y %H:%M'))
-                                    response['actions'] = f'<button class="btn btn-primary" product="{escape(json.dumps(response))}" onclick="edit_product(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button>'
+                                    response['actions'] = f'<button class="btn btn-primary" product="{escape(json.dumps(response))}" onclick="edit_product(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button><br><button class="btn btn-light mt-1" product="{escape(json.dumps(response))}" onclick="inv_product(this);"><i data-acorn-icon="factory" data-acorn-size="16"></i> Inventario</button>'
 
                                     table.append(response)
                                 
