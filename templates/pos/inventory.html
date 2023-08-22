@@ -47,6 +47,57 @@
         </div>
     </div>
 </section>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Productos</h2>
+    <div class="row g-2">
+        <div class="col-12 col-md-3 col-sm-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="shop" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">Todo</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">Ir</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% for location in locations %}
+        <div class="col-12 col-md-3 col-sm-3 col-lg-3">
+            <div class="card sh-11 hover-scale-up cursor-pointer" onclick="history.pushState(null, null, '/pos/manage/products/{{location.lo_id}}'); set_pageactive(); loadView();">
+                <div class="h-100 row g-0 card-body align-items-center py-3">
+                    <div class="col-auto pe-3">
+                        <div
+                            class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                            <i data-acorn-icon="compass" class="text-white"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row gx-2 d-flex align-content-center">
+                            <div class="col-12 col-xl d-flex">
+                                <div class="d-flex align-items-center lh-1-25">{{location.lo_name}}</div>
+                            </div>
+                            <div class="col-12 col-xl-auto">
+                                <div class="cta-2 text-primary">Ir</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 <div class="row">
     <div class="col-12">
         <h2 class="small-title">Entradas</h2>

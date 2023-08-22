@@ -1,0 +1,48 @@
+<div class="page-title-container">
+    <div class="row">
+        <div class="col-6 col-sm-6">
+            <h1 class="mb-0 pb-0 display-4" id="title">Inventario de {{location_inf.lo_name}}</h1>
+            <nav class="breadcrumb-container d-inline-block" aria-label="breadcrumb">
+                <ul class="breadcrumb pt-0">
+                    <li class="breadcrumb-item"><a href="javascript:;">Administrar</a></li>
+                    <li class="breadcrumb-item"><a href="/pos/manage/products/{{location_inf.lo_id}}">{{location_inf.lo_name}}</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<section class="scroll-section mb-5">
+    <h2 class="small-title">Estadísticas</h2>
+    
+</section>
+<section class="scroll-section" id="hoverableRows">
+    <h2 class="small-title">Registros</h2>
+    <div class="card mb-5">
+        <div class="card-body">
+            <div class="table-responsive mb-5">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Imagen</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Código de barras</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Cantidad en el inventario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-products-table">
+                        {% for iv in inv %}
+                        <tr>
+                            <td><img class="rounded-xl border border-separator-light border-4 sw-8 sh-8" alt="profile" src="{{iv.pr_id|getimgpr}}"></td>
+                            <td>{{iv.pr_id}}</td>
+                            <td>{{iv.pr_barcode}}</td>
+                            <td>{{iv.pr_name}}</td>
+                            <td>{{iv.net_quantity}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

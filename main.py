@@ -33,6 +33,10 @@ def format_currency(value):
     formatted_value = '{:,.2f}'.format(value)
     return Markup(formatted_value)
 
+@app.template_filter('getimgpr')
+def getimgpr(value):
+    return Markup(api_getimagedata(f'static/img/product/{value}.jpg'))
+
 def task_onemin():
     with app.app_context():
         sess_usersessions_model().update_session(update='offline')        

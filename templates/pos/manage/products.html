@@ -306,11 +306,15 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="inventory-entry-modalLabel">De que fecha a que fecha?</h5>
+                <h5 class="modal-title" id="inventory-entry-modalLabel">Inventario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="inventory-entry-modal-form" autocomplete="off">
                 <div class="modal-body">
+                    <div class="row" name="locations">
+                        
+                    </div>
+                    <hr />
                     <div class="mb-3 filled form-group tooltip-end-top">
                         <i data-acorn-icon="barcode"></i>
                         <input class="form-control" placeholder="ID Producto" name="pr_id" readonly>
@@ -496,10 +500,13 @@
         function inv_product(e){
             var product_json = JSON.parse($(e).attr('product'));           
             var id = table_tempelement(product_json.id).find('span').text();            
-            var name = table_tempelement(product_json.name).text();           
+            var name = table_tempelement(product_json.name).text();    
+            var locations = $(e).attr('inv')
+            console.log(locations);       
 
             $('#inventory-entry-modal-form input[name=pr_id]').val(id);
-            $('#inventory-entry-modal-form input[name=pr_name]').val(name);         
+            $('#inventory-entry-modal-form input[name=pr_name]').val(name);   
+            $('#inventory-entry-modal-form div[name=locations]').html(locations);      
 
             $('#inventory-entry-modal').modal('show');
         }

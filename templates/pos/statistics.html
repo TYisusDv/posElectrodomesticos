@@ -191,6 +191,7 @@
                                             <th scope="col">Fecha de registro</th>
                                             <th scope="col">Tipo de pago</th>
                                             <th scope="col">Total</th>
+                                            <th scope="col">Metodo de pago</th>
                                             <th scope="col">Cliente</th>
                                             <th scope="col">Empleado</th>
                                             <th scope="col">Acciones</th>
@@ -203,6 +204,7 @@
                                             <td>{{salepayment.sp_regdate.strftime('%d/%m/%Y %H:%M')}}</td>
                                             <td>{% if salepayment.sa_status == 0 %}<span class='badge bg-danger'>Cancelado</span>{% else %}<span class='badge bg-primary'>Pagó</span>{% endif %}</td>     
                                             <td>Q{{salepayment.sp_pay|format_currency}}</td>
+                                            <td>{{salepayment.pm_name}}</td>
                                             <td><span class='badge bg-primary'>{{salepayment.cu_id}}</span><br>{{salepayment.cu_pe_fullname}}</td>
                                             <td><span class='badge bg-primary'>{{salepayment.us_pe_fullname}}</span></td>
                                             <td><a class="btn btn-light btn-icon" href="/pos/manage/sales?search={{salepayment.sa_id}}"><i data-acorn-icon="search" data-acorn-size="16"></i> Mas detalles</a></td>

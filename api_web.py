@@ -101,8 +101,9 @@ def api_web(path):
                         inventoryEntries = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 1)
                         inventoryOuts = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 2)
                         inventoryTransfers = iv_inventory_model().get(get = 'table', date_1 = date_1, date_2 = date_2, it_id = 3)
+                        locations = lo_locations_model().get_locations(get = 'status', lo_status = 1)
                        
-                        return json.dumps({'success': True, 'html': render_template('/pos/inventory.html', date_1 = date_1, date_2 = date_2, inventoryEntries = inventoryEntries, inventoryOuts = inventoryOuts, inventoryTransfers = inventoryTransfers)})
+                        return json.dumps({'success': True, 'html': render_template('/pos/inventory.html', date_1 = date_1, date_2 = date_2, inventoryEntries = inventoryEntries, inventoryOuts = inventoryOuts, inventoryTransfers = inventoryTransfers, locations = locations)})
 
                     #MANAGE
                     elif v_apiurlsplit[2] == 'manage':
@@ -111,12 +112,13 @@ def api_web(path):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
                             
                             memberships = mem_memberships_model().get_memberships()
+                            locations = lo_locations_model().get_locations(get = 'status', lo_status = 1)
                             total_count = us_users_model().get_users_count()             
                             sessions_online = sess_usersessions_model().get_sessions(get='online', online=1)      
                             
                             total_online_count = len(sessions_online)
                             
-                            return json.dumps({'success': True, 'html': render_template('/pos/manage/users.html', total_count = total_count, total_online_count = total_online_count, memberships = memberships)})
+                            return json.dumps({'success': True, 'html': render_template('/pos/manage/users.html', total_count = total_count, total_online_count = total_online_count, memberships = memberships, locations = locations)})
                         elif v_apiurlsplit[3] == 'customers' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/customers'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -164,6 +166,17 @@ def api_web(path):
                             total_count = len(products)
                             
                             return json.dumps({'success': True, 'html': render_template('/pos/manage/products.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, brands = brands, categories = categories, providers = providers, locations = locations, inventory_types = inventory_types, users = users)})
+                        elif v_apiurlsplit[3] == 'products' and v_apiurlsplit[5] is None: 
+                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
+                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                            
+                            location = v_apiurlsplit[4]
+
+                            if not location is None:
+                                location_inf =  lo_locations_model().get_location(location)
+                                if not location_inf is None:                
+                                    inv = iv_inventory_model().get(get = 'productsLocation', lo_id = location_inf['lo_id'])     
+                                    return json.dumps({'success': True, 'html': render_template('/pos/manage/productsinv.html', location_inf = location_inf, inv = inv)})                        
                         elif v_apiurlsplit[3] == 'providers' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/providers'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -432,7 +445,7 @@ def api_web(path):
                                 serializer = URLSafeSerializer(app.secret_key)
                                 try:
                                     info = serializer.loads(token)
-                                except:
+                                except:  
                                     info = {
                                         'location': {
                                             'lo_id': 0,
@@ -466,7 +479,18 @@ def api_web(path):
                                         'discount': 0,
                                         'total': 0,
                                         'fin': False,
-                                    }                                
+                                    }         
+
+                                v_lo_info = v_userinfo['lo_id']
+                                if not v_lo_info:
+                                    lo_id = 0
+                                    lo_name = None
+                                else:
+                                    lo_id = v_lo_info
+                                    lo_name = v_userinfo['lo_name']
+                                
+                                info['location']['lo_id'] = lo_id
+                                info['location']['lo_name'] = lo_name
 
                                 subtotal = sum(product['total'] for product in info['products'])
                                 commission = subtotal * (info['commission_per'] / 100)
@@ -568,6 +592,23 @@ def api_web(path):
                                 except:
                                     return json.dumps({'success': False, 'msg': '¡No se creó la venta! Póngase en contacto con un soporte técnico.'})
 
+                                v_lo_info = v_userinfo['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})
+                                
+                                quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = v_lo_info)['quantity']
+                                if not quantitySum:
+                                    return json.dumps({'success': False, 'msg': '¡No tienes este producto en esa sucursal o bodega! Debes de tener al menos un producto.'})
+                                
+                                quantitySum = int(quantitySum)
+                                
+                                quantityOut = iv_inventory_model().get(get = 'sumProductOut', pr_id = pr_id, lo_id = v_lo_info)['quantity']
+                                if not quantityOut:
+                                    quantityOut = 0
+                                
+                                quantityOut = int(quantityOut)
+                                quantitySum = quantitySum - quantityOut
+
                                 existing_product = None
                                 for product in info['products']:
                                     if product['pr_id'] == pr_id:
@@ -575,6 +616,9 @@ def api_web(path):
                                         break
 
                                 if existing_product is not None:
+                                    if quantitySum < float(quantity):
+                                        return json.dumps({'success': False, 'msg': f'¡No tienes producto suficiente en esa sucursal o bodega! Debes revisar el inventario.'})
+                                    
                                     existing_product['quantity'] = float(quantity)
                                     existing_product['pr_price'] = float(pr_price)
                                     if existing_product['quantity'] <= 0:
@@ -588,17 +632,7 @@ def api_web(path):
                                 response.set_cookie('posinfo', token)
 
                                 return response
-                            elif v_apiurlsplit[4] == 'sale' and v_apiurlsplit[5] is None:
-                                lo_id = v_requestform.get('lo_id')
-                                if not lo_id:
-                                    return json.dumps({'success': False, 'msg': '¡La sucursal está vacía! Por favor, corríjala y vuelva a intentarlo.'})
-                                
-                                lo_location = lo_locations_model().get_location(lo_id)
-                                if lo_location is None:
-                                    lo_id = 0
-                                elif lo_location['lo_status'] == 0:
-                                    return json.dumps({'success': False, 'msg': '¡La sucursal esta prohibida! Por favor, corríjala y vuelva a intentarlo.'})
-                                
+                            elif v_apiurlsplit[4] == 'sale' and v_apiurlsplit[5] is None:                                                               
                                 ts_id = v_requestform.get('ts_id')
                                 if not ts_id:
                                     return json.dumps({'success': False, 'msg': '¡El tipo de venta está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
@@ -672,11 +706,6 @@ def api_web(path):
                                     ts_days = int(ts_days)
                                 
 
-                                if int(lo_id) <= 0:
-                                    lo_name = ''
-                                else:
-                                    lo_name = lo_location['lo_name']
-
                                 if int(ts_id) <= 0:
                                     ts_name = ''
                                 else:
@@ -689,8 +718,6 @@ def api_web(path):
                                     pm_name = pm_paymentmethod['pm_name']
                                     pm_per = pm_paymentmethod['pm_per']
 
-                                info['location']['lo_id'] = int(lo_id)
-                                info['location']['lo_name'] = lo_name
                                 info['typesale']['ts_id'] = int(ts_id)
                                 info['typesale']['ts_name'] = ts_name
                                 info['typesale']['ts_amountpayments'] = ts_amountpayments
@@ -718,6 +745,23 @@ def api_web(path):
                                 elif pr_product['pr_status'] == 0:
                                     return json.dumps({'success': False, 'msg': '¡El producto esta desactivado! Por favor, corríjalo y vuelva a intentarlo.'})
 
+                                v_lo_info = v_userinfo['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})                               
+                                
+                                quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = v_lo_info)['quantity']
+                                if not quantitySum:
+                                    return json.dumps({'success': False, 'msg': '¡No tienes este producto en esa sucursal o bodega! Debes de tener al menos un producto.'})
+                                
+                                quantitySum = int(quantitySum)
+                                
+                                quantityOut = iv_inventory_model().get(get = 'sumProductOut', pr_id = pr_id, lo_id = v_lo_info)['quantity']
+                                if not quantityOut:
+                                    quantityOut = 0
+                                
+                                quantityOut = int(quantityOut)
+                                quantitySum = quantitySum - quantityOut
+
                                 token = request.cookies.get('posinfo')
                                 serializer = URLSafeSerializer(app.secret_key)
                                 info = None
@@ -733,10 +777,16 @@ def api_web(path):
                                         break
 
                                 if existing_product is not None:
+                                    if quantitySum < int(existing_product['quantity'] + 1):
+                                        return json.dumps({'success': False, 'msg': f'¡No tienes producto suficiente en esa sucursal o bodega! Debes revisar el inventario.'})
+                                
                                     existing_product['quantity'] += 1
                                     existing_product['total'] = existing_product['quantity'] * existing_product['pr_price']
                                     existing_product['html'] = render_template('/widget/card-products-cart.html', pr_id=existing_product['pr_id'], pr_img = f'/static/img/product/{existing_product["pr_id"]}.jpg', pr_name=existing_product['pr_name'], br_name=existing_product['br_name'], pr_barcode=existing_product['pr_barcode'], pr_model=existing_product['pr_model'], pr_price=existing_product['pr_price'], pr_price_2=existing_product['pr_price_2'], pr_cost=existing_product['pr_cost'], pr_pricetopayments=existing_product['pr_pricetopayments'], quantity=existing_product['quantity'], total=existing_product['total'])
                                 else:
+                                    if quantitySum < 1:
+                                        return json.dumps({'success': False, 'msg': f'¡No tienes producto suficiente en esa sucursal o bodega! Debes revisar el inventario.'})
+
                                     new_product = {
                                         'pr_id': pr_product['pr_id'],
                                         'pr_img': f'/static/img/product/{pr_product["pr_id"]}.jpg',
@@ -752,8 +802,8 @@ def api_web(path):
                                         'total': pr_product['pr_price'],
                                         'html': render_template('/widget/card-products-cart.html', pr_id=pr_product['pr_id'], pr_img = f'/static/img/product/{pr_product["pr_id"]}.jpg', pr_name=pr_product['pr_name'], br_name=pr_product['br_name'], pr_barcode=pr_product['pr_barcode'], pr_model=pr_product['pr_model'], pr_price=pr_product['pr_price'], pr_price_2=pr_product['pr_price'], pr_cost=pr_product['pr_cost'], pr_pricetopayments=pr_product['pr_pricetopayments'], quantity=1, total=pr_product['pr_price'])
                                     }
-                                    info['products'].append(new_product)
-
+                                    info['products'].append(new_product)   
+                                
                                 token = serializer.dumps(info)
                                 response = make_response(json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}))
                                 response.set_cookie('posinfo', token)
@@ -792,6 +842,26 @@ def api_web(path):
                             if cu_id == 'N/A' or cu_id == 0:
                                 cu_id = None
 
+                            v_lo_info = v_userinfo['lo_id']
+                            if not v_lo_info:
+                                return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})
+                            
+                            for product in info['products']:                              
+                                quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = product['pr_id'], lo_id = v_lo_info)['quantity']
+                                if not quantitySum:
+                                    return json.dumps({'success': False, 'msg': f'El producto {product["pr_id"]} no se encuentra disponible.'})
+                                
+                                quantitySum = int(quantitySum)
+                                
+                                quantityOut = iv_inventory_model().get(get = 'sumProductOut', pr_id = product['pr_id'], lo_id = v_lo_info)['quantity']
+                                if not quantityOut:
+                                    quantityOut = 0
+                                
+                                quantityOut = int(quantityOut)
+                                quantitySum = quantitySum - quantityOut
+                                if quantitySum < float(product['quantity']):
+                                    return json.dumps({'success': False, 'msg': f'El producto {product["pr_id"]} no tiene la cantidad suficiente.'})
+
                             sa_id = str(uuid.uuid4())
                             lo_id = info['location']['lo_id']
                             ts_id = info['typesale']['ts_id']
@@ -811,9 +881,10 @@ def api_web(path):
                                 sa_no = sa_sales_model().get_sale(get = 'max_sa_no')['max_sa_no'] + 1
                            
                             sa_sales_model().insert_sale(sa_id = sa_id, sa_no = sa_no, sa_subtotal = info['subtotal'], sa_discount = info['discount'], sa_amountpayments = ts_amountpayments, sa_days = ts_days, sa_regdate = sa_regdate, lo_id = lo_id, ts_id = ts_id, cu_id = cu_id, us_id = session['us_id'])
-
+                            
                             for product in info['products']:
                                 sd_saledetails_model().insert_saledetail(sd_price = product['pr_price'], sd_cost = product['pr_cost'], sd_quantity = product['quantity'], pr_id = product['pr_id'], sa_id = sa_id)
+                                iv_inventory_model().insert(float(product['quantity']), None, 2, product['pr_id'], v_lo_info, None, session['us_id'], None, None)
 
                             if ts_id == 1002 or ts_id == 1004:
                                 ts_ab_del = 0
@@ -858,10 +929,7 @@ def api_web(path):
                             return response
                     
                     elif v_apiurlsplit[2] == 'inventory':
-                        if v_apiurlsplit[3] == 'add' and v_apiurlsplit[4] is None:
-                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/add'):
-                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403 
-
+                        if v_apiurlsplit[3] == 'add' and v_apiurlsplit[4] is None:                           
                             pr_id = v_requestform.get('pr_id')
                             if not pr_id:
                                 return json.dumps({'success': False, 'msg': '¡El producto está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
@@ -890,13 +958,30 @@ def api_web(path):
                             elif lo_locations_model().get_location(lo_id) is None:
                                 return json.dumps({'success': False, 'msg': '¡La ubicación no es válida! Por favor, corríjala y vuelva a intentarlo.'})
                             
+                            lo_id = int(lo_id)
+                            
                             iv_note = v_requestform.get('iv_note')
                             if not iv_note:
-                                iv_note = None           
+                                iv_note = None   
+
+                            v_lo_info = v_userinfo['lo_id']
+                            if v_lo_info:
+                                v_lo_info = int(v_lo_info)
+                                if v_lo_info != lo_id:
+                                    return json.dumps({'success': False, 'msg': '¡No tienes permiso a la ubicación seleccionada! Por favor, corríjala y vuelva a intentarlo.'})
 
                             lo_id_2 = None
                             us_id_2 = None
                             us_id_3 = None
+                            
+                            if it_id == 1 and not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/add'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403
+                            
+                            if it_id == 2 and not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/outs'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403
+                        
+                            if it_id == 3 and not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/translations'):
+                                return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403
 
                             if it_id == 2 or it_id == 3:
                                 quantity = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = lo_id)['quantity']
@@ -968,6 +1053,7 @@ def api_web(path):
                                         'email': user['pe_email'],
                                         'membership': f'<span class="badge bg-primary fw-bold" style="font-size: 12px;">{user["mem_name"]}</span>',        
                                         'phone': user['pe_phone'], 
+                                        'location': user['lo_name'], 
                                     }
                                     
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" us_id="{user["us_id"]}" onclick="check_status_user(this)" {status}></div>'
@@ -1061,6 +1147,19 @@ def api_web(path):
                                 elif mem_memberships_model().get_membership(mem_id) is None:
                                     return json.dumps({'success': False, 'msg': '¡La membresía no es válida! Por favor, corríjala y vuelva a intentarlo.'})
                                 
+                                lo_id = v_requestform.get('lo_id')
+                                if not lo_id:
+                                    lo_id = 0
+                                
+                                if not lo_id.isnumeric():
+                                    return json.dumps({'success': False, 'msg': '¡La ubicación no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                
+                                lo_id = int(lo_id)
+                                if lo_id == 0:
+                                    lo_id = None
+                                elif lo_locations_model().get_location(lo_id) is None:
+                                    return json.dumps({'success': False, 'msg': '¡La ubicación no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                
                                 us_permissions = v_requestform.getlist('manage-users-permissions')
                                 if not us_permissions:
                                     us_permissions = None
@@ -1076,7 +1175,7 @@ def api_web(path):
                                 else:
                                     us_password = api_hashbcrypt(us_password) 
 
-                                us_users_model().update_user(update='all', us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, permissions = us_permissions, mem_id=mem_id)
+                                us_users_model().update_user(update='all', us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, permissions = us_permissions, mem_id=mem_id, lo_id=lo_id)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'status' and v_apiurlsplit[5] is None:
                                 us_id = v_requestform.get('us_id')
@@ -1410,6 +1509,24 @@ def api_web(path):
                                     if product['pr_status'] == 1:
                                         status = "checked" 
 
+                                    quantityFin = ''
+                                    locations = lo_locations_model().get_locations(get = 'status', lo_status = 1)
+                                    for location in locations:
+                                        quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = product['pr_id'], lo_id = location['lo_id'])['quantity']
+                                        if not quantitySum:
+                                            quantitySum = 0
+                                        
+                                        quantitySum = int(quantitySum)
+                                        
+                                        quantityOut = iv_inventory_model().get(get = 'sumProductOut', pr_id = product['pr_id'], lo_id = location['lo_id'])['quantity']
+                                        if not quantityOut:
+                                            quantityOut = 0
+                                        
+                                        quantityOut = int(quantityOut)
+
+                                        quantitySum = quantitySum - quantityOut
+                                        quantityFin = quantityFin + f'<div class="col-4"><h5 class="fw-bold">{location["lo_name"]}:</h5> {quantitySum}</div>'
+
                                     pr_img = api_getimagedata(f'static/img/product/{product["pr_id"]}.jpg')
                                     response = {
                                         'image': f'<img class="rounded-xl border border-separator-light border-4 sw-8 sh-8" alt="profile" src="{pr_img}">',
@@ -1428,7 +1545,7 @@ def api_web(path):
 
                                     response['status'] =  f'<div class="form-check form-switch"><input class="form-check-input" type="checkbox" pr_id="{product["pr_id"]}" onclick="check_status_product(this)" {status}></div>'
                                     response['regdate'] = str(product['pr_regdate'].strftime('%d/%m/%Y %H:%M'))
-                                    response['actions'] = f'<button class="btn btn-primary" product="{escape(json.dumps(response))}" onclick="edit_product(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button><br><button class="btn btn-light mt-1" product="{escape(json.dumps(response))}" onclick="inv_product(this);"><i data-acorn-icon="factory" data-acorn-size="16"></i> Inventario</button>'
+                                    response['actions'] = f'<button class="btn btn-primary" product="{escape(json.dumps(response))}" onclick="edit_product(this);"><i data-acorn-icon="edit" data-acorn-size="16"></i> Editar</button><br><button class="btn btn-light mt-1" product="{escape(json.dumps(response))}" inv="{escape(quantityFin)}" onclick="inv_product(this);"><i data-acorn-icon="factory" data-acorn-size="16"></i> Inventario</button>'
 
                                     table.append(response)
                                 

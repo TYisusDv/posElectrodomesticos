@@ -25,7 +25,7 @@ class us_users_model():
         elif get == 'emailornumid':        
             cur.execute('SELECT us_users.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM us_users INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE pe_persons.pe_email = %s OR us_users.us_id = %s', (email, us_id,))
         else:
-            cur.execute('SELECT us_users.*, mem_memberships.mem_name, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE us_users.us_id = %s', (us_id,))
+            cur.execute('SELECT us_users.*, mem_memberships.mem_name, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone, lo_locations.lo_name FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id LEFT JOIN lo_locations ON lo_locations.lo_id = us_users.lo_id WHERE us_users.us_id = %s', (us_id,))
 
         data = cur.fetchone()
         cur.close()
@@ -36,7 +36,7 @@ class us_users_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT us_users.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone, mem_memberships.mem_name FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE us_users.us_id LIKE %s OR pe_persons.pe_fullname LIKE %s OR pe_persons.pe_email LIKE %s OR pe_persons.pe_phone LIKE %s OR us_users.us_regdate LIKE %s OR mem_memberships.mem_name LIKE %s ORDER BY us_users.mem_id ASC LIMIT %s, %s',(like, like, like, like, like, like, page_start, quantity,))
+            cur.execute('SELECT us_users.*, pe_persons.pe_email, pe_persons.pe_fullname, pe_persons.pe_phone, mem_memberships.mem_name, lo_locations.lo_name FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id LEFT JOIN lo_locations ON lo_locations.lo_id = us_users.lo_id WHERE us_users.us_id LIKE %s OR pe_persons.pe_fullname LIKE %s OR pe_persons.pe_email LIKE %s OR pe_persons.pe_phone LIKE %s OR us_users.us_regdate LIKE %s OR mem_memberships.mem_name LIKE %s ORDER BY us_users.mem_id ASC LIMIT %s, %s',(like, like, like, like, like, like, page_start, quantity,))
         else:
             cur.execute('SELECT us_users.*, mem_memberships.mem_name, pe_persons.pe_fullname FROM us_users INNER JOIN mem_memberships ON mem_memberships.mem_id = us_users.mem_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id')
         
@@ -66,7 +66,7 @@ class us_users_model():
         cur.close()
         return True
 
-    def update_user(self, update = None, us_id = None, fullname = None, email = None, password = None, phone = None, permissions = None, mem_id = None, us_status = None):
+    def update_user(self, update = None, us_id = None, fullname = None, email = None, password = None, phone = None, permissions = None, mem_id = None, us_status = None, lo_id = None):
         cur = mysql.connection.cursor()
         
         if update == 'password':        
@@ -74,7 +74,7 @@ class us_users_model():
         elif update == 'all':  
             pe_id = self.get_user(us_id=us_id)['pe_id']
             pe_persons_model().update_person(update = 'all', pe_id = pe_id, pe_fullname = fullname, pe_email = email, pe_phone = phone)  
-            cur.execute('UPDATE us_users SET us_password = %s, us_permissions = %s, mem_id = %s WHERE us_id = %s', (password, permissions, mem_id, us_id,))
+            cur.execute('UPDATE us_users SET us_password = %s, us_permissions = %s, mem_id = %s, lo_id = %s WHERE us_id = %s', (password, permissions, mem_id, lo_id , us_id,))
         elif update == 'status':  
             cur.execute('UPDATE us_users SET us_status = %s WHERE us_id = %s', (us_status, us_id,))
         else:
@@ -622,7 +622,7 @@ class pr_products_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(like, like, like, like, page_start, quantity,))
+            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_regdate DESC LIMIT %s, %s',(like, like, like, like, page_start, quantity,))
         elif get == 'tablestatus':
             like = f'%{search}%'
             cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s) ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(pr_status, like, like, like, like, page_start, quantity,))
@@ -1042,7 +1042,7 @@ class sp_salepayments_model():
             like = f'%{search}%'
             cur.execute('SELECT sp_salepayments.*, pm_paymentmethods.pm_name, pe_persons.pe_fullname FROM sp_salepayments LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id LEFT JOIN us_users ON us_users.us_id = sp_salepayments.us_id LEFT JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC LIMIT %s, %s',(sa_id, page_start, quantity,))
         elif get == 'table,statistics':
-            cur.execute('SELECT sp_salepayments.*, sa_sales.sa_id, sa_sales.sa_status, cu_customers.cu_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname FROM sp_salepayments INNER JOIN sa_sales ON sa_sales.sa_id = sp_salepayments.sa_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sa_sales.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id WHERE DATE(sp_salepayments.sp_regdate) >= %s AND DATE(sp_salepayments.sp_regdate) <= %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no DESC, sp_limitdate DESC', (date_1, date_2,))  
+            cur.execute('SELECT sp_salepayments.*, sa_sales.sa_id, sa_sales.sa_status, cu_customers.cu_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname, pm_paymentmethods.pm_name FROM sp_salepayments INNER JOIN sa_sales ON sa_sales.sa_id = sp_salepayments.sa_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sp_salepayments.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id WHERE DATE(sp_salepayments.sp_regdate) >= %s AND DATE(sp_salepayments.sp_regdate) <= %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no DESC, sp_limitdate DESC', (date_1, date_2,))  
         else:
             cur.close()
             return []
@@ -1142,6 +1142,9 @@ class iv_inventory_model():
         elif get == 'sumProductOut':
             cur.execute('SELECT SUM(iv_quantity) AS quantity FROM iv_inventory WHERE (iv_inventory.it_id = 2 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id = %s) OR (iv_inventory.it_id = 3 AND iv_inventory.pr_id = %s AND iv_inventory.lo_id = %s)', (pr_id, lo_id, pr_id, lo_id,))            
             data = cur.fetchone()        
+        elif get == 'productsLocation':
+            cur.execute('SELECT pr.*, COALESCE(SUM(iv_in.iv_quantity), 0) - COALESCE(SUM(iv_out.iv_quantity), 0) AS net_quantity FROM pr_products pr LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 1 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_in ON pr.pr_id = iv_in.pr_id LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 2 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_out ON pr.pr_id = iv_out.pr_id GROUP BY pr.pr_name HAVING net_quantity != 0', (lo_id, lo_id, lo_id, lo_id,))            
+            data = cur.fetchall()       
         cur.close()
         
         return data

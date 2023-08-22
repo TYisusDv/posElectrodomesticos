@@ -87,7 +87,8 @@
                             <th scope="col">Correo electrónico</th>
                             <th scope="col">Tipo de usuario</th>
                             <th scope="col">Teléfono</th>
-                            <th scope="col">Estatus</th>
+                            <th scope="col">Sucursal / Bodega</th>
+                            <th scope="col">Estatus</th>                            
                             <th scope="col">Fecha de registro</th>                            
                             <th scope="col">Acciones</th>
                         </tr>
@@ -196,6 +197,15 @@
                         <select class="form-control" name="mem_id">
                             {% for membership in memberships%}
                             <option value="{{membership.mem_id}}" class="bg-dark">{{membership.mem_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="compass"></i>
+                        <select class="form-control" name="lo_id">
+                            <option value="0" class="bg-dark">Todo</option>
+                            {% for location in locations %}
+                            <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -349,7 +359,23 @@
                             <div class="mb-2 filled custom-control-container ps-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-17" value="/pos/inventory/add">
-                                    <label class="form-check-label" for="manage-users-permissions-17">Manipular productos al inventario</label>
+                                    <label class="form-check-label" for="manage-users-permissions-17">Entradas al inventario</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-18" value="/pos/inventory/outs">
+                                    <label class="form-check-label" for="manage-users-permissions-18">Salidas al inventario</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2 filled custom-control-container ps-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="manage-users-permissions" id="manage-users-permissions-19" value="/pos/inventory/translations">
+                                    <label class="form-check-label" for="manage-users-permissions-19">Traslaciones al inventario</label>
                                 </div>
                             </div>
                         </div>
@@ -395,6 +421,7 @@
             var email = table_tempelement(user_json.email).text();
             var phone = table_tempelement(user_json.phone).text();
             var membership = table_tempelement(user_json.membership).find('span').text();
+            var location = table_tempelement(user_json.location).text();
 
             $('#admin-users-form-edit input[name=us_id]').val(id);
             $('#admin-users-form-edit input[name=pe_fullname]').val(fullname);
@@ -403,6 +430,9 @@
             $('#admin-users-form-edit input[name=us_password]').val('');
             $('#admin-users-form-edit select[name="mem_id"] option').filter(function () {
                 return $(this).text() === membership;
+            }).prop('selected', true);
+            $('#admin-users-form-edit select[name="lo_id"] option').filter(function () {
+                return $(this).text() === location;
             }).prop('selected', true);
 
             $('#admin-users-modal-edit').modal('show');
