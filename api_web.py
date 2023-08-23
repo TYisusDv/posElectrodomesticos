@@ -482,15 +482,12 @@ def api_web(path):
                                     }         
 
                                 v_lo_info = v_userinfo['lo_id']
-                                if not v_lo_info:
-                                    lo_id = 0
-                                    lo_name = None
-                                else:
+                                if v_lo_info:
                                     lo_id = v_lo_info
                                     lo_name = v_userinfo['lo_name']
                                 
-                                info['location']['lo_id'] = lo_id
-                                info['location']['lo_name'] = lo_name
+                                    info['location']['lo_id'] = lo_id
+                                    info['location']['lo_name'] = lo_name
 
                                 subtotal = sum(product['total'] for product in info['products'])
                                 commission = subtotal * (info['commission_per'] / 100)
@@ -633,6 +630,16 @@ def api_web(path):
 
                                 return response
                             elif v_apiurlsplit[4] == 'sale' and v_apiurlsplit[5] is None:                                                               
+                                v_lo_info = v_userinfo['lo_id']
+                                if not v_lo_info:
+                                    lo_id = v_requestform.get('lo_id')
+                                    if not lo_id:
+                                        return json.dumps({'success': False, 'msg': '¡La ubicación está vacía! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
+                                    location_info = lo_locations_model().get_location(lo_id)
+                                    if location_info is None:
+                                        return json.dumps({'success': False, 'msg': '¡La ubicación no es válida! Por favor, corríjala y vuelva a intentarlo.'})
+                                    
                                 ts_id = v_requestform.get('ts_id')
                                 if not ts_id:
                                     return json.dumps({'success': False, 'msg': '¡El tipo de venta está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
@@ -728,6 +735,10 @@ def api_web(path):
                                 info['discount_per'] = float(discount_per)
                                 info['commission_per'] = float(pm_per)
 
+                                if not v_lo_info:
+                                    info['location']['lo_id'] = location_info['lo_id']
+                                    info['location']['lo_name'] = location_info['lo_name']                                    
+
                                 token = serializer.dumps(info) 
                                 response = make_response(json.dumps({'success': True, 'msg': '¡Se guardó correctamente!'}))                         
                                 response.set_cookie('posinfo', token) 
@@ -745,9 +756,17 @@ def api_web(path):
                                 elif pr_product['pr_status'] == 0:
                                     return json.dumps({'success': False, 'msg': '¡El producto esta desactivado! Por favor, corríjalo y vuelva a intentarlo.'})
 
-                                v_lo_info = v_userinfo['lo_id']
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
+                                
+                                v_lo_info = info['location']['lo_id']
                                 if not v_lo_info:
-                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})                               
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Debes seleccionar una ubicación.'})                               
                                 
                                 quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = v_lo_info)['quantity']
                                 if not quantitySum:
@@ -762,14 +781,6 @@ def api_web(path):
                                 quantityOut = int(quantityOut)
                                 quantitySum = quantitySum - quantityOut
 
-                                token = request.cookies.get('posinfo')
-                                serializer = URLSafeSerializer(app.secret_key)
-                                info = None
-                                try:
-                                    info = serializer.loads(token)
-                                except:
-                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
-                                
                                 existing_product = None
                                 for product in info['products']:
                                     if product['pr_id'] == pr_id:
@@ -842,9 +853,9 @@ def api_web(path):
                             if cu_id == 'N/A' or cu_id == 0:
                                 cu_id = None
 
-                            v_lo_info = v_userinfo['lo_id']
+                            v_lo_info = info['location']['lo_id']
                             if not v_lo_info:
-                                return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})
+                                return json.dumps({'success': False, 'msg': f'¡No puedes vender! Debes seleccionar una ubicación.'})
                             
                             for product in info['products']:                              
                                 quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = product['pr_id'], lo_id = v_lo_info)['quantity']
@@ -2488,6 +2499,10 @@ def api_web(path):
                                     salepayments = sp_salepayments_model().get_salepayments(get = 'sa_id', sa_id = sa_id)
                                     total_pay = sum(salepayment['sp_pay'] for salepayment in salepayments)
                                     remainingpayment = sa_sale["sa_subtotal"] - total_pay
+
+                                    saleproducts = sd_saledetails_model().get_saledetails(get='sa_id', sa_id = sa_id)
+                                    for product in saleproducts:
+                                        iv_inventory_model().insert(float(product['sd_quantity']), None, 1, product['pr_id'], sa_sale['lo_id'], None, session['us_id'], None, None)
 
                                     sa_sales_model().update_sale(update='sa_status', sa_status=0, sa_id=sa_id)
                                     return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'})                        

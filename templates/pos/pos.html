@@ -93,7 +93,7 @@
                                 <h1 class="text-primary font-heading display-7 mb-3">Venta</h1>
                                 <div class="mb-3 filled form-group tooltip-end-top">
                                     <i data-acorn-icon="shop"></i>
-                                    <select class="form-control" name="lo_id" disabled>
+                                    <select class="form-control" name="lo_id">
                                         <option value="0" class="bg-dark">Selecciona la sucursal...</option>
                                         {% for location in locations %}
                                         <option value="{{location.lo_id}}" class="bg-dark">{{location.lo_name}}</option>
