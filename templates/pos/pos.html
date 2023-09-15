@@ -141,8 +141,11 @@
                                     <i data-acorn-icon="dollar"></i>
                                     <input class="form-control" placeholder="Descuento" name="discount_total" value="0">
                                 </div> 
-                                <div class="filled form-group tooltip-end-top">
+                                <div class="mb-3 filled form-group tooltip-end-top">
                                     <button class="btn btn-primary w-100" type="submit" id="pos-sale-btn"><i data-acorn-icon="save" data-acorn-size="18"></i></button>
+                                </div>
+                                <div class="filled form-group tooltip-end-top">
+                                    <button class="btn btn-primary w-100" type="button" id="btnBox"><i data-acorn-icon="dollar" data-acorn-size="18"></i> Ver caja</button>
                                 </div>
                             </form>
                         </div>
@@ -155,6 +158,7 @@
                             </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -267,6 +271,224 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="pos-box-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-box-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-box-modalLabel">Caja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">     
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-12 col-sm-6 mb-2">
+                                <div class="card sh-11 hover-scale-up cursor-pointer">
+                                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                                        <div class="col-auto pe-3">
+                                            <div
+                                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                                <i data-acorn-icon="dollar" class="text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="row gx-2 d-flex align-content-center">
+                                                <div class="col-12 col-xl d-flex">
+                                                    <div class="d-flex align-items-center lh-1-25">Ventas</div>
+                                                </div>
+                                                <div class="col-12 col-xl-auto">
+                                                    <div class="cta-2 text-primary">Q<span id="totalBox">0</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="mb-3 col-12">
+                                <section class="scroll-section" id="hoverableRows">                    
+                                    <div class="card mb-5">
+                                        <div class="card-body">
+                                            <div class="table-responsive mb-5">
+                                                <table class="table table-hover table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Recibo</th>
+                                                            <th scope="col">Total</th>
+                                                            <th scope="col">Tipo de pago</th>                                                            
+                                                            <th scope="col">Metodo de pago</th>
+                                                            <th scope="col">Cliente</th>
+                                                            <th scope="col">Empleado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tableBox">
+                                                       
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>           
+                            <div class="col-12 col-sm-6 mb-2">
+                                <div class="card sh-11 hover-scale-up cursor-pointer">
+                                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                                        <div class="col-auto pe-3">
+                                            <div
+                                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                                <i data-acorn-icon="arrow-double-top" class="text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="row gx-2 d-flex align-content-center">
+                                                <div class="col-12 col-xl d-flex">
+                                                    <div class="d-flex align-items-center lh-1-25">Ingresos</div>
+                                                </div>
+                                                <div class="col-12 col-xl-auto">
+                                                    <div class="cta-2 text-primary">Q<span id="totaliBoxes">0</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 mb-2">
+                                <div class="card sh-11 hover-scale-up cursor-pointer">
+                                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                                        <div class="col-auto pe-3">
+                                            <div
+                                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                                <i data-acorn-icon="arrow-double-bottom" class="text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="row gx-2 d-flex align-content-center">
+                                                <div class="col-12 col-xl d-flex">
+                                                    <div class="d-flex align-items-center lh-1-25">Gastos</div>
+                                                </div>
+                                                <div class="col-12 col-xl-auto">
+                                                    <div class="cta-2 text-primary">Q<span id="totalBoxes">0</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-2">                                
+                                <section class="scroll-section" id="hoverableRows">                    
+                                    <div class="card mb-5">
+                                        <div class="card-body">
+                                            <div class="table-responsive mb-5">
+                                                <table class="table table-hover table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Total</th>
+                                                            <th scope="col">Nota</th> 
+                                                            <th scope="col">Tipo</th> 
+                                                            <th scope="col">Empleado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tableBoxes">
+                                                       
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                            <div class="col-12">
+                                <div class="card sh-11 hover-scale-up cursor-pointer">
+                                    <div class="h-100 row g-0 card-body align-items-center py-3">
+                                        <div class="col-auto pe-3">
+                                            <div
+                                                class="bg-gradient-light sh-5 sw-5 rounded-xl d-flex justify-content-center align-items-center">
+                                                <i data-acorn-icon="dollar" class="text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="row gx-2 d-flex align-content-center">
+                                                <div class="col-12 col-xl d-flex">
+                                                    <div class="d-flex align-items-center lh-1-25">Total</div>
+                                                </div>
+                                                <div class="col-12 col-xl-auto">
+                                                    <div class="cta-2 text-primary">Q<span id="totalFullBoxes">0</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-danger btn-icon float-start me-auto" data-bs-dismiss="modal" id="close_box"><i data-acorn-icon="multiply" data-acorn-size="16"></i>
+                    Finalizar caja</button>
+
+                <button type="submit" class="btn btn-primary btn-icon me-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#pos-boxi-modal"><i data-acorn-icon="arrow-top" data-acorn-size="16"></i>
+                    Nuevo Ingreso</button>
+                <button type="submit" class="btn btn-warning btn-icon" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#pos-boxBills-modal"><i data-acorn-icon="arrow-bottom" data-acorn-size="16"></i>
+                    Nuevo gasto</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pos-boxBills-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-boxBills-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-boxBills-modalLabel">Nuevo gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pos-boxBills-form" autocomplete="off">
+                <div class="modal-body">     
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Cuanto se gasto?" name="pay">
+                    </div> 
+                    <div class="filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nota" name="note">
+                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Añadir gasto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="pos-boxi-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="pos-boxi-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pos-boxi-modalLabel">Nuevo ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pos-boxi-form" autocomplete="off">
+                <div class="modal-body">     
+                    <div class="mb-3 filled form-group tooltip-end-top">
+                        <i data-acorn-icon="dollar"></i>
+                        <input class="form-control" placeholder="Cuanto es el ingreso?" name="pay">
+                    </div> 
+                    <div class="filled form-group tooltip-end-top">
+                        <i data-acorn-icon="text"></i>
+                        <input class="form-control" placeholder="Nota" name="note">
+                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-icon"><i data-acorn-icon="plus" data-acorn-size="16"></i>
+                        Añadir ingreso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <script>
     (function () {
         var pos_total = 0;
@@ -310,6 +532,64 @@
 
             $("#pos-sale-form-edit select[name='lo_id'], #pos-sale-form-edit select[name='ts_id'], #pos-sale-form-edit select[name='pm_id']").on("change", function() {             
                 $("#pos-sale-btn").click();
+            });
+
+            $("#btnBox").click(function(){
+                var formData = new FormData();
+                var response = sendDataPost('pos/app/get/box', 'data', formData);
+                response.then(function (response) {
+                    if (response.success) {
+                        $("#totalBox").html(response.total);
+                       $("#tableBox").html(response.html);
+                       $("#totalBoxes").html(response.totalBoxes);
+                       $("#totaliBoxes").html(response.totalBoxes2);
+                       $("#tableBoxes").html(response.htmlBoxes);
+                       $("#totalFullBoxes").html(response.totalFull);                       
+                    } else {
+                        loadNoti({
+                            title: 'Error!',
+                            msg: response.msg,
+                            color: 'danger'
+                        });
+                    }
+                }).catch(function (response) {
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                });
+
+                $('#pos-box-modal').modal('show');
+            });
+
+            $("#close_box").click(function(){
+                var response = sendDataPost('pos/app/add/boxfinish', 'data', new FormData());
+                response.then(function (response) {
+                    if (response.success) {
+                        loadNoti({
+                            icon: 'cs-info-hexagon',
+                            title: 'Success!',
+                            msg: response.msg,
+                            color: 'primary',
+                            time: 500,
+                            showProgressbar: true
+                        });
+                    } else {                    
+                        loadNoti({
+                            title: 'Error!',
+                            msg: response.msg,
+                            color: 'danger'
+                        });
+                    }
+
+                }).catch(function (response) {                
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });      
+                });
             });
         });
 
@@ -798,6 +1078,76 @@
                     color: 'danger'
                 });
                 $('#pos-finalize-form button[type="submit"]').prop('disabled', false);
+            });
+        });
+
+        $('#pos-boxBills-form').submit(function (e) {
+            e.preventDefault();
+
+            $('#pos-boxBills-form button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/app/add/bills', 'data', new FormData(this));
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {                    
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+                $('#pos-boxBills-modal').modal('hide');
+                $('#pos-boxBills-form button[type="submit"]').prop('disabled', false);
+            }).catch(function (response) {                
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });                
+                $('#pos-boxBills-modal').modal('hide');
+                $('#pos-boxBills-form button[type="submit"]').prop('disabled', false);
+            });
+        });
+
+        $('#pos-boxi-form').submit(function (e) {
+            e.preventDefault();
+
+            $('#pos-boxi-form button[type="submit"]').prop('disabled', true);
+            var response = sendDataPost('pos/app/add/boxi', 'data', new FormData(this));
+            response.then(function (response) {
+                if (response.success) {
+                    loadNoti({
+                        icon: 'cs-info-hexagon',
+                        title: 'Success!',
+                        msg: response.msg,
+                        color: 'primary',
+                        time: 500,
+                        showProgressbar: true
+                    });
+                } else {                    
+                    loadNoti({
+                        title: 'Error!',
+                        msg: response.msg,
+                        color: 'danger'
+                    });
+                }
+                $('#pos-boxi-modal').modal('hide');
+                $('#pos-boxi-form button[type="submit"]').prop('disabled', false);
+            }).catch(function (response) {                
+                loadNoti({
+                    title: 'Error!',
+                    msg: response.msg,
+                    color: 'danger'
+                });                
+                $('#pos-boxi-modal').modal('hide');
+                $('#pos-boxi-form button[type="submit"]').prop('disabled', false);
             });
         });
     })();

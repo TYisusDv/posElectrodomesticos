@@ -52,6 +52,8 @@ web_settings = {
     'description': 'Punto de venta desarrollado por Ing. Jesús Navarro Salcido.'
 }
 
+telegramURL = f"https://api.telegram.org/bot6405279751:AAGvPBr3UPEOf8zlaPVi3zYWqN61_0E6agQ"
+
 def api_verify_session():
     #0 = Not Logged
     #1 = Logged
@@ -216,3 +218,17 @@ def api_get_next_month_day(current_date, ts_days):
             new_date = my_date + timedelta(days=ts_days)                
 
     return new_date
+
+def api_tgsendmsg(chatid, data):
+    try:        
+        r = requests.Session()
+
+        msg = f"🖥️ <b>MI HOGAR - BOT</b> 🖥️ \n{data}\n🧸 <b>Version:</b> <a href='https://t.me/mihogar_bot'>V2023.09.09</a>"
+              
+        a = r.post(f'{telegramURL}/sendMessage?chat_id={chatid}&parse_mode=HTML&text={msg}&disable_web_page_preview=true', timeout=15) 
+        #a_json = json.loads(a.text)
+
+        return True
+    except Exception as e:
+        api_savelog("log/api-tgbot.txt", str(e))
+        return False

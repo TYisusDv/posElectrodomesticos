@@ -622,7 +622,7 @@ class pr_products_model():
         
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s ORDER BY pr_products.pr_regdate DESC LIMIT %s, %s',(like, like, like, like, page_start, quantity,))
+            cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s OR ca_categories.ca_name LIKE %s OR MATCH(pr_name) AGAINST(%s IN BOOLEAN MODE) ORDER BY pr_products.pr_regdate DESC LIMIT %s, %s',(like, like, like, like, like, search, page_start, quantity,))
         elif get == 'tablestatus':
             like = f'%{search}%'
             cur.execute('SELECT pr_products.*, br_brands.br_name, ca_categories.ca_name, pe_persons.pe_fullname FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s) ORDER BY pr_products.pr_id ASC LIMIT %s, %s',(pr_status, like, like, like, like, page_start, quantity,))
@@ -638,7 +638,7 @@ class pr_products_model():
 
         if get == 'table':
             like = f'%{search}%'
-            cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s', (like, like, like, like,))
+            cur.execute('SELECT COUNT(*) AS total FROM pr_products INNER JOIN br_brands ON br_brands.br_id = pr_products.br_id INNER JOIN ca_categories ON ca_categories.ca_id = pr_products.ca_id INNER JOIN pv_providers ON pv_providers.pv_id = pr_products.pv_id INNER JOIN pe_persons ON pe_persons.pe_id = pv_providers.pe_id WHERE pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s OR ca_categories.ca_name LIKE %s OR MATCH(pr_name) AGAINST(%s IN BOOLEAN MODE)', (like, like, like, like, like, search,))
         elif get == 'tablestatus':
             like = f'%{search}%'
             cur.execute('SELECT COUNT(*) AS total FROM pr_products WHERE pr_products.pr_status = %s AND (pr_products.pr_id LIKE %s OR pr_products.pr_barcode LIKE %s OR pr_products.pr_model LIKE %s OR pr_products.pr_name LIKE %s)', (pr_status, like, like, like, like,))
@@ -986,13 +986,15 @@ class sd_saledetails_model():
     def __init__(self):
         pass
     
-    def get_saledetails(self, get = None, sa_id = None):
+    def get_saledetails(self, get = None, sa_id = None, lo_id = None):
         cur = mysql.connection.cursor()
 
         if get == 'sa_id':
             cur.execute('SELECT sd_saledetails.*, pr_products.pr_name FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id WHERE sd_saledetails.sa_id = %s ORDER BY sd_saledetails.sd_id ASC', (sa_id,))  
         elif get == 'all':
             cur.execute('SELECT sd_saledetails.*, pr_products.pr_name FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id INNER JOIN sa_sales ON sa_sales.sa_id = sd_saledetails.sa_id WHERE sa_sales.sa_status = 1 ORDER BY sd_saledetails.sd_id ASC')  
+        elif get == 'topLocation':
+            cur.execute('SELECT pr_products.*, SUM(sd_saledetails.sd_quantity) AS net_quantity FROM sd_saledetails INNER JOIN pr_products ON pr_products.pr_id = sd_saledetails.pr_id INNER JOIN sa_sales ON sa_sales.sa_id = sd_saledetails.sa_id WHERE sa_sales.lo_id = %s GROUP BY sd_saledetails.pr_id ORDER BY net_quantity DESC', (lo_id,))  
         else:
             cur.close()
             return []
@@ -1027,7 +1029,7 @@ class sp_salepayments_model():
         cur.close()
         return data
 
-    def get_salepayments(self, get = None, sa_id = None, date_1 = None, date_2 = None, page_start = 1, quantity = 10, search = None):
+    def get_salepayments(self, get = None, sa_id = None, date_1 = None, date_2 = None, lo_id = None, page_start = 1, quantity = 10, search = None):
         cur = mysql.connection.cursor()
 
         if get == 'sa_id':
@@ -1043,6 +1045,8 @@ class sp_salepayments_model():
             cur.execute('SELECT sp_salepayments.*, pm_paymentmethods.pm_name, pe_persons.pe_fullname FROM sp_salepayments LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id LEFT JOIN us_users ON us_users.us_id = sp_salepayments.us_id LEFT JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE sp_salepayments.sa_id = %s ORDER BY sp_salepayments.sp_limitdate ASC LIMIT %s, %s',(sa_id, page_start, quantity,))
         elif get == 'table,statistics':
             cur.execute('SELECT sp_salepayments.*, sa_sales.sa_id, sa_sales.sa_status, cu_customers.cu_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname, pm_paymentmethods.pm_name FROM sp_salepayments INNER JOIN sa_sales ON sa_sales.sa_id = sp_salepayments.sa_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sp_salepayments.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id WHERE DATE(sp_salepayments.sp_regdate) >= %s AND DATE(sp_salepayments.sp_regdate) <= %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no DESC, sp_limitdate DESC', (date_1, date_2,))  
+        elif get == 'tableStatisticsLocation':
+            cur.execute('SELECT sp_salepayments.*, sa_sales.sa_id, sa_sales.sa_status, cu_customers.cu_id, cu_pe_persons.pe_fullname AS cu_pe_fullname, us_pe_persons.pe_fullname AS us_pe_fullname, pm_paymentmethods.pm_name FROM sp_salepayments INNER JOIN sa_sales ON sa_sales.sa_id = sp_salepayments.sa_id LEFT JOIN cu_customers ON cu_customers.cu_id = sa_sales.cu_id LEFT JOIN pe_persons AS cu_pe_persons ON cu_pe_persons.pe_id = cu_customers.pe_id INNER JOIN us_users ON us_users.us_id = sp_salepayments.us_id INNER JOIN pe_persons AS us_pe_persons ON us_pe_persons.pe_id = us_users.pe_id LEFT JOIN pm_paymentmethods ON pm_paymentmethods.pm_id = sp_salepayments.pm_id WHERE (DATE(sp_salepayments.sp_regdate) >= %s AND DATE(sp_salepayments.sp_regdate) <= %s) AND sa_sales.lo_id = %s ORDER BY CASE WHEN sp_no IS NOT NULL THEN 0 ELSE 1 END, sp_no DESC, sp_limitdate DESC', (date_1, date_2, lo_id,))  
         else:
             cur.close()
             return []
@@ -1144,6 +1148,9 @@ class iv_inventory_model():
             data = cur.fetchone()        
         elif get == 'productsLocation':
             cur.execute('SELECT pr.*, COALESCE(SUM(iv_in.iv_quantity), 0) - COALESCE(SUM(iv_out.iv_quantity), 0) AS net_quantity FROM pr_products pr LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 1 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_in ON pr.pr_id = iv_in.pr_id LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 2 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_out ON pr.pr_id = iv_out.pr_id GROUP BY pr.pr_name HAVING net_quantity != 0', (lo_id, lo_id, lo_id, lo_id,))            
+            data = cur.fetchall()
+        elif get == 'productsLowLocation':
+            cur.execute('SELECT pr.*, COALESCE(SUM(iv_in.iv_quantity), 0) - COALESCE(SUM(iv_out.iv_quantity), 0) AS net_quantity FROM pr_products pr LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 1 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_in ON pr.pr_id = iv_in.pr_id LEFT JOIN (SELECT pr_id, SUM(iv_quantity) AS iv_quantity FROM iv_inventory WHERE (it_id = 2 AND lo_id = %s) OR (it_id = 3 AND lo_id_2 = %s) GROUP BY pr_id) iv_out ON pr.pr_id = iv_out.pr_id GROUP BY pr.pr_name HAVING net_quantity < 2 ORDER BY net_quantity ASC', (lo_id, lo_id, lo_id, lo_id,))            
             data = cur.fetchall()       
         cur.close()
         
@@ -1152,6 +1159,41 @@ class iv_inventory_model():
     def insert(self, iv_quantity = None, iv_note = None, it_id = None, pr_id = None, lo_id = None, lo_id_2 = None, us_id = None, us_id_2 = None, us_id_3 = None):
         cur = mysql.connection.cursor()          
         cur.execute('INSERT INTO iv_inventory(iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, us_id, us_id_2, us_id_3) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)', (iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, us_id, us_id_2, us_id_3,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+
+class bx_box_model():
+    def __init__(self):
+        pass
+
+    def get(self, get = None, date_1 = None, bx_type = None, lo_id = None):
+        data = None
+        
+        cur = mysql.connection.cursor()        
+        if get == 'tableLocation':
+            cur.execute('SELECT bx_box.*, pe_persons.pe_fullname AS us_pe_fullname FROM bx_box INNER JOIN us_users ON us_users.us_id = bx_box.us_id INNER JOIN pe_persons ON pe_persons.pe_id = us_users.pe_id WHERE bx_box.lo_id = %s AND DATE(bx_box.bx_regdate) = %s AND bx_box.bx_type = %s AND bx_box.bx_status = 1', (lo_id, date_1, bx_type))            
+            data = cur.fetchall()      
+        
+        cur.close()        
+        return data
+    
+    def insert(self, total = None, note = None, bx_type = None, lo_id = None, us_id = None):
+        cur = mysql.connection.cursor()          
+        cur.execute('INSERT INTO bx_box(bx_total, bx_note, bx_type, lo_id, us_id) VALUES(%s, %s, %s, %s, %s)', (total, note, bx_type, lo_id, us_id,))
+        mysql.connection.commit()
+        cur.close()
+        return True
+
+    def update(self, action = None, lo_id = None):
+        cur = mysql.connection.cursor()  
+        
+        if action == 'close':
+            cur.execute('UPDATE bx_box SET bx_status = 0 WHERE lo_id = %s', (lo_id,))
+        else:
+            cur.close()
+            return False
+
         mysql.connection.commit()
         cur.close()
         return True

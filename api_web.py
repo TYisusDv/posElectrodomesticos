@@ -149,34 +149,52 @@ def api_web(path):
                             total_count = len(locations)
                             
                             return json.dumps({'success': True, 'html': render_template('/pos/manage/locations.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count)})
-                        elif v_apiurlsplit[3] == 'products' and v_apiurlsplit[4] is None: 
-                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
-                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
-                            
-                            products = pr_products_model().get_products()
-                            brands = br_brands_model().get_brands(get='status', br_status=1)  
-                            categories = ca_categories_model().get_categories(get='status', ca_status=1)
-                            providers = pv_providers_model().get_providers(get='status', pv_status=1)
-                            inventory_types = it_inventory_types_model().get(get='all') 
-                            locations = lo_locations_model().get_locations(get='status', lo_status = 1)
-                            users = us_users_model().get_users()
+                        elif v_apiurlsplit[3] == 'products':                            
+                            if v_apiurlsplit[6] is None: 
+                                if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
+                                    return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                                
+                                location = v_apiurlsplit[4]
+                                sta = v_apiurlsplit[5]
 
-                            hidden_count = sum(1 for product in products if product["pr_status"] == 0)
-                            visible_count = sum(1 for product in products if product["pr_status"] == 1)
-                            total_count = len(products)
-                            
-                            return json.dumps({'success': True, 'html': render_template('/pos/manage/products.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, brands = brands, categories = categories, providers = providers, locations = locations, inventory_types = inventory_types, users = users)})
-                        elif v_apiurlsplit[3] == 'products' and v_apiurlsplit[5] is None: 
-                            if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
-                                return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
-                            
-                            location = v_apiurlsplit[4]
+                                if not location is None:
+                                    location_inf =  lo_locations_model().get_location(location)
+                                    if not location_inf is None and (sta == 'top' or sta == 'low'):
+                                        if sta == 'top':
+                                            inv = sd_saledetails_model().get_saledetails(get = 'topLocation', lo_id = location_inf['lo_id'])                                  
+                                        elif sta == 'low':
+                                            inv = iv_inventory_model().get(get = 'productsLowLocation', lo_id = location_inf['lo_id'])                                        
+                                        
+                                        return json.dumps({'success': True, 'html': render_template('/pos/manage/productsinvsta.html', location_inf = location_inf, inv = inv)})     
+                            if v_apiurlsplit[5] is None: 
+                                if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
+                                    return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                                
+                                location = v_apiurlsplit[4]
 
-                            if not location is None:
-                                location_inf =  lo_locations_model().get_location(location)
-                                if not location_inf is None:                
-                                    inv = iv_inventory_model().get(get = 'productsLocation', lo_id = location_inf['lo_id'])     
-                                    return json.dumps({'success': True, 'html': render_template('/pos/manage/productsinv.html', location_inf = location_inf, inv = inv)})                        
+                                if not location is None:
+                                    location_inf =  lo_locations_model().get_location(location)
+                                    if not location_inf is None:                
+                                        inv = iv_inventory_model().get(get = 'productsLocation', lo_id = location_inf['lo_id'])
+                                        return json.dumps({'success': True, 'html': render_template('/pos/manage/productsinv.html', location_inf = location_inf, inv = inv)})   
+                            
+                            if v_apiurlsplit[4] is None: 
+                                if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/products'):
+                                    return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
+                                
+                                products = pr_products_model().get_products()
+                                brands = br_brands_model().get_brands(get='status', br_status=1)  
+                                categories = ca_categories_model().get_categories(get='status', ca_status=1)
+                                providers = pv_providers_model().get_providers(get='status', pv_status=1)
+                                inventory_types = it_inventory_types_model().get(get='all') 
+                                locations = lo_locations_model().get_locations(get='status', lo_status = 1)
+                                users = us_users_model().get_users()
+
+                                hidden_count = sum(1 for product in products if product["pr_status"] == 0)
+                                visible_count = sum(1 for product in products if product["pr_status"] == 1)
+                                total_count = len(products)
+                                
+                                return json.dumps({'success': True, 'html': render_template('/pos/manage/products.html', total_count = total_count, hidden_count = hidden_count, visible_count = visible_count, brands = brands, categories = categories, providers = providers, locations = locations, inventory_types = inventory_types, users = users)})                
                         elif v_apiurlsplit[3] == 'providers' and v_apiurlsplit[4] is None: 
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/providers'):
                                 return json.dumps({'success': False, 'html': render_template('/pos/error.html', code = '403', msg = '¡Acceso denegado! No tienes permiso.')}), 403
@@ -527,6 +545,71 @@ def api_web(path):
                                 response.set_cookie('posinfo', token) 
                                 
                                 return response
+                            elif v_apiurlsplit[4] == 'box' and v_apiurlsplit[5] is None:
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creó la venta! Póngase en contacto con un soporte técnico.'})
+
+                                v_lo_info = info['location']['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes ver! Debes seleccionar una ubicación.'})
+                                
+                                salepayments = sp_salepayments_model().get_salepayments(get = 'tableStatisticsLocation', date_1 = v_date, date_2 = v_date, lo_id = v_lo_info)
+                                total_salepayments = sum(salepayment['sp_pay'] for salepayment in salepayments if salepayment['sa_status'] == 1)
+                               
+                                html = ''
+                                for salepayment in salepayments:
+                                    if salepayment['sa_status'] == 0:
+                                        status = "<span class='badge bg-danger'>Cancelado</span>"
+                                    else:
+                                        status = "<span class='badge bg-primary'>Pagó</span>"
+
+                                    html = html + f'''                                
+                                        <tr>
+                                            <td><span class='badge bg-primary'>{salepayment["sp_no"]}</span></td>
+                                            <td>Q{salepayment["sp_pay"]}</td>
+                                            <td>{status}</td> 
+                                            <td>{salepayment["pm_name"]}</td>
+                                            <td><span class='badge bg-primary'>{salepayment["cu_id"]}</span><br>{salepayment["cu_pe_fullname"]}</td>
+                                            <td><span class='badge bg-primary'>{salepayment["us_pe_fullname"]}</span></td>
+                                        </tr>
+                                    '''
+                                
+                                boxes = bx_box_model().get(get = 'tableLocation', lo_id = v_lo_info, date_1 = v_date, bx_type = 1)
+                                htmlBoxes = ''
+                                for bx in boxes:                                   
+                                    htmlBoxes = htmlBoxes + f'''                                
+                                        <tr>
+                                            <td><span class='badge bg-primary'>Q{bx["bx_total"]}</span></td>
+                                            <td>{bx["bx_note"]}</td>
+                                            <td>{"Gasto" if bx["bx_type"] == 1 else "Ingreso"}</td>
+                                            <td><span class='badge bg-primary'>{bx["us_pe_fullname"]}</span></td>
+                                        </tr>
+                                    '''
+
+                                totalBoxes = sum(bx['bx_total'] for bx in boxes)
+
+                                boxes2 = bx_box_model().get(get = 'tableLocation', lo_id = v_lo_info, date_1 = v_date, bx_type = 2)
+                                for bx in boxes2:                                   
+                                    htmlBoxes = htmlBoxes + f'''                                
+                                        <tr>
+                                            <td><span class='badge bg-primary'>Q{bx["bx_total"]}</span></td>
+                                            <td>{bx["bx_note"]}</td>
+                                            <td>{"Gasto" if bx["bx_type"] == 1 else "Ingreso"}</td>
+                                            <td><span class='badge bg-primary'>{bx["us_pe_fullname"]}</span></td>
+                                        </tr>
+                                    '''
+
+                                totalBoxes2 = sum(bx['bx_total'] for bx in boxes2)
+
+                                totalFull = (total_salepayments + totalBoxes2) - totalBoxes
+
+                                return json.dumps({'success': True, 'total': total_salepayments, 'html': html, 'totalBoxes': totalBoxes, 'totalBoxes2': totalBoxes2, 'htmlBoxes': htmlBoxes, 'totalFull': totalFull})
+                        
                         elif v_apiurlsplit[3] == 'set':
                             if v_apiurlsplit[4] == 'customer' and v_apiurlsplit[5] is None:
                                 cu_id = v_requestform.get('cu_id')
@@ -589,9 +672,9 @@ def api_web(path):
                                 except:
                                     return json.dumps({'success': False, 'msg': '¡No se creó la venta! Póngase en contacto con un soporte técnico.'})
 
-                                v_lo_info = v_userinfo['lo_id']
+                                v_lo_info = info['location']['lo_id']
                                 if not v_lo_info:
-                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que asignarte a una ubicación.'})
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes vender! Tienen que seleccionar una ubicación.'})
                                 
                                 quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = v_lo_info)['quantity']
                                 if not quantitySum:
@@ -820,6 +903,106 @@ def api_web(path):
                                 response.set_cookie('posinfo', token)
 
                                 return response
+                            elif v_apiurlsplit[4] == 'bills' and v_apiurlsplit[5] is None:
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
+                                
+                                total = v_requestform.get('pay')
+                                if not total:
+                                    return json.dumps({'success': False, 'msg': '¡El pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(total):
+                                    return json.dumps({'success': False, 'msg': '¡El pago es invalido! Por favor, corríjalo y vuelva a intentarlo.'})
+                               
+                                total = float(total)
+
+                                note = v_requestform.get('note')
+
+                                v_lo_info = info['location']['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes añadir un gasto! Debes seleccionar una ubicación.'})
+
+                                v_lo_name = info['location']['lo_name']
+
+                                bx_box_model().insert(total, note, 1, v_lo_info, session['us_id'])
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Se ha registrado un gasto.\n\n' +
+                                    f'⚬ <b>Sucursal:</b> {v_lo_name}\n'
+                                    f'⚬ <b>Nota:</b> {note}\n' 
+                                    f'⚬ <b>Total:</b> Q{total}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
+                            
+                                return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'})
+                            elif v_apiurlsplit[4] == 'boxi' and v_apiurlsplit[5] is None:
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'})  
+                                
+                                total = v_requestform.get('pay')
+                                if not total:
+                                    return json.dumps({'success': False, 'msg': '¡El pago está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+                                elif not api_isFloat(total):
+                                    return json.dumps({'success': False, 'msg': '¡El pago es invalido! Por favor, corríjalo y vuelva a intentarlo.'})
+                               
+                                total = float(total)
+
+                                note = v_requestform.get('note')
+
+                                v_lo_info = info['location']['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes añadir un ingreso! Debes seleccionar una ubicación.'})
+
+                                v_lo_name = info['location']['lo_name']
+
+                                bx_box_model().insert(total, note, 2, v_lo_info, session['us_id'])
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Se ha registrado un ingreso.\n\n' +
+                                    f'⚬ <b>Sucursal:</b> {v_lo_name}\n'
+                                    f'⚬ <b>Nota:</b> {note}\n' 
+                                    f'⚬ <b>Total:</b> Q{total}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
+                            
+                                return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
+                            elif v_apiurlsplit[4] == 'boxfinish' and v_apiurlsplit[5] is None:
+                                token = request.cookies.get('posinfo')
+                                serializer = URLSafeSerializer(app.secret_key)
+                                info = None
+                                try:
+                                    info = serializer.loads(token)
+                                except:
+                                    return json.dumps({'success': False, 'msg': '¡No se creo la venta! Póngase en contacto con un soporte técnico.'}) 
+                                                           
+                                v_lo_info = info['location']['lo_id']
+                                if not v_lo_info:
+                                    return json.dumps({'success': False, 'msg': f'¡No puedes añadir un ingreso! Debes seleccionar una ubicación.'})
+
+                                v_lo_name = info['location']['lo_name']
+
+                                bx_box_model().update(action = 'close', lo_id = v_lo_info)
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Se ha finalizado la caja.\n\n' +
+                                    f'⚬ <b>Sucursal:</b> {v_lo_name}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
+                            
+                                return json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!'})                                 
+                        
                         elif v_apiurlsplit[3] == 'finalize' and v_apiurlsplit[4] is None:
                             sa_pay = v_requestform.get('pay')
                             if not sa_pay:
@@ -857,6 +1040,8 @@ def api_web(path):
                             if not v_lo_info:
                                 return json.dumps({'success': False, 'msg': f'¡No puedes vender! Debes seleccionar una ubicación.'})
                             
+                            v_lo_name = info['location']['lo_name']
+                            
                             for product in info['products']:                              
                                 quantitySum = iv_inventory_model().get(get = 'sumProductEntry', pr_id = product['pr_id'], lo_id = v_lo_info)['quantity']
                                 if not quantitySum:
@@ -876,6 +1061,7 @@ def api_web(path):
                             sa_id = str(uuid.uuid4())
                             lo_id = info['location']['lo_id']
                             ts_id = info['typesale']['ts_id']
+                            ts_name = info['typesale']['ts_name']
                             pm_id = info['paymentmethod']['pm_id']
                             sp_no = 0
                             commission = float(info['commission'])
@@ -883,6 +1069,7 @@ def api_web(path):
                             sa_pay = sa_pay - commission
 
                             total = float(info['subtotal']) - float(info['discount'])
+                            total_save = total
 
                             sa_regdate = v_datetimenow
                             if ts_id == 1003 or ts_id == 1004:
@@ -937,6 +1124,17 @@ def api_web(path):
                             response = make_response(json.dumps({'success': True, 'msg': '¡Se finalizó correctamente!', 'sa_id': sa_id, 'sp_no': sp_no}))
                             response.delete_cookie('posinfo')
 
+                            api_tgsendmsg(
+                                chatid = -1001936938743, 
+                                data = '⚠️ <b>Alerta!</b> Se ha finalizado una venta.\n\n' +
+                                f'⚬ <b>Sucursal:</b> {v_lo_name}\n'
+                                f'⚬ <b>Tipo de venta:</b> {ts_name}\n'
+                                f'⚬ <b>Venta:</b> {sa_id}\n'
+                                f'⚬ <b>No. Recibo:</b> {sp_no}\n'
+                                f'⚬ <b>Total:</b> Q{total_save}\n'
+                                f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                            )
+                            
                             return response
                     
                     elif v_apiurlsplit[2] == 'inventory':
@@ -950,7 +1148,9 @@ def api_web(path):
                             it_id = v_requestform.get('it_id')
                             if not it_id:
                                 return json.dumps({'success': False, 'msg': '¡El tipo de inventario está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
-                            elif not it_inventory_types_model().get(get='it_id', it_id = it_id):
+                            
+                            it_inventory_types = it_inventory_types_model().get(get='it_id', it_id = it_id)
+                            if not it_inventory_types:
                                 return json.dumps({'success': False, 'msg': '¡El tipo de inventario no es válido! Por favor, corríjalo y vuelva a intentarlo.'})                            
 
                             it_id = int(it_id)
@@ -993,7 +1193,7 @@ def api_web(path):
                         
                             if it_id == 3 and not api_permissions_access(v_userinfo['us_permissions'], '/pos/inventory/translations'):
                                 return json.dumps({'success': False, 'msg': '¡Acceso denegado! No tienes permiso.'}), 403
-
+                                    
                             if it_id == 2 or it_id == 3:
                                 quantity = iv_inventory_model().get(get = 'sumProductEntry', pr_id = pr_id, lo_id = lo_id)['quantity']
                                 if not quantity:
@@ -1030,6 +1230,15 @@ def api_web(path):
                                     return json.dumps({'success': False, 'msg': '¡Las ubicaciones no deben de ser las mismas! Por favor, corríjala y vuelva a intentarlo.'})
 
                             iv_inventory_model().insert(iv_quantity, iv_note, it_id, pr_id, lo_id, lo_id_2, session['us_id'], us_id_2, us_id_3)
+                            
+                            api_tgsendmsg(
+                                chatid = -1001936938743, 
+                                data = '⚠️ <b>Alerta!</b> Se ha detectado movimiento en el inventario.\n\n' +
+                                f'⚬ <b>Tipo de inventario:</b> {it_inventory_types["it_name"]}\n'
+                                f'⚬ <b>Producto ID:</b> {pr_id}\n' 
+                                f'⚬ <b>Cantidad:</b> {iv_quantity}\n'                                          
+                                f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                            )
                             return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                             
                     #MANAGE
@@ -1115,6 +1324,14 @@ def api_web(path):
                                 us_password = api_hashbcrypt(us_password) 
 
                                 us_users_model().insert_user(us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, mem_id=mem_id)
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Un usuario ha sido agregado.\n\n' +
+                                    f'⚬ <b>Usuario agregado:</b> ({us_id}) {pe_fullname}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
+
                                 return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 us_id = v_requestform.get('us_id')
@@ -1184,7 +1401,15 @@ def api_web(path):
                                 if us_password is None:
                                     us_password = v_userinfo_other['us_password']
                                 else:
-                                    us_password = api_hashbcrypt(us_password) 
+                                    us_password = api_hashbcrypt(us_password)
+                                
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Un usuario ha sido editado.\n\n' +
+                                    f'⚬ <b>Usuario editado:</b> ({us_id}) {v_userinfo_other["pe_fullname"]}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
 
                                 us_users_model().update_user(update='all', us_id=us_id, fullname=pe_fullname, email=pe_email, password=us_password, phone=pe_phone, permissions = us_permissions, mem_id=mem_id, lo_id=lo_id)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
@@ -1273,7 +1498,15 @@ def api_web(path):
 
                                 cu_id = cu_customers_model().gen_customer_id()
 
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Un cliente ha sido agregado.\n\n' +
+                                    f'⚬ <b>Usuario agregado:</b> ({cu_id}) {pe_fullname}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
+
                                 cu_customers_model().insert_customer(cu_id=cu_id, fullname=pe_fullname, email=pe_email, phone=pe_phone, cu_dpi=cu_dpi)
+                                
                                 return json.dumps({'success': True, 'msg': '¡Se agregó correctamente!'}) 
                             elif v_apiurlsplit[4] == 'edit' and v_apiurlsplit[5] is None:
                                 cu_id = v_requestform.get('cu_id')
@@ -1311,6 +1544,13 @@ def api_web(path):
                                 cu_dpi = v_requestform.get('cu_dpi')
                                 if not cu_dpi:
                                     return json.dumps({'success': False, 'msg': '¡El DPI está vacío! Por favor, corríjalo y vuelva a intentarlo.'})
+
+                                api_tgsendmsg(
+                                    chatid = -1001936938743, 
+                                    data = '⚠️ <b>Alerta!</b> Un cliente ha sido editado.\n\n' +
+                                    f'⚬ <b>Usuario editado:</b> ({cu_id}) {cu_customer["pe_fullname"]}\n'
+                                    f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                )
 
                                 cu_customers_model().update_customer(update='all', cu_id=cu_id, pe_fullname=pe_fullname, pe_email=pe_email, pe_phone=pe_phone, cu_dpi=cu_dpi)
                                 return json.dumps({'success': True, 'msg': '¡Se editó correctamente!'}) 
@@ -2505,6 +2745,14 @@ def api_web(path):
                                         iv_inventory_model().insert(float(product['sd_quantity']), None, 1, product['pr_id'], sa_sale['lo_id'], None, session['us_id'], None, None)
 
                                     sa_sales_model().update_sale(update='sa_status', sa_status=0, sa_id=sa_id)
+
+                                    api_tgsendmsg(
+                                        chatid = -1001936938743, 
+                                        data = '⚠️ <b>Alerta!</b> Se ha cancelado una venta.\n\n' +
+                                        f'⚬ <b>Venta:</b> {sa_id}\n'
+                                        f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                    )
+                                    
                                     return json.dumps({'success': True, 'msg': '¡Se canceló correctamente!'})                        
                         elif v_apiurlsplit[3] == 'sale':
                             sa_id = v_apiurlsplit[4] 
@@ -2617,6 +2865,7 @@ def api_web(path):
                                             return json.dumps({'success': False, 'msg': '¡El abono no es válido! Por favor, corríjalo y vuelva a intentarlo.'})
 
                                         amount = float(amount)
+                                        amount_save = amount
 
                                         pay = v_requestform.get('pay')
                                         if not pay:
@@ -2700,6 +2949,15 @@ def api_web(path):
 
                                             sa_sales_model().update_sale(update='sa_no,sa_regdate', sa_no = sa_no, sa_regdate = sa_regdate, sa_id=sa_id)
                                         
+                                        api_tgsendmsg(
+                                            chatid = -1001936938743, 
+                                            data = '⚠️ <b>Alerta!</b> Se ha recibido un abono.\n\n' +
+                                            f'⚬ <b>Venta:</b> {sa_id}\n'
+                                            f'⚬ <b>No. Recibo:</b> {sp_no}\n'
+                                            f'⚬ <b>Abono:</b> Q{amount_save}\n'                                            
+                                            f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                        )
+                                        
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!', 'sp_no': sp_no, 'dif_pay': dif_pay})
                                     elif v_apiurlsplit[6] == 'edit' and v_apiurlsplit[7] is None:
                                         if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/sale/payments/edit'):
@@ -2733,6 +2991,15 @@ def api_web(path):
                                             return json.dumps({'success': False, 'msg': '¡El abono supera el limite! Por favor, corríjalo y vuelva a intentarlo.'})   
 
                                         sp_salepayments_model().update_salepayment(update='edit', sp_note = sp_note, sp_pay = sp_pay, us_id = sp_salepayment['us_id'], sp_id = sp_id, sp_limitdate = sp_limitdate)
+
+                                        api_tgsendmsg(
+                                            chatid = -1001936938743, 
+                                            data = '⚠️ <b>Alerta!</b> Se ha editado un pago.\n\n' +
+                                            f'⚬ <b>Venta:</b> {sa_id}\n'
+                                            f'⚬ <b>Abono:</b> Q{sp_pay}\n'
+                                            f'⚬ <b>Nueva fecha limite:</b> {sp_limitdate}\n'                                            
+                                            f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                        )
 
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                                     elif v_apiurlsplit[6] == 'split' and v_apiurlsplit[7] is None:
@@ -2769,6 +3036,15 @@ def api_web(path):
                                         new_subtotal = sp_salepayment['sp_subtotal'] - sp_amount
                                         sp_salepayments_model().update_salepayment(update='split', sp_subtotal = new_subtotal, sp_id = sp_id)
 
+                                        api_tgsendmsg(
+                                            chatid = -1001936938743, 
+                                            data = '⚠️ <b>Alerta!</b> Se ha dividido un pago.\n\n' +
+                                            f'⚬ <b>Venta:</b> {sa_id}\n'
+                                            f'⚬ <b>Abono:</b> Q{sp_amount}\n'
+                                            f'⚬ <b>Nuevo subtotal:</b> Q{new_subtotal}\n'                                            
+                                            f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                                        )
+
                                         return json.dumps({'success': True, 'msg': '¡Se abonó correctamente!'})
                         elif v_apiurlsplit[3] == 'dbbackup' and v_apiurlsplit[4] is None:
                             if not api_permissions_access(v_userinfo['us_permissions'], '/pos/manage/dbbackup'):
@@ -2780,6 +3056,13 @@ def api_web(path):
                             
                             v_uuid = str(uuid.uuid4())
                             session[v_uuid] = 'mihogar-backup.sql'
+                            
+                            api_tgsendmsg(
+                                chatid = -1001936938743, 
+                                data = '⚠️ <b>Alerta!</b> Se ha generado una copia de seguridad.\n\n' +
+                                f'⚬ <b>Por:</b> ({session["us_id"]}) {v_userinfo["pe_fullname"]}\n'
+                            )
+                            
                             return json.dumps({'success': True, 'url': f'/api/web/download/{v_uuid}'})  
                                  
             return json.dumps({'success': False, 'msg': 'Página no encontrada.'}), 404
