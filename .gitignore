@@ -1,3 +1,4 @@
-__pycache__/
-log/
-static/img/product/
+/__pycache__/
+/log/
+/static/img/product/
+/downloads/
