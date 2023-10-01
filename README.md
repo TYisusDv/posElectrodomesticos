@@ -8,7 +8,7 @@ Punto de venta y inventario de la empresa
 ## Copyright
 © 2023 Mi hogar Electrodomesticos.
 
-Este proyecto se distribuye bajo la licencia Licencia de Uso No Comercial para Proyectos de Código Abierto". Consulta el archivo [LICENSE](LICENSE) para obtener más detalles.
+Este proyecto se distribuye bajo la licencia "Licencia de Uso No Comercial para Proyectos de Código Abierto". Consulta el archivo [LICENSE](LICENSE) para obtener más detalles.
 
 ## Descripción
 Punto de venta y inventario para la gestion de electrodomesticos.
