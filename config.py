@@ -22,18 +22,18 @@ if hostname == "fedora":
 
 if app_local:
     db_user = 'root'
-    db_password = '123456789'
+    db_password = ''
     db_db = 'pos'
     app_link = 'http://127.0.0.1:5000'
     app_debug = True
 else:
     db_user = 'mihogar'
-    db_password = 'f!^EE6Jd3Y*08F0z^D@Z$9Tj5'
+    db_password = ''
     db_db = 'mihogar'
     app_link = 'https://mihogarelectrodomesticos.com'
     app_debug = False
 
-app.secret_key = "sEcrEr&#kEy@1902#TyIsusDv$#q12"
+app.secret_key = "paswiras"
 app.config["MYSQL_HOST"] = "localhost"
 app.config["MYSQL_USER"] = db_user
 app.config["MYSQL_PASSWORD"] = db_password
@@ -52,7 +52,7 @@ web_settings = {
     'description': 'Punto de venta desarrollado por Ing. Jesús Navarro Salcido.'
 }
 
-telegramURL = f"https://api.telegram.org/bot6405279751:AAGvPBr3UPEOf8zlaPVi3zYWqN61_0E6agQ"
+telegramURL = f""
 
 def api_verify_session():
     #0 = Not Logged
